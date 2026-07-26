@@ -1,0 +1,41 @@
+# SaranIndex.com - GitHub Public Repository .gitignore
+
+# Database & Environment Secrets
+*.sql
+!database/schema.sql
+*.sql.gz
+*.sql.bak
+config/db.local.php
+config/config.local.php
+.env
+.env.local
+.env.*.local
+
+# IDE & Editor Configuration
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Server Logs & Runtime Data
+*.log
+logs/
+error_log
+php_errors.log
+
+# Temporary Scratch Files
+tmp/
+temp/
+scratch/
