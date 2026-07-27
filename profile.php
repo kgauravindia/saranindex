@@ -6,8 +6,8 @@ $listing = getListingBySlug($slug);
 
 if (!$listing) {
     // Fallback to first listing if slug not found
-    $listings = getStaticListings();
-    $listing = $listings[0];
+    $listings = getListings('', '', '', 1);
+    $listing = !empty($listings) ? $listings[0] : null;
 }
 
 $review_success = false;

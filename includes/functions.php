@@ -40,128 +40,7 @@ function getVillageUrl($slug) {
     return "village/" . rawurlencode($slug);
 }
 
-// Fallback Blocks Data (Ensures system functions even before SQL import)
-function getStaticBlocks() {
-    return [
-        ['id' => 1, 'block_name' => 'Chapra Sadar', 'hindi_name' => 'छपरा सदर', 'slug' => 'chapra-sadar', 'pincode' => '841301', 'total_panchayats' => 22],
-        ['id' => 2, 'block_name' => 'Marhaura', 'hindi_name' => 'मढ़ौरा', 'slug' => 'marhaura', 'pincode' => '841418', 'total_panchayats' => 18],
-        ['id' => 3, 'block_name' => 'Sonepur', 'hindi_name' => 'सोनपुर', 'slug' => 'sonepur', 'pincode' => '841101', 'total_panchayats' => 23],
-        ['id' => 4, 'block_name' => 'Revelganj', 'hindi_name' => 'रिविलगंज', 'slug' => 'revelganj', 'pincode' => '841305', 'total_panchayats' => 14],
-        ['id' => 5, 'block_name' => 'Garkha', 'hindi_name' => 'गरखा', 'slug' => 'garkha', 'pincode' => '841311', 'total_panchayats' => 20],
-        ['id' => 6, 'block_name' => 'Parsa', 'hindi_name' => 'परसा', 'slug' => 'parsa', 'pincode' => '841219', 'total_panchayats' => 16],
-        ['id' => 7, 'block_name' => 'Dighwara', 'hindi_name' => 'दिघवारा', 'slug' => 'dighwara', 'pincode' => '841207', 'total_panchayats' => 12],
-        ['id' => 8, 'block_name' => 'Amanour', 'hindi_name' => 'अमनौर', 'slug' => 'amanour', 'pincode' => '841401', 'total_panchayats' => 18],
-        ['id' => 9, 'block_name' => 'Baniapur', 'hindi_name' => 'बनियापुर', 'slug' => 'baniapur', 'pincode' => '841403', 'total_panchayats' => 24],
-        ['id' => 10, 'block_name' => 'Ekma', 'hindi_name' => 'एकमा', 'slug' => 'ekma', 'pincode' => '841208', 'total_panchayats' => 19],
-        ['id' => 11, 'block_name' => 'Taraiya', 'hindi_name' => 'तरैया', 'slug' => 'taraiya', 'pincode' => '841424', 'total_panchayats' => 13],
-        ['id' => 12, 'block_name' => 'Isuapur', 'hindi_name' => 'इसुआपुर', 'slug' => 'isuapur', 'pincode' => '841407', 'total_panchayats' => 11],
-        ['id' => 13, 'block_name' => 'Lahladpur', 'hindi_name' => 'लहलादपुर', 'slug' => 'lahladpur', 'pincode' => '841408', 'total_panchayats' => 9],
-        ['id' => 14, 'block_name' => 'Manjhi', 'hindi_name' => 'मांझी', 'slug' => 'manjhi', 'pincode' => '841313', 'total_panchayats' => 24],
-        ['id' => 15, 'block_name' => 'Maker', 'hindi_name' => 'मेकर', 'slug' => 'maker', 'pincode' => '841215', 'total_panchayats' => 10],
-        ['id' => 16, 'block_name' => 'Dariapur', 'hindi_name' => 'दरियापुर', 'slug' => 'dariapur', 'pincode' => '841221', 'total_panchayats' => 21],
-        ['id' => 17, 'block_name' => 'Jalalpur', 'hindi_name' => 'जलालपुर', 'slug' => 'jalalpur', 'pincode' => '841412', 'total_panchayats' => 15],
-        ['id' => 18, 'block_name' => 'Nagra', 'hindi_name' => 'नगरा', 'slug' => 'nagra', 'pincode' => '841442', 'total_panchayats' => 12],
-        ['id' => 19, 'block_name' => 'Mashrakh', 'hindi_name' => 'मशरख', 'slug' => 'mashrakh', 'pincode' => '841417', 'total_panchayats' => 16],
-        ['id' => 20, 'block_name' => 'Panapur', 'hindi_name' => 'पन्नापुर', 'slug' => 'panapur', 'pincode' => '841410', 'total_panchayats' => 11]
-    ];
-}
 
-// Fallback Categories Data
-function getStaticCategories() {
-    return [
-        ['id' => 1, 'name' => 'Businesses & Retail', 'hindi_name' => 'व्यापार एवं दुकानें', 'icon' => 'bi-shop', 'slug' => 'businesses-retail', 'section' => 'BUSINESS'],
-        ['id' => 2, 'name' => 'Advocates & Legal', 'hindi_name' => 'वकील एवं कानूनी सेवाएं', 'icon' => 'bi-journal-text', 'slug' => 'advocates-legal', 'section' => 'PROFESSIONAL'],
-        ['id' => 3, 'name' => 'Doctors & Healthcare', 'hindi_name' => 'डॉक्टर एवं अस्पताल', 'icon' => 'bi-hospital', 'slug' => 'doctors-healthcare', 'section' => 'HEALTHCARE'],
-        ['id' => 4, 'name' => 'Schools & Education', 'hindi_name' => 'स्कूल एवं कॉलेज', 'icon' => 'bi-mortarboard', 'slug' => 'schools-education', 'section' => 'EDUCATION'],
-        ['id' => 5, 'name' => 'Coaching Institutes', 'hindi_name' => 'कोचिंग संस्थान', 'icon' => 'bi-book-half', 'slug' => 'coaching-institutes', 'section' => 'EDUCATION'],
-        ['id' => 6, 'name' => 'Government Offices', 'hindi_name' => 'सरकारी कार्यालय', 'icon' => 'bi-building', 'slug' => 'government-offices', 'section' => 'GOVT'],
-        ['id' => 7, 'name' => 'Hotels & Restaurants', 'hindi_name' => 'होटल एवं रेस्टोरेंट', 'icon' => 'bi-cup-hot', 'slug' => 'hotels-restaurants', 'section' => 'HOTEL'],
-        ['id' => 8, 'name' => 'Banks & ATMs', 'hindi_name' => 'बैंक एवं एटीएम', 'icon' => 'bi-bank', 'slug' => 'banks-atms', 'section' => 'BANK'],
-        ['id' => 9, 'name' => 'Emergency Services', 'hindi_name' => 'आपातकालीन सेवाएं', 'icon' => 'bi-telephone-outbound', 'slug' => 'emergency-services', 'section' => 'EMERGENCY']
-    ];
-}
-
-// Fallback Listings Data
-function getStaticListings() {
-    return [
-        [
-            'id' => 1,
-            'title' => 'Town Police Station (Thana), Chapra',
-            'hindi_title' => 'नगर थाना, छपरा',
-            'slug' => 'town-police-station-chapra',
-            'category_name' => 'Emergency Services',
-            'block_name' => 'Chapra Sadar',
-            'mobile' => '06152-243202',
-            'whatsapp' => '9431822401',
-            'email' => 'sho-chapratown-bih@nic.in',
-            'website' => 'https://saran.bihar.gov.in',
-            'address' => 'Near Thanachowk, Main Road, Chapra, Saran',
-            'pincode' => '841301',
-            'services' => '24/7 Police Help, Crime Reporting, FIR Filing, Emergency Helpline 112',
-            'description' => 'Official Town Police Station providing 24/7 safety and public law enforcement in Chapra Sadar.',
-            'is_verified' => 'YES',
-            'is_featured' => 'YES',
-            'star_rating' => 5.00
-        ],
-        [
-            'id' => 2,
-            'title' => 'Saran District Hospital (Sadar Hospital Chapra)',
-            'hindi_title' => 'सदर अस्पताल, छपरा',
-            'slug' => 'sadar-hospital-chapra',
-            'category_name' => 'Doctors & Healthcare',
-            'block_name' => 'Chapra Sadar',
-            'mobile' => '06152-243405',
-            'whatsapp' => '9470003200',
-            'email' => 'cs-saran-bih@nic.in',
-            'website' => 'https://saran.bihar.gov.in',
-            'address' => 'Hospital Road, Near Municipal Chowk, Chapra',
-            'pincode' => '841301',
-            'services' => '24/7 Emergency Care, OPD, ICU, Ambulance, Pathology Lab, Blood Bank',
-            'description' => 'The premier government district healthcare facility in Saran, equipping specialized doctors and 24x7 emergency medical services.',
-            'is_verified' => 'YES',
-            'is_featured' => 'YES',
-            'star_rating' => 4.80
-        ],
-        [
-            'id' => 3,
-            'title' => 'District Bar Association, Saran (Chapra Court Advocates Hub)',
-            'hindi_title' => 'जिला बार एसोसिएशन, सरण (छपरा)',
-            'slug' => 'district-bar-association-saran',
-            'category_name' => 'Advocates & Legal',
-            'block_name' => 'Chapra Sadar',
-            'mobile' => '06152-242100',
-            'whatsapp' => '9431426600',
-            'email' => 'contact@advocateindex.com',
-            'website' => 'https://advocateindex.com/BRSARA',
-            'address' => 'District & Sessions Court Premises, Chapra, Saran',
-            'pincode' => '841301',
-            'services' => 'Legal Advice, Court Representation, Bail Applications, Legal Documentation, Notary',
-            'description' => 'Official District Bar Association Chapra representing legal practitioners in Saran district.',
-            'is_verified' => 'YES',
-            'is_featured' => 'YES',
-            'star_rating' => 4.90
-        ],
-        [
-            'id' => 4,
-            'title' => 'District Collectorate Office (DM Office Saran)',
-            'hindi_title' => 'जिलाधिकारी कार्यालय (समाहरणालय छपरा)',
-            'slug' => 'dm-office-saran-chapra',
-            'category_name' => 'Government Offices',
-            'block_name' => 'Chapra Sadar',
-            'mobile' => '06152-245001',
-            'whatsapp' => '9473191238',
-            'email' => 'dm-saran.bih@nic.in',
-            'website' => 'https://saran.bihar.gov.in',
-            'address' => 'Collectorate Campus, Katchahry Chowk, Chapra, Saran',
-            'pincode' => '841301',
-            'services' => 'Public Grievances, Revenue Administration, Land Records, District Licensing, Government Welfare Schemes',
-            'description' => 'Apex administrative headquarters for Saran District located in Chapra city.',
-            'is_verified' => 'YES',
-            'is_featured' => 'YES',
-            'star_rating' => 5.00
-        ]
-    ];
-}
 
 function getBlocks() {
     $db = getDB();
@@ -172,7 +51,7 @@ function getBlocks() {
             if ($results) return $results;
         } catch (PDOException $e) {}
     }
-    return getStaticBlocks();
+    return [];
 }
 
 function getCategories() {
@@ -184,7 +63,7 @@ function getCategories() {
             if ($results) return $results;
         } catch (PDOException $e) {}
     }
-    return getStaticCategories();
+    return [];
 }
 
 function getSubcategoriesByCategoryId($category_id) {
@@ -246,15 +125,7 @@ function getListings($search = '', $category_slug = '', $block_slug = '', $limit
             if ($results) return $results;
         } catch (PDOException $e) {}
     }
-    
-    // Static Fallback Filtering
-    $static = getStaticListings();
-    if (!empty($search)) {
-        $static = array_filter($static, function($item) use ($search) {
-            return stripos($item['title'], $search) !== false || stripos($item['description'], $search) !== false || stripos($item['services'], $search) !== false;
-        });
-    }
-    return array_values($static);
+    return [];
 }
 
 function getListingBySlug($slug) {
@@ -266,10 +137,6 @@ function getListingBySlug($slug) {
             $res = $stmt->fetch();
             if ($res) return $res;
         } catch (PDOException $e) {}
-    }
-    
-    foreach (getStaticListings() as $item) {
-        if ($item['slug'] === $slug) return $item;
     }
     return null;
 }
@@ -406,14 +273,7 @@ function getAdminStats() {
         } catch (PDOException $e) {}
     }
 
-    // Static fallback metrics
-    $staticListings = getStaticListings();
-    $stats['total_listings'] = count($staticListings);
-    $stats['pending_listings'] = 0;
-    $stats['verified_listings'] = count($staticListings);
-    $stats['total_categories'] = count(getStaticCategories());
-    $stats['total_blocks'] = count(getStaticBlocks());
-    $stats['total_reviews'] = 0;
+    // Fallback metrics if DB fails
     return $stats;
 }
 
@@ -443,19 +303,7 @@ function getAllAdminListings($status = null, $search = null) {
             return $stmt->fetchAll();
         } catch (PDOException $e) {}
     }
-
-    $static = getStaticListings();
-    if ($status) {
-        $static = array_filter($static, function($item) use ($status) {
-            return isset($item['status']) ? $item['status'] === $status : true;
-        });
-    }
-    if ($search) {
-        $static = array_filter($static, function($item) use ($search) {
-            return stripos($item['title'], $search) !== false || stripos($item['mobile'], $search) !== false;
-        });
-    }
-    return array_values($static);
+    return [];
 }
 
 function getListingById($id) {
@@ -467,10 +315,6 @@ function getListingById($id) {
             $res = $stmt->fetch();
             if ($res) return $res;
         } catch (PDOException $e) {}
-    }
-
-    foreach (getStaticListings() as $item) {
-        if ($item['id'] == $id) return $item;
     }
     return null;
 }
@@ -580,7 +424,7 @@ function getAllAdminCategories() {
             return $stmt->fetchAll();
         } catch (PDOException $e) {}
     }
-    return getStaticCategories();
+    return [];
 }
 
 function saveCategory($name, $hindi_name, $icon, $section, $id = null) {
@@ -725,7 +569,8 @@ function getPeople($block_id = null, $limit = 50) {
             $sql .= " ORDER BY p.full_name ASC LIMIT " . intval($limit);
             $stmt = $db->prepare($sql);
             $stmt->execute($params);
-            return $stmt->fetchAll();
+            $res = $stmt->fetchAll();
+            if (!empty($res)) return $res;
         } catch (PDOException $e) {
             error_log("Error fetching people: " . $e->getMessage());
         }
@@ -742,7 +587,8 @@ function getPersonBySlug($slug) {
         try {
             $stmt = $db->prepare("SELECT p.*, b.block_name FROM people p LEFT JOIN blocks b ON p.block_id = b.id WHERE p.slug = :slug LIMIT 1");
             $stmt->execute(['slug' => $slug]);
-            return $stmt->fetch();
+            $res = $stmt->fetch();
+            if ($res) return $res;
         } catch (PDOException $e) {
             error_log("Error fetching person: " . $e->getMessage());
         }

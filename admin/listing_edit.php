@@ -90,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $categories = getAllAdminCategories();
-$blocks = getStaticBlocks();
+$blocks = getBlocks();
 ?>
 
 <!-- Header Title Bar -->

@@ -1,6 +1,4 @@
 -- SaranIndex.com Schema & Seed Data
-CREATE DATABASE IF NOT EXISTS `u305984835_saranindex` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE `u305984835_saranindex`;
 
 -- 1. Blocks Table
 CREATE TABLE IF NOT EXISTS `blocks` (
