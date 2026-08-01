@@ -17,7 +17,7 @@
             </div>
             <div class="col-lg-6 text-lg-end">
                 <div class="d-inline-flex flex-wrap gap-2 justify-content-lg-end">
-                    <a href="add_contact.php" class="btn btn-warning rounded-pill px-4 py-2 fw-bold text-dark shadow-sm">
+                    <a href="add-contact.php" class="btn btn-warning rounded-pill px-4 py-2 fw-bold text-dark shadow-sm">
                         <i class="bi bi-rocket-takeoff me-1"></i>List Business Free
                     </a>
                     <a href="emergency.php" class="btn btn-outline-light rounded-pill px-4 py-2 fw-semibold">
@@ -102,6 +102,48 @@
         </div>
     </div>
 </footer>
+
+<!-- Non-Government & Non-Political Disclaimer Modal (First Time Visitors) -->
+<div class="modal fade" id="disclaimerModal" tabindex="-1" aria-labelledby="disclaimerModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-dark text-white border-0 py-3 px-4">
+                <div class="d-flex align-items-center">
+                    <div class="bg-warning text-dark rounded-circle me-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 42px; height: 42px;">
+                        <i class="bi bi-shield-exclamation-fill fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold font-heading mb-0 text-white" id="disclaimerModalLabel">Notice & Disclaimer</h5>
+                        <small class="text-white-50">Saran Index Digital Directory</small>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-body p-4 text-dark" style="font-size: 0.95rem; line-height: 1.6;">
+                <div class="alert bg-warning-subtle text-dark border-warning border-start border-4 rounded-3 mb-3 p-3">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-exclamation-triangle-fill text-warning me-2 fs-5 flex-shrink-0 mt-1"></i>
+                        <div>
+                            <strong class="d-block text-dark">Non-Government & Non-Political Disclaimer</strong>
+                            <span class="small text-secondary">Private initiative by OfferPlant Technologies Pvt. Ltd.</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="mb-3">
+                    <strong>Saran Index</strong> (<code>saranindex.com</code>) is an independent private digital directory dedicated to connecting local businesses, services, and citizens across Saran District (Bihar).
+                </p>
+                <div class="p-3 bg-light rounded-3 border text-secondary small">
+                    <i class="bi bi-shield-x text-danger me-1 fs-6"></i>
+                    Please note: This website is <strong>NOT associated with, affiliated with, endorsed by, or representing any Government Department, Government Authority, or Political Organization</strong>.
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-0 py-3 px-4">
+                <button type="button" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm w-100" id="acceptDisclaimerBtn" data-bs-dismiss="modal">
+                    <i class="bi bi-check-circle-fill me-2"></i>I Understand & Continue
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Bootstrap 5 JS Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

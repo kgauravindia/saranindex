@@ -236,17 +236,6 @@ function verifyAdminLogin($username, $password) {
             }
         } catch (PDOException $e) {}
     }
-
-    // Default Fallback Credentials if DB is unavailable
-    if ($username === 'admin' && $password === 'admin123') {
-        return [
-            'id' => 1,
-            'username' => 'admin',
-            'full_name' => 'SaranIndex Administrator',
-            'email' => 'admin@saranindex.com',
-            'role' => 'SUPER_ADMIN'
-        ];
-    }
     return false;
 }
 
@@ -595,7 +584,384 @@ function getPersonBySlug($slug) {
     }
     return null;
 }
-?>
 
+// --- CONTACT SUBMISSIONS FUNCTIONS ---
 
+function ensureContactMessagesTableExists() {
+    $db = getDB();
+    if (!$db) return false;
+    try {
+        $db->exec("CREATE TABLE IF NOT EXISTS `contact` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `name` VARCHAR(250) NOT NULL,
+            `mobile` VARCHAR(20) NOT NULL,
+            `email` VARCHAR(255) DEFAULT NULL,
+            `subject` VARCHAR(254) DEFAULT NULL,
+            `message` TEXT DEFAULT NULL,
+            `mobile_status` VARCHAR(10) DEFAULT NULL,
+            `status` VARCHAR(50) DEFAULT 'UNREAD',
+            `profile_id` INT DEFAULT 0,
+            `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+            `created_by` INT DEFAULT 0,
+            `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            `updated_by` INT DEFAULT 0,
+            `reply` VARCHAR(1000) DEFAULT '',
+            `reply_message` TEXT DEFAULT NULL,
+            `replied_at` TIMESTAMP NULL DEFAULT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
+        try {
+            $cols = $db->query("SHOW COLUMNS FROM `contact` LIKE 'email'")->fetchAll();
+            if (empty($cols)) {
+                $db->exec("ALTER TABLE `contact` ADD COLUMN `email` VARCHAR(100) DEFAULT NULL AFTER `mobile`");
+            }
+        } catch (PDOException $ex) {}
+
+        return true;
+    } catch (PDOException $e) {
+        error_log("Error in ensureContactMessagesTableExists: " . $e->getMessage());
+        return false;
+    }
+}
+
+function saveContactMessage($name, $mobile, $email, $subject, $message) {
+    ensureContactMessagesTableExists();
+    $db = getDB();
+    if (!$db) return false;
+    try {
+        $stmt = $db->prepare("INSERT INTO `contact` (`name`, `mobile`, `email`, `subject`, `message`, `status`, `profile_id`, `created_at`, `created_by`, `updated_by`, `reply`) VALUES (:name, :mobile, :email, :subject, :message, 'UNREAD', 0, NOW(), 0, 0, '')");
+        return $stmt->execute([
+            'name' => $name,
+            'mobile' => $mobile,
+            'email' => $email ?: null,
+            'subject' => $subject,
+            'message' => $message
+        ]);
+    } catch (PDOException $e) {
+        error_log("Error saving contact message: " . $e->getMessage());
+        return false;
+    }
+}
+
+function getAllContactMessages($status = null) {
+    ensureContactMessagesTableExists();
+    $db = getDB();
+    if (!$db) return [];
+    try {
+        if ($status) {
+            $stmt = $db->prepare("SELECT * FROM `contact` WHERE status = :status ORDER BY created_at DESC");
+            $stmt->execute(['status' => $status]);
+        } else {
+            $stmt = $db->query("SELECT * FROM `contact` ORDER BY created_at DESC");
+        }
+        return $stmt->fetchAll();
+    } catch (PDOException $e) {
+        error_log("Error fetching contact messages: " . $e->getMessage());
+        return [];
+    }
+}
+
+function updateContactMessageStatus($id, $status) {
+    ensureContactMessagesTableExists();
+    $db = getDB();
+    if (!$db) return false;
+    try {
+        $stmt = $db->prepare("UPDATE `contact` SET `status` = :status WHERE id = :id");
+        return $stmt->execute(['status' => $status, 'id' => $id]);
+    } catch (PDOException $e) {
+        return false;
+    }
+}
+
+function deleteContactMessage($id) {
+    ensureContactMessagesTableExists();
+    $db = getDB();
+    if (!$db) return false;
+    try {
+        $stmt = $db->prepare("DELETE FROM `contact` WHERE id = :id");
+        return $stmt->execute(['id' => $id]);
+    } catch (PDOException $e) {
+        return false;
+    }
+}
+
+// --- CENSUS VILLAGE FUNCTIONS ---
+
+function getVillageUniqueSlug($name, $code) {
+    $slug = strtolower(trim($name));
+    $slug = preg_replace('/[^a-z0-9\s-]/', '', $slug);
+    $slug = preg_replace('/[\s-]+/', '-', $slug);
+    $slug = trim($slug, '-');
+    return $slug . '-' . trim($code);
+}
+
+function slugifyVillage($name) {
+    $slug = strtolower(trim($name));
+    $slug = preg_replace('/[^a-z0-9\s-]/', '', $slug);
+    $slug = preg_replace('/[\s-]+/', '-', $slug);
+    return trim($slug, '-');
+}
+
+function getCensusVillageByCodeOrId($val) {
+    $db = getDB();
+    if (!$db || empty($val)) return null;
+
+    try {
+        $code = null;
+        if (preg_match('/-(\d+)$/', $val, $matches)) {
+            $code = $matches[1];
+        } elseif (is_numeric($val)) {
+            $code = $val;
+        }
+
+        if ($code) {
+            $stmt = $db->prepare("SELECT c.*, l.name_hindi, l.block AS block_name, l.village_lgd_code, b.id AS block_id, b.slug AS block_slug, b.pincode 
+                FROM census c 
+                LEFT JOIN lgd_village l ON (c.town_village_code = l.census_2011_code OR l.census_2011_code LIKE CONCAT('%', c.town_village_code, '%'))
+                LEFT JOIN blocks b ON (l.block = b.name OR l.block = b.name_english OR l.block LIKE CONCAT(b.name, '%'))
+                WHERE c.level = 'VILLAGE' AND (c.town_village_code = :val1 OR c.id = :val2) 
+                LIMIT 1");
+            $stmt->execute(['val1' => $code, 'val2' => is_numeric($code) ? intval($code) : 0]);
+            $res = $stmt->fetch();
+
+            if ($res) {
+                $res['unique_slug'] = getVillageUniqueSlug($res['name'], $res['town_village_code']);
+                $res['slug'] = $res['unique_slug'];
+                return $res;
+            }
+        }
+
+        $stmt2 = $db->query("SELECT c.*, l.name_hindi, l.block AS block_name, l.village_lgd_code, b.id AS block_id, b.slug AS block_slug, b.pincode 
+            FROM census c 
+            LEFT JOIN lgd_village l ON (c.town_village_code = l.census_2011_code OR l.census_2011_code LIKE CONCAT('%', c.town_village_code, '%'))
+            LEFT JOIN blocks b ON (l.block = b.name OR l.block = b.name_english OR l.block LIKE CONCAT(b.name, '%'))
+            WHERE c.level = 'VILLAGE'");
+        $all = $stmt2->fetchAll();
+
+        $searchSlug = strtolower(trim($val));
+        foreach ($all as $v) {
+            $uSlug = getVillageUniqueSlug($v['name'], $v['town_village_code']);
+            $nSlug = slugifyVillage($v['name']);
+            if ($uSlug === $searchSlug || $nSlug === $searchSlug) {
+                $v['unique_slug'] = $uSlug;
+                $v['slug'] = $uSlug;
+                return $v;
+            }
+        }
+        return null;
+    } catch (PDOException $e) {
+        error_log("Error fetching census village: " . $e->getMessage());
+        return null;
+    }
+}
+
+function getCensusVillages($block = null, $search = null, $limit = 24, $offset = 0) {
+    $db = getDB();
+    if (!$db) return [];
+
+    try {
+        $where = ["c.level = 'VILLAGE'"];
+        $params = [];
+
+        if (!empty($block)) {
+            $where[] = "(l.block = :b1 OR l.block LIKE :b2 OR c.name LIKE :b3)";
+            $params['b1'] = $block;
+            $params['b2'] = "%$block%";
+            $params['b3'] = "%$block%";
+        }
+
+        if (!empty($search)) {
+            $where[] = "(c.name LIKE :s1 OR l.name_hindi LIKE :s2 OR c.town_village_code LIKE :s3 OR l.village_lgd_code LIKE :s4)";
+            $params['s1'] = "%$search%";
+            $params['s2'] = "%$search%";
+            $params['s3'] = "%$search%";
+            $params['s4'] = "%$search%";
+        }
+
+        $whereSql = implode(" AND ", $where);
+        $sql = "SELECT c.*, l.name_hindi, l.block AS block_name, l.village_lgd_code, b.slug AS block_slug 
+                FROM census c 
+                LEFT JOIN lgd_village l ON (c.town_village_code = l.census_2011_code OR l.census_2011_code LIKE CONCAT('%', c.town_village_code, '%'))
+                LEFT JOIN blocks b ON (l.block = b.name OR l.block = b.name_english OR l.block LIKE CONCAT(b.name, '%'))
+                WHERE $whereSql 
+                ORDER BY c.name ASC 
+                LIMIT " . intval($limit) . " OFFSET " . intval($offset);
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll();
+
+        foreach ($rows as &$r) {
+            $r['unique_slug'] = getVillageUniqueSlug($r['name'], $r['town_village_code']);
+            $r['slug'] = $r['unique_slug'];
+        }
+        return $rows;
+    } catch (PDOException $e) {
+        error_log("Error fetching census villages: " . $e->getMessage());
+        return [];
+    }
+}
+
+function getTotalCensusVillagesCount($block = null, $search = null) {
+    $db = getDB();
+    if (!$db) return 0;
+
+    try {
+        $where = ["c.level = 'VILLAGE'"];
+        $params = [];
+
+        if (!empty($block)) {
+            $where[] = "(l.block = :b1 OR l.block LIKE :b2 OR c.name LIKE :b3)";
+            $params['b1'] = $block;
+            $params['b2'] = "%$block%";
+            $params['b3'] = "%$block%";
+        }
+
+        if (!empty($search)) {
+            $where[] = "(c.name LIKE :s1 OR l.name_hindi LIKE :s2 OR c.town_village_code LIKE :s3 OR l.village_lgd_code LIKE :s4)";
+            $params['s1'] = "%$search%";
+            $params['s2'] = "%$search%";
+            $params['s3'] = "%$search%";
+            $params['s4'] = "%$search%";
+        }
+
+        $whereSql = implode(" AND ", $where);
+        $sql = "SELECT COUNT(*) FROM census c 
+                LEFT JOIN lgd_village l ON (c.town_village_code = l.census_2011_code OR l.census_2011_code LIKE CONCAT('%', c.town_village_code, '%')) 
+                WHERE $whereSql";
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        return intval($stmt->fetchColumn());
+    } catch (PDOException $e) {
+        return 0;
+    }
+}
+
+function getNearbyCensusVillages($blockName, $excludeCode, $limit = 6) {
+    $db = getDB();
+    if (!$db) return [];
+
+    try {
+        $stmt = $db->prepare("SELECT c.*, l.name_hindi, l.block AS block_name, l.village_lgd_code 
+            FROM census c 
+            LEFT JOIN lgd_village l ON c.town_village_code = l.census_2011_code 
+            WHERE c.level = 'VILLAGE' AND (l.block = :block OR l.block LIKE :block_like) AND c.town_village_code != :exc 
+            ORDER BY RAND() 
+            LIMIT " . intval($limit));
+        $stmt->execute([
+            'block' => $blockName ?: 'Amnour',
+            'block_like' => "%" . ($blockName ?: 'Amnour') . "%",
+            'exc' => $excludeCode
+        ]);
+        $rows = $stmt->fetchAll();
+        foreach ($rows as &$r) {
+            $r['unique_slug'] = getVillageUniqueSlug($r['name'], $r['town_village_code']);
+            $r['slug'] = $r['unique_slug'];
+        }
+        return $rows;
+    } catch (PDOException $e) {
+        return [];
+    }
+}
+
+// --- HALKA & REVENUE VILLAGE FUNCTIONS ---
+
+function getHalkaRecords($block = null, $search = null, $limit = 24, $offset = 0) {
+    $db = getDB();
+    if (!$db) return [];
+
+    try {
+        $where = ["1=1"];
+        $params = [];
+
+        if (!empty($block)) {
+            $where[] = "(block = :b1 OR block LIKE :b2)";
+            $params['b1'] = $block;
+            $params['b2'] = "%$block%";
+        }
+
+        if (!empty($search)) {
+            $where[] = "(mauja_name LIKE :s1 OR halka_name LIKE :s2 OR mauja_code LIKE :s3 OR halka_code = :s4 OR block LIKE :s5)";
+            $params['s1'] = "%$search%";
+            $params['s2'] = "%$search%";
+            $params['s3'] = "%$search%";
+            $params['s4'] = is_numeric($search) ? intval($search) : -1;
+            $params['s5'] = "%$search%";
+        }
+
+        $whereSql = implode(" AND ", $where);
+        $sql = "SELECT * FROM halka 
+                WHERE $whereSql 
+                ORDER BY block ASC, halka_code ASC, mauja_name ASC 
+                LIMIT " . intval($limit) . " OFFSET " . intval($offset);
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    } catch (PDOException $e) {
+        error_log("Error fetching halka records: " . $e->getMessage());
+        return [];
+    }
+}
+
+function getTotalHalkaCount($block = null, $search = null) {
+    $db = getDB();
+    if (!$db) return 0;
+
+    try {
+        $where = ["1=1"];
+        $params = [];
+
+        if (!empty($block)) {
+            $where[] = "(block = :b1 OR block LIKE :b2)";
+            $params['b1'] = $block;
+            $params['b2'] = "%$block%";
+        }
+
+        if (!empty($search)) {
+            $where[] = "(mauja_name LIKE :s1 OR halka_name LIKE :s2 OR mauja_code LIKE :s3 OR halka_code = :s4 OR block LIKE :s5)";
+            $params['s1'] = "%$search%";
+            $params['s2'] = "%$search%";
+            $params['s3'] = "%$search%";
+            $params['s4'] = is_numeric($search) ? intval($search) : -1;
+            $params['s5'] = "%$search%";
+        }
+
+        $whereSql = implode(" AND ", $where);
+        $sql = "SELECT COUNT(*) FROM halka WHERE $whereSql";
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        return intval($stmt->fetchColumn());
+    } catch (PDOException $e) {
+        return 0;
+    }
+}
+
+function getHalkaBlocks() {
+    $db = getDB();
+    if (!$db) return [];
+    try {
+        return $db->query("SELECT DISTINCT block FROM halka ORDER BY block ASC")->fetchAll(PDO::FETCH_COLUMN);
+    } catch (PDOException $e) {
+        return [];
+    }
+}
+
+function getHalkaStats() {
+    $db = getDB();
+    if (!$db) return ['maujas' => 0, 'halkas' => 0, 'blocks' => 0];
+    try {
+        $maujas = $db->query("SELECT COUNT(*) FROM halka")->fetchColumn();
+        $halkas = $db->query("SELECT COUNT(DISTINCT CONCAT(block, '-', halka_code)) FROM halka")->fetchColumn();
+        $blocks = $db->query("SELECT COUNT(DISTINCT block) FROM halka")->fetchColumn();
+        return [
+            'maujas' => intval($maujas),
+            'halkas' => intval($halkas),
+            'blocks' => intval($blocks)
+        ];
+    } catch (PDOException $e) {
+        return ['maujas' => 0, 'halkas' => 0, 'blocks' => 0];
+    }
+}

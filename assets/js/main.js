@@ -96,4 +96,24 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    // First Time Visitor Non-Government & Non-Political Disclaimer Modal
+    const DISCLAIMER_KEY = 'saranindex_disclaimer_accepted';
+    if (!localStorage.getItem(DISCLAIMER_KEY)) {
+        const disclaimerModalEl = document.getElementById('disclaimerModal');
+        if (disclaimerModalEl && typeof bootstrap !== 'undefined') {
+            const disclaimerModal = new bootstrap.Modal(disclaimerModalEl, {
+                backdrop: 'static',
+                keyboard: false
+            });
+            disclaimerModal.show();
+
+            const acceptBtn = document.getElementById('acceptDisclaimerBtn');
+            if (acceptBtn) {
+                acceptBtn.addEventListener('click', function () {
+                    localStorage.setItem(DISCLAIMER_KEY, 'true');
+                });
+            }
+        }
+    }
 });

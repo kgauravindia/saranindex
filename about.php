@@ -6,13 +6,39 @@ require_once __DIR__ . '/includes/header.php';
 
 <div class="bg-dark text-white py-5 text-center position-relative">
     <div class="container">
-        <span class="badge bg-warning text-dark fw-bold px-3 py-1 rounded-pill mb-3">9th Incorporation Anniversary</span>
+        <span class="badge bg-warning text-dark fw-bold px-3 py-1 rounded-pill mb-3">
+            <i class="bi bi-rocket-takeoff-fill me-1"></i> LAUNCH 26 JULY 2026
+        </span>
         <h1 class="fw-bolder font-heading text-white display-5 mb-2">About Saran Index</h1>
-        <p class="text-white-50 lead mx-auto mb-0" style="max-width: 650px;">An initiative of <strong>OfferPlant Technologies Private Limited</strong>, dedicated to digitally connecting Saran District.</p>
+        <p class="text-white-50 lead mx-auto mb-0" style="max-width: 720px;">Coinciding with the <strong>9th Incorporation Day of OfferPlant Technologies Pvt. Ltd.</strong></p>
     </div>
 </div>
 
 <div class="container py-5">
+    <!-- Launch & Incorporation Highlight Banner -->
+    <div class="card border-0 shadow-sm rounded-4 mb-5 overflow-hidden" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+        <div class="card-body p-4 p-md-5 text-white">
+            <div class="row align-items-center">
+                <div class="col-lg-8 mb-3 mb-lg-0">
+                    <span class="badge bg-warning text-dark fw-bold px-3 py-1 rounded-pill mb-2">
+                        <i class="bi bi-calendar-check-fill me-1"></i> LAUNCH 26 JULY 2026
+                    </span>
+                    <h3 class="fw-bold font-heading text-white mb-2">Coinciding with the 9th Incorporation Day of OfferPlant Technologies Pvt. Ltd.</h3>
+                    <p class="text-white-50 mb-0" style="line-height: 1.6;">
+                        Saran Index is launched on <strong>26 July 2026</strong>, celebrating the <strong>9th Incorporation Anniversary</strong> of OfferPlant Technologies Private Limited (Established <strong>26 July 2017</strong>).
+                    </p>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <div class="p-3 rounded-3 bg-white bg-opacity-10 border border-white border-opacity-10 text-center">
+                        <div class="small text-warning fw-bold text-uppercase tracking-wider">Incorporation Milestone</div>
+                        <div class="fs-4 fw-bolder text-white">26 JULY 2026</div>
+                        <div class="small text-white-50">9 Years of Excellence (2017 – 2026)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row align-items-center g-5 mb-5">
         <div class="col-lg-6">
             <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-1.5 rounded-pill small mb-2">Connecting Saran Digitally</span>

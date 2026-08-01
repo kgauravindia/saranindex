@@ -2,7 +2,7 @@
 require_once __DIR__ . '/functions.php';
 
 $page_title = $page_title ?? (APP_NAME . ' – ' . APP_TAGLINE);
-$meta_description = $meta_description ?? 'Saran Index is the official digital directory of Saran District (Chapra, Bihar). Find verified local businesses, advocates, doctors, schools, government offices, and emergency services across all 20 blocks.';
+$meta_description = $meta_description ?? 'Saran Index is the digital directory of Saran District (Chapra, Bihar). Find verified local businesses, advocates, doctors, schools, government offices, and emergency services across all 20 blocks.';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -34,6 +34,7 @@ $meta_description = $meta_description ?? 'Saran Index is the official digital di
     
     <!-- Custom Design System CSS -->
     <link href="assets/css/style.css" rel="stylesheet">
+    <script>const BASE_URL = "<?php echo BASE_URL; ?>";</script>
 </head>
 <body>
 
@@ -41,8 +42,7 @@ $meta_description = $meta_description ?? 'Saran Index is the official digital di
 <div class="bg-dark text-white py-1 px-3 text-center small border-bottom border-secondary">
     <div class="container d-flex flex-column flex-md-row align-items-center justify-content-between">
         <div class="mb-1 mb-md-0">
-            <span class="badge bg-warning text-dark me-2">LAUNCH 26 JULY 2026</span>
-            <span class="fw-medium">Coinciding with the 9th Incorporation Day of OfferPlant Technologies Pvt. Ltd.</span>
+            <span class="text-white-50 fw-medium"><i class="bi bi-geo-alt-fill text-warning me-1"></i>Saran District's Digital Directory • Bihar</span>
         </div>
         <div>
             <a href="emergency" class="text-danger fw-bold text-decoration-none me-3"><i class="bi bi-shield-exclamation me-1"></i>24x7 Emergency Helpline</a>
@@ -72,10 +72,16 @@ $meta_description = $meta_description ?? 'Saran Index is the official digital di
                     <a class="nav-link text-dark px-3" href="index.php"><i class="bi bi-house-door me-1"></i>Home</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-dark px-3" href="blocks"><i class="bi bi-geo-alt me-1"></i>All 20 Blocks</a>
+                    <a class="nav-link text-dark px-3" href="blocks"><i class="bi bi-geo-alt me-1"></i>Blocks</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-dark px-3" href="emergency"><i class="bi bi-telephone-fill me-1 text-danger"></i>Emergency Numbers</a>
+                    <a class="nav-link text-dark px-3" href="village"><i class="bi bi-houses me-1"></i>Villages</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-dark px-3" href="halka"><i class="bi bi-map me-1"></i>Halka & Mauja</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-dark px-3" href="emergency"><i class="bi bi-telephone-fill me-1 text-danger"></i>Emergency</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link text-dark px-3" href="about"><i class="bi bi-info-circle me-1"></i>About Us</a>

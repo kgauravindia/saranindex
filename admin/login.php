@@ -125,10 +125,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <button type="submit" class="btn btn-primary w-100 py-2.5 fw-bold rounded-3 shadow-sm mb-3">
             <i class="bi bi-box-arrow-in-right me-2"></i>Sign In to Admin
         </button>
-
-        <div class="bg-light border rounded-3 p-2.5 text-center small text-muted">
-            <i class="bi bi-info-circle text-primary me-1"></i> Default Login: <code class="fw-bold text-dark">admin</code> / <code class="fw-bold text-dark">admin123</code>
-        </div>
     </form>
 
     <div class="mt-4 pt-3 border-top text-center">

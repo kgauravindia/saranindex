@@ -28,6 +28,11 @@ h1, h2, h3, h4, h5, h6, .font-heading {
     font-weight: 700;
 }
 
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1d4ed8 100%) !important;
+    color: #ffffff !important;
+}
+
 /* Glassmorphism Hero Section */
 .hero-wrapper {
     background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1d4ed8 100%);
@@ -292,4 +297,75 @@ h1, h2, h3, h4, h5, h6, .font-heading {
         padding: 10px 20px;
         font-size: 0.95rem;
     }
+}
+
+/* Village & Demographic Custom Styling */
+.stat-card-blue {
+    background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+    border-left: 5px solid #2563eb !important;
+}
+
+.stat-card-green {
+    background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 100%);
+    border-left: 5px solid #10b981 !important;
+}
+
+.stat-card-cyan {
+    background: linear-gradient(135deg, #ffffff 0%, #ecfeff 100%);
+    border-left: 5px solid #06b6d4 !important;
+}
+
+.stat-card-amber {
+    background: linear-gradient(135deg, #ffffff 0%, #fffbeb 100%);
+    border-left: 5px solid #f59e0b !important;
+}
+
+.stat-card-red {
+    background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%);
+    border-left: 5px solid #ef4444 !important;
+}
+
+.stat-card-pink {
+    background: linear-gradient(135deg, #ffffff 0%, #fce7f3 100%);
+    border-left: 5px solid #ec4899 !important;
+}
+
+.bg-pink-subtle {
+    background-color: #fce7f3 !important;
+    color: #be185d !important;
+}
+
+.btn-pink {
+    background-color: #ec4899 !important;
+    color: #ffffff !important;
+}
+
+.btn-pink:hover {
+    background-color: #db2777 !important;
+    color: #ffffff !important;
+}
+
+.progress-bar-male {
+    background: linear-gradient(90deg, #3b82f6, #1d4ed8) !important;
+}
+
+.progress-bar-female {
+    background: linear-gradient(90deg, #f43f5e, #e11d48) !important;
+}
+
+.progress-bar-lit {
+    background: linear-gradient(90deg, #10b981, #047857) !important;
+}
+
+.progress-bar-sc {
+    background: linear-gradient(90deg, #6366f1, #4338ca) !important;
+}
+
+.progress-bar-st {
+    background: linear-gradient(90deg, #8b5cf6, #6d28d9) !important;
+}
+
+.bg-purple-subtle {
+    background-color: #f3e8ff !important;
+    color: #7e22ce !important;
 }

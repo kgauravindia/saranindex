@@ -206,6 +206,11 @@ $admin_name = $_SESSION['admin_full_name'] ?? 'Administrator';
                     <i class="bi bi-star-half"></i> Moderation / Reviews
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link <?php echo $current_page === 'messages.php' ? 'active' : ''; ?>" href="messages.php">
+                    <i class="bi bi-envelope"></i> Contact Messages
+                </a>
+            </li>
         </ul>
 
         <div class="px-3 mt-4 mb-2 text-uppercase text-white-50 fw-bold" style="font-size: 0.68rem; letter-spacing: 0.08em;">Quick Actions</div>

@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/includes/functions.php';
-$page_title = "Saran Index – Connecting Saran Digitally | Official Saran District Directory";
+$page_title = "Saran Index – Connecting Saran Digitally | Saran District Directory";
 require_once __DIR__ . '/includes/header.php';
 
 $blocks = getBlocks();

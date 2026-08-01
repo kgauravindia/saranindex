@@ -46,7 +46,7 @@ require_once __DIR__ . '/includes/header.php';
                 <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
                     <span class="badge bg-primary px-3 py-1.5 rounded-pill fw-semibold"><?php echo sanitizeInput($listing['category_name']); ?></span>
                     <?php if ($listing['is_verified'] === 'YES'): ?>
-                        <span class="verified-badge"><i class="bi bi-patch-check-fill"></i> Official Verified Listing</span>
+                        <span class="verified-badge"><i class="bi bi-patch-check-fill"></i> Verified Listing</span>
                     <?php endif; ?>
                 </div>
 
@@ -208,7 +208,7 @@ require_once __DIR__ . '/includes/header.php';
                             <li class="d-flex mb-3">
                                 <i class="bi bi-globe text-primary fs-5 me-3"></i>
                                 <div>
-                                    <strong class="d-block text-dark small">Official Website</strong>
+                                    <strong class="d-block text-dark small">Website</strong>
                                     <a href="<?php echo sanitizeInput($listing['website']); ?>" target="_blank" class="text-primary text-decoration-none small">Visit Website <i class="bi bi-box-arrow-up-right ms-1"></i></a>
                                 </div>
                             </li>
@@ -228,7 +228,7 @@ require_once __DIR__ . '/includes/header.php';
             <!-- Share & Claim Box -->
             <div class="card border-0 shadow-sm rounded-4 bg-light text-center p-3">
                 <div class="small text-muted mb-2">Is this your business or organization?</div>
-                <a href="add_contact.php" class="btn btn-outline-primary rounded-pill btn-sm fw-bold">Claim Listing & Update Info</a>
+                <a href="add-contact.php" class="btn btn-outline-primary rounded-pill btn-sm fw-bold">Claim Listing & Update Info</a>
             </div>
         </div>
     </div>

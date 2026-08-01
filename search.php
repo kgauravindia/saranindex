@@ -16,6 +16,7 @@ require_once __DIR__ . '/includes/header.php';
 $blocks = getBlocks();
 $categories = getCategories();
 $listings = getListings($q, $category_slug, $block_slug, 50, 0, $sub_slug);
+$censusVillages = !empty($q) ? getCensusVillages($block_slug, $q, 6, 0) : [];
 ?>
 
 <div class="bg-dark text-white py-4">
@@ -75,6 +76,47 @@ $listings = getListings($q, $category_slug, $block_slug, 50, 0, $sub_slug);
         </h5>
         <a href="search.php" class="btn btn-sm btn-link text-muted text-decoration-none">Clear Filters</a>
     </div>
+
+    <!-- Census 2011 Villages Match Section -->
+    <?php if (!empty($censusVillages)): ?>
+        <div class="mb-5 p-4 bg-primary-subtle rounded-4 border border-primary-subtle">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h5 class="fw-bold text-primary mb-0 font-heading">
+                    <i class="bi bi-geo-alt-fill me-2"></i> Matching Census 2011 Villages (<?php echo count($censusVillages); ?>)
+                </h5>
+                <a href="village.php?search=<?php echo urlencode($q); ?>" class="btn btn-sm btn-primary rounded-pill px-3">
+                    View All Village Results <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+
+            <div class="row g-3">
+                <?php foreach ($censusVillages as $cv): 
+                    $cvSlug = !empty($cv['unique_slug']) ? $cv['unique_slug'] : $cv['town_village_code'];
+                ?>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card border-0 shadow-sm rounded-3 p-3 bg-white h-100">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <span class="badge bg-primary text-white rounded-pill fs-7"><?php echo sanitizeInput($cv['block_name']); ?> Block</span>
+                                <span class="text-muted fs-7">Code: <?php echo sanitizeInput($cv['town_village_code']); ?></span>
+                            </div>
+                            <h6 class="fw-bold text-dark mb-1">
+                                <a href="village.php?slug=<?php echo sanitizeInput($cvSlug); ?>" class="text-dark text-decoration-none hover-primary">
+                                    <?php echo sanitizeInput($cv['name']); ?>
+                                </a>
+                                <?php if (!empty($cv['name_hindi'])): ?>
+                                    <span class="text-muted font-hindi fw-normal"> (<?php echo sanitizeInput($cv['name_hindi']); ?>)</span>
+                                <?php endif; ?>
+                            </h6>
+                            <div class="d-flex justify-content-between text-muted fs-7 mt-2">
+                                <span>Population: <strong><?php echo number_format($cv['pop_tot']); ?></strong></span>
+                                <span>Households: <strong><?php echo number_format($cv['households']); ?></strong></span>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    <?php endif; ?>
 
     <!-- Listings Grid -->
     <div class="row g-4">
@@ -141,7 +183,7 @@ $listings = getListings($q, $category_slug, $block_slug, 50, 0, $sub_slug);
                     <i class="bi bi-search text-muted display-3 mb-3 d-block"></i>
                     <h4 class="fw-bold text-dark mb-2">No Directory Listings Found</h4>
                     <p class="text-muted mb-4" style="max-width: 460px; margin: 0 auto;">We couldn't find any listings matching your search filters. Try searching for a broader term like 'Doctor' or 'Chapra'.</p>
-                    <a href="add_contact.php" class="btn btn-warning rounded-pill px-4 py-2 fw-bold text-dark">
+                    <a href="add-contact.php" class="btn btn-warning rounded-pill px-4 py-2 fw-bold text-dark">
                         <i class="bi bi-plus-circle me-1"></i>Be the First to Add a Listing
                     </a>
                 </div>

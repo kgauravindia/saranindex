@@ -7,7 +7,10 @@ CREATE TABLE IF NOT EXISTS `blocks` (
     `hindi_name` VARCHAR(100),
     `slug` VARCHAR(100) UNIQUE,
     `pincode` VARCHAR(10),
-    `total_panchayats` INT DEFAULT 0
+    `total_panchayats` INT DEFAULT 0,
+    `lgd_code` VARCHAR(20) DEFAULT NULL,
+    `census_2001_code` VARCHAR(20) DEFAULT NULL,
+    `census_2011_code` VARCHAR(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 2. Panchayats Table
@@ -113,15 +116,24 @@ CREATE TABLE IF NOT EXISTS `admins` (
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 9. Contact Messages Table
-CREATE TABLE IF NOT EXISTS `contact_messages` (
+-- 9. Contact Submissions Table
+CREATE TABLE IF NOT EXISTS `contact` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `name` VARCHAR(100) NOT NULL,
+    `name` VARCHAR(250) NOT NULL,
     `mobile` VARCHAR(20) NOT NULL,
-    `subject` VARCHAR(200) NOT NULL,
-    `message` TEXT NOT NULL,
-    `status` ENUM('UNREAD','READ','REPLIED') DEFAULT 'UNREAD',
-    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+    `email` VARCHAR(255) DEFAULT NULL,
+    `subject` VARCHAR(254) DEFAULT NULL,
+    `message` TEXT DEFAULT NULL,
+    `mobile_status` VARCHAR(10) DEFAULT NULL,
+    `status` VARCHAR(50) DEFAULT 'UNREAD',
+    `profile_id` INT DEFAULT 0,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `created_by` INT DEFAULT 0,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `updated_by` INT DEFAULT 0,
+    `reply` VARCHAR(1000) DEFAULT '',
+    `reply_message` TEXT DEFAULT NULL,
+    `replied_at` TIMESTAMP NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 10. People Table
@@ -346,4 +358,126 @@ INSERT INTO `people` (`id`, `full_name`, `hindi_name`, `slug`, `designation`, `p
 (2, 'Dr. Rajiv Ranjan', 'डॉ. राजीव रंजन', 'dr-rajiv-ranjan', 'Senior Surgeon', 'Doctor', '9470003200', '9470003200', 'dr.rajiv@saranindex.com', 1, 'Hospital Road, Chapra', '841301', 'Leading general surgeon at Sadar Hospital Chapra.', 'ACTIVE'),
 (3, 'Adv. Vijay Sharma', 'एडवोकेट विजय शर्मा', 'adv-vijay-sharma', 'Senior Advocate', 'Lawyer', '9431426600', '9431426600', 'vijay.legal@gmail.com', 1, 'Civil Court Premises, Chapra', '841301', 'Civil & criminal law advocate with 20+ years practice in Chapra Court.', 'ACTIVE')
 ON DUPLICATE KEY UPDATE `full_name` = VALUES(`full_name`);
+
+-- 11. Halka & Mauja Table
+CREATE TABLE IF NOT EXISTS `halka` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `block` VARCHAR(100) NOT NULL,
+    `halka_code` INT NOT NULL,
+    `halka_name` VARCHAR(255) DEFAULT NULL,
+    `mauja_code` VARCHAR(50) DEFAULT NULL,
+    `mauja_name` VARCHAR(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 12. Saran District Census Table (96 Demographic & Economic Indicator Columns)
+CREATE TABLE IF NOT EXISTS `census` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `state_code` VARCHAR(20) DEFAULT NULL,
+    `district_code` VARCHAR(20) DEFAULT NULL,
+    `cd_block_code` VARCHAR(20) DEFAULT NULL,
+    `town_village_code` VARCHAR(20) DEFAULT NULL,
+    `ward_code` VARCHAR(20) DEFAULT NULL,
+    `eb_code` VARCHAR(20) DEFAULT NULL,
+    `state_name` VARCHAR(100) DEFAULT NULL,
+    `district_name` VARCHAR(100) DEFAULT NULL,
+    `level` VARCHAR(50) DEFAULT NULL,
+    `name` VARCHAR(255) DEFAULT NULL,
+    `tru_type` VARCHAR(20) DEFAULT NULL,
+    `households` INT DEFAULT 0,
+    `pop_tot` INT DEFAULT 0,
+    `pop_male` INT DEFAULT 0,
+    `pop_female` INT DEFAULT 0,
+    `p_06` INT DEFAULT 0,
+    `m_06` INT DEFAULT 0,
+    `f_06` INT DEFAULT 0,
+    `sc_tot` INT DEFAULT 0,
+    `sc_male` INT DEFAULT 0,
+    `sc_female` INT DEFAULT 0,
+    `st_tot` INT DEFAULT 0,
+    `st_male` INT DEFAULT 0,
+    `st_female` INT DEFAULT 0,
+    `lit_tot` INT DEFAULT 0,
+    `lit_male` INT DEFAULT 0,
+    `lit_female` INT DEFAULT 0,
+    `ill_tot` INT DEFAULT 0,
+    `ill_male` INT DEFAULT 0,
+    `ill_female` INT DEFAULT 0,
+    `tot_work_tot` INT DEFAULT 0,
+    `tot_work_male` INT DEFAULT 0,
+    `tot_work_female` INT DEFAULT 0,
+    `main_work_tot` INT DEFAULT 0,
+    `main_work_male` INT DEFAULT 0,
+    `main_work_female` INT DEFAULT 0,
+    `main_cl_tot` INT DEFAULT 0,
+    `main_cl_male` INT DEFAULT 0,
+    `main_cl_female` INT DEFAULT 0,
+    `main_al_tot` INT DEFAULT 0,
+    `main_al_male` INT DEFAULT 0,
+    `main_al_female` INT DEFAULT 0,
+    `main_hh_tot` INT DEFAULT 0,
+    `main_hh_male` INT DEFAULT 0,
+    `main_hh_female` INT DEFAULT 0,
+    `main_ot_tot` INT DEFAULT 0,
+    `main_ot_male` INT DEFAULT 0,
+    `main_ot_female` INT DEFAULT 0,
+    `marg_work_tot` INT DEFAULT 0,
+    `marg_work_male` INT DEFAULT 0,
+    `marg_work_female` INT DEFAULT 0,
+    `marg_cl_tot` INT DEFAULT 0,
+    `marg_cl_male` INT DEFAULT 0,
+    `marg_cl_female` INT DEFAULT 0,
+    `marg_al_tot` INT DEFAULT 0,
+    `marg_al_male` INT DEFAULT 0,
+    `marg_al_female` INT DEFAULT 0,
+    `marg_hh_tot` INT DEFAULT 0,
+    `marg_hh_male` INT DEFAULT 0,
+    `marg_hh_female` INT DEFAULT 0,
+    `marg_ot_tot` INT DEFAULT 0,
+    `marg_ot_male` INT DEFAULT 0,
+    `marg_ot_female` INT DEFAULT 0,
+    `marg_work_3_6_tot` INT DEFAULT 0,
+    `marg_work_3_6_male` INT DEFAULT 0,
+    `marg_work_3_6_female` INT DEFAULT 0,
+    `marg_cl_3_6_tot` INT DEFAULT 0,
+    `marg_cl_3_6_male` INT DEFAULT 0,
+    `marg_cl_3_6_female` INT DEFAULT 0,
+    `marg_al_3_6_tot` INT DEFAULT 0,
+    `marg_al_3_6_male` INT DEFAULT 0,
+    `marg_al_3_6_female` INT DEFAULT 0,
+    `marg_hh_3_6_tot` INT DEFAULT 0,
+    `marg_hh_3_6_male` INT DEFAULT 0,
+    `marg_hh_3_6_female` INT DEFAULT 0,
+    `marg_ot_3_6_tot` INT DEFAULT 0,
+    `marg_ot_3_6_male` INT DEFAULT 0,
+    `marg_ot_3_6_female` INT DEFAULT 0,
+    `marg_work_0_3_tot` INT DEFAULT 0,
+    `marg_work_0_3_male` INT DEFAULT 0,
+    `marg_work_0_3_female` INT DEFAULT 0,
+    `marg_cl_0_3_tot` INT DEFAULT 0,
+    `marg_cl_0_3_male` INT DEFAULT 0,
+    `marg_cl_0_3_female` INT DEFAULT 0,
+    `marg_al_0_3_tot` INT DEFAULT 0,
+    `marg_al_0_3_male` INT DEFAULT 0,
+    `marg_al_0_3_female` INT DEFAULT 0,
+    `marg_hh_0_3_tot` INT DEFAULT 0,
+    `marg_hh_0_3_male` INT DEFAULT 0,
+    `marg_hh_0_3_female` INT DEFAULT 0,
+    `marg_ot_0_3_tot` INT DEFAULT 0,
+    `marg_ot_0_3_male` INT DEFAULT 0,
+    `marg_ot_0_3_female` INT DEFAULT 0,
+    `non_work_tot` INT DEFAULT 0,
+    `non_work_male` INT DEFAULT 0,
+    `non_work_female` INT DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 13. LGD Village Master Table
+CREATE TABLE IF NOT EXISTS `lgd_village` (
+    `id` INT PRIMARY KEY,
+    `village_lgd_code` INT NOT NULL,
+    `name` VARCHAR(255) NOT NULL,
+    `name_hindi` VARCHAR(255) DEFAULT NULL,
+    `block` VARCHAR(100) NOT NULL,
+    `census_2001_code` VARCHAR(50) DEFAULT NULL,
+    `census_2011_code` VARCHAR(50) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

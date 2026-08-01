@@ -153,7 +153,7 @@ $blocks = getBlocks();
                     <i class="bi bi-search text-muted display-4 mb-3 d-block"></i>
                     <h4 class="fw-bold text-dark">No Listings Found</h4>
                     <p class="text-muted mb-4">Be the first to list your entity in <?php echo sanitizeInput($selected_category['name']); ?><?php echo $selected_subcategory ? ' (' . sanitizeInput($selected_subcategory['name']) . ')' : ''; ?>.</p>
-                    <a href="add_contact.php" class="btn btn-warning rounded-pill px-4 py-2 fw-bold text-dark">
+                    <a href="add-contact.php" class="btn btn-warning rounded-pill px-4 py-2 fw-bold text-dark">
                         <i class="bi bi-plus-circle me-1"></i>Add Listing Free
                     </a>
                 </div>

@@ -56,11 +56,6 @@
    define('DB_NAME', 'saranindex');
    ```
 
-4. **Default Admin Credentials**:
-   - **Admin Portal**: `http://localhost/saranindex/admin`
-   - **Username**: `admin`
-   - **Password**: `admin123`
-
 ---
 
 ## 📄 License & Legal

@@ -33,7 +33,7 @@ require_once __DIR__ . '/includes/header.php';
                 <div class="content-body text-secondary" style="line-height: 1.8;">
                     <h4 class="fw-bold text-dark font-heading mb-3">1. Introduction</h4>
                     <p>
-                        Welcome to <strong>Saran Index</strong> (accessible via <code>saranindex.com</code>), owned and operated by <strong>OfferPlant Technologies Private Limited</strong>. Saran Index serves as the official digital directory for Saran District (Chapra, Bihar), connecting citizens with local businesses, advocates, healthcare providers, educational institutions, government offices, and emergency services across all 20 blocks.
+                        Welcome to <strong>Saran Index</strong> (accessible via <code>saranindex.com</code>), owned and operated by <strong>OfferPlant Technologies Private Limited</strong>. Saran Index serves as the digital directory for Saran District (Chapra, Bihar), connecting citizens with local businesses, advocates, healthcare providers, educational institutions, government offices, and emergency services across all 20 blocks.
                     </p>
                     <p>
                         This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website or register your business/entity on our directory platform.
@@ -89,7 +89,7 @@ require_once __DIR__ . '/includes/header.php';
                         <li>Opt-out of promotional communications or SMS updates at any time.</li>
                     </ul>
                     <p>
-                        To request listing modifications or removal, please contact our support team at <a href="mailto:privacy@saranindex.com" class="text-primary fw-semibold">privacy@saranindex.com</a> or use our <a href="contact.php" class="text-primary fw-semibold">Contact Page</a>.
+                        To request listing modifications or removal, please contact our support team at <a href="mailto:info@saranindex.com" class="text-primary fw-semibold">info@saranindex.com</a> or use our <a href="contact.php" class="text-primary fw-semibold">Contact Page</a>.
                     </p>
 
                     <hr class="my-4">
@@ -106,8 +106,8 @@ require_once __DIR__ . '/includes/header.php';
                     <div class="bg-light p-4 rounded-3 border">
                         <div class="fw-bold text-dark mb-1">OfferPlant Technologies Private Limited</div>
                         <div class="small text-muted mb-1"><i class="bi bi-geo-alt me-1 text-primary"></i>Chapra, Saran District, Bihar - 841301</div>
-                        <div class="small text-muted mb-1"><i class="bi bi-envelope me-1 text-primary"></i>Email: privacy@saranindex.com / info@offerplant.com</div>
-                        <div class="small text-muted"><i class="bi bi-globe me-1 text-primary"></i>Website: <a href="http://offerplant.com" target="_blank">www.offerplant.com</a></div>
+                        <div class="small text-muted mb-1"><i class="bi bi-envelope me-1 text-primary"></i>Email: info@saranindex.com / info@offerplant.com</div>
+                        <div class="small text-muted"><i class="bi bi-globe me-1 text-primary"></i>Website: <a href="https://saranindex.com" target="_blank">saranindex.com</a></div>
                     </div>
                 </div>
             </div>
