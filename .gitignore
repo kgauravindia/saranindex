@@ -5,6 +5,7 @@
 !database/schema.sql
 *.sql.gz
 *.sql.bak
+config/config.php
 config/db.local.php
 config/config.local.php
 .env
