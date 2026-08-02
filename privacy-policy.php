@@ -106,7 +106,7 @@ require_once __DIR__ . '/includes/header.php';
                     <div class="bg-light p-4 rounded-3 border">
                         <div class="fw-bold text-dark mb-1">OfferPlant Technologies Private Limited</div>
                         <div class="small text-muted mb-1"><i class="bi bi-geo-alt me-1 text-primary"></i>Chapra, Saran District, Bihar - 841301</div>
-                        <div class="small text-muted mb-1"><i class="bi bi-envelope me-1 text-primary"></i>Email: info@saranindex.com / info@offerplant.com</div>
+                        <div class="small text-muted mb-1"><i class="bi bi-envelope me-1 text-primary"></i>Email: info@saranindex.com / ask@offerplant.com</div>
                         <div class="small text-muted"><i class="bi bi-globe me-1 text-primary"></i>Website: <a href="https://saranindex.com" target="_blank">saranindex.com</a></div>
                     </div>
                 </div>

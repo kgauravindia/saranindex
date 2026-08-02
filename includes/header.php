@@ -45,7 +45,6 @@ $meta_description = $meta_description ?? 'Saran Index is the digital directory o
             <span class="text-white-50 fw-medium"><i class="bi bi-geo-alt-fill text-warning me-1"></i>Saran District's Digital Directory • Bihar</span>
         </div>
         <div>
-            <a href="emergency" class="text-danger fw-bold text-decoration-none me-3"><i class="bi bi-shield-exclamation me-1"></i>24x7 Emergency Helpline</a>
             <a href="add-listing" class="text-warning fw-bold text-decoration-none"><i class="bi bi-plus-circle me-1"></i>List Your Business Free</a>
         </div>
     </div>
@@ -80,15 +79,12 @@ $meta_description = $meta_description ?? 'Saran Index is the digital directory o
                 <li class="nav-item">
                     <a class="nav-link text-dark px-3" href="halka"><i class="bi bi-map me-1"></i>Halka & Mauja</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link text-dark px-3" href="emergency"><i class="bi bi-telephone-fill me-1 text-danger"></i>Emergency</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-dark px-3" href="about"><i class="bi bi-info-circle me-1"></i>About Us</a>
-                </li>
             </ul>
 
             <div class="d-flex align-items-center gap-2">
+                <a href="hindi/" class="btn btn-outline-warning text-dark border-warning rounded-pill px-3 py-1.5 btn-sm fw-bold">
+                    <i class="bi bi-translate me-1"></i>हिन्दी
+                </a>
                 <a href="search" class="btn btn-outline-secondary rounded-pill px-3 py-2 btn-sm fw-semibold">
                     <i class="bi bi-search me-1"></i>Search Directory
                 </a>

@@ -1,0 +1,40 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Do not rewrite existing files or directories
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Friendly URLs Rewrites for Hindi Section
+    RewriteRule ^blocks/?$ block.php [L,QSA]
+    RewriteRule ^block/([a-zA-Z0-9_-]+)/?$ block.php?slug=$1 [L,QSA]
+    RewriteRule ^panchayats/?$ panchayat.php [L,QSA]
+    RewriteRule ^panchayat/([a-zA-Z0-9_-]+)/?$ panchayat.php?slug=$1 [L,QSA]
+    RewriteRule ^villages/?$ village.php [L,QSA]
+    RewriteRule ^village/?$ village.php [L,QSA]
+    RewriteRule ^village/([a-zA-Z0-9_-]+)/?$ village.php?slug=$1 [L,QSA]
+    RewriteRule ^halkas/?$ halka.php [L,QSA]
+    RewriteRule ^halka/?$ halka.php [L,QSA]
+    RewriteRule ^pincodes/?$ pincode.php [L,QSA]
+    RewriteRule ^pincode/([0-9]+)/?$ pincode.php?code=$1 [L,QSA]
+    
+    # Category & Subcategory Friendly URLs
+    RewriteRule ^category/([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/?$ category.php?slug=$1&sub=$2 [L,QSA]
+    RewriteRule ^category/([a-zA-Z0-9_-]+)/?$ category.php?slug=$1 [L,QSA]
+    
+    # Listing & Person Profiles
+    RewriteRule ^listing/([a-zA-Z0-9_-]+)/?$ profile.php?slug=$1 [L,QSA]
+    RewriteRule ^person/([a-zA-Z0-9_-]+)/?$ person.php?slug=$1 [L,QSA]
+    
+    # Core Pages
+    RewriteRule ^search/?$ search.php [L,QSA]
+    RewriteRule ^emergency/?$ emergency.php [L,QSA]
+    RewriteRule ^add-listing/?$ add-contact.php [L,QSA]
+    RewriteRule ^add-contact/?$ add-contact.php [L,QSA]
+    RewriteRule ^about/?$ about.php [L,QSA]
+    RewriteRule ^contact/?$ contact.php [L,QSA]
+    RewriteRule ^privacy-policy/?$ privacy-policy.php [L,QSA]
+    RewriteRule ^terms/?$ terms.php [L,QSA]
+    RewriteRule ^refund-policy/?$ refund-policy.php [L,QSA]
+</IfModule>

@@ -12,24 +12,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $message = isset($_POST['message']) ? sanitizeInput($_POST['message']) : '';
 
     if (empty($name) || empty($mobile) || empty($subject) || empty($message)) {
-        $error_msg = 'Please fill in all required fields (Name, Mobile, Subject, and Message).';
+        $error_msg = 'कृपया सभी आवश्यक फ़ील्ड (नाम, मोबाइल, विषय एवं संदेश) भरें।';
     } else {
         if (saveContactMessage($name, $mobile, $email, $subject, $message)) {
-            $success_msg = 'Thank you! Your message has been submitted successfully. Our team will get back to you shortly.';
+            $success_msg = 'धन्यवाद! आपका संदेश सफलतापूर्वक सबमिट कर दिया गया है। हमारी टीम शीघ्र ही आपसे संपर्क करेगी।';
         } else {
-            $error_msg = 'Sorry, there was an error submitting your message. Please try again or reach out via phone/WhatsApp.';
+            $error_msg = 'क्षमा करें, संदेश सबमिट करने में समस्या आई। कृपया पुनः प्रयास करें या फोन/व्हाट्सएप के माध्यम से संपर्क करें।';
         }
     }
 }
 
-$page_title = "Contact Us – Saran Index";
+$page_title = "संपर्क करें – सारण इंडेक्स";
 require_once __DIR__ . '/includes/header.php';
 ?>
 
 <div class="bg-primary text-white py-5 text-center">
     <div class="container">
-        <h1 class="fw-bolder font-heading text-white display-5 mb-2">Contact Saran Index</h1>
-        <p class="text-white-50 lead mx-auto mb-0" style="max-width: 550px;">Have questions, listing updates, or feedback? Get in touch with our team.</p>
+        <h1 class="fw-bolder font-heading text-white display-5 mb-2">सारण इंडेक्स से संपर्क करें</h1>
+        <p class="text-white-50 lead mx-auto mb-0" style="max-width: 550px;">क्या आपके पास कोई प्रश्न, लिस्टिंग अपडेट या सुझाव है? हमारी टीम से संपर्क करें।</p>
     </div>
 </div>
 
@@ -37,15 +37,15 @@ require_once __DIR__ . '/includes/header.php';
     <div class="row g-4 justify-content-center">
         <div class="col-lg-5">
             <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
-                <h4 class="fw-bold font-heading text-dark mb-4">OfferPlant Support Office</h4>
+                <h4 class="fw-bold font-heading text-dark mb-4">ऑफ़रप्लांट सहायता कार्यालय</h4>
 
                 <div class="d-flex mb-4">
                     <div class="bg-primary-subtle text-primary p-3 rounded-circle me-3 flex-shrink-0" style="width: 48px; height: 48px;">
                         <i class="bi bi-building fs-5"></i>
                     </div>
                     <div>
-                        <strong class="d-block text-dark mb-1">Company</strong>
-                        <span class="text-muted small">OfferPlant Technologies Private Limited</span>
+                        <strong class="d-block text-dark mb-1">कंपनी</strong>
+                        <span class="text-muted small">ऑफ़रप्लांट टेक्नोलॉजीज प्राइवेट लिमिटेड</span>
                     </div>
                 </div>
 
@@ -54,7 +54,7 @@ require_once __DIR__ . '/includes/header.php';
                         <i class="bi bi-telephone-fill fs-5"></i>
                     </div>
                     <div>
-                        <strong class="d-block text-dark mb-1">Phone / WhatsApp</strong>
+                        <strong class="d-block text-dark mb-1">फोन / व्हाट्सएप</strong>
                         <a href="tel:9431426600" class="text-primary fw-bold text-decoration-none">9431426600</a>
                     </div>
                 </div>
@@ -64,7 +64,7 @@ require_once __DIR__ . '/includes/header.php';
                         <i class="bi bi-envelope-fill fs-5"></i>
                     </div>
                     <div>
-                        <strong class="d-block text-dark mb-1">Email Support</strong>
+                        <strong class="d-block text-dark mb-1">ईमेल सहायता</strong>
                         <a href="mailto:info@saranindex.com" class="text-muted text-decoration-none small">info@saranindex.com</a>
                     </div>
                 </div>
@@ -74,13 +74,13 @@ require_once __DIR__ . '/includes/header.php';
                         <i class="bi bi-globe fs-5"></i>
                     </div>
                     <div>
-                        <strong class="d-block text-dark mb-1">Website</strong>
+                        <strong class="d-block text-dark mb-1">वेबसाइट</strong>
                         <a href="https://saranindex.com" target="_blank" class="text-primary text-decoration-none small">saranindex.com <i class="bi bi-box-arrow-up-right ms-1"></i></a>
                     </div>
                 </div>
 
                 <div class="border-top pt-4 mt-2">
-                    <h6 class="fw-bold text-dark mb-2"><i class="bi bi-share text-primary me-2"></i>Social Handles (<span class="text-primary">@saranindex</span>)</h6>
+                    <h6 class="fw-bold text-dark mb-2"><i class="bi bi-share text-primary me-2"></i>सोशल मीडिया (<span class="text-primary">@saranindex</span>)</h6>
                     <div class="d-flex flex-wrap gap-2 mt-3">
                         <a href="<?php echo SOCIAL_FACEBOOK; ?>" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill font-body font-normal px-3">
                             <i class="bi bi-facebook me-1"></i>Facebook
@@ -107,7 +107,7 @@ require_once __DIR__ . '/includes/header.php';
 
         <div class="col-lg-7">
             <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5">
-                <h4 class="fw-bold font-heading text-dark mb-3">Send Us a Message</h4>
+                <h4 class="fw-bold font-heading text-dark mb-3">हमें संदेश भेजें</h4>
 
                 <?php if (!empty($success_msg)): ?>
                     <div class="alert alert-success border-0 shadow-sm rounded-3 d-flex align-items-center mb-4" role="alert">
@@ -126,35 +126,35 @@ require_once __DIR__ . '/includes/header.php';
                 <form action="contact.php" method="POST">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold text-dark small">Your Name</label>
-                            <input type="text" name="name" class="form-control bg-light" placeholder="Full Name" value="<?php echo isset($_POST['name']) && empty($success_msg) ? sanitizeInput($_POST['name']) : ''; ?>" required>
+                            <label class="form-label fw-semibold text-dark small">आपका नाम</label>
+                            <input type="text" name="name" class="form-control bg-light" placeholder="पूरा नाम" value="<?php echo isset($_POST['name']) && empty($success_msg) ? sanitizeInput($_POST['name']) : ''; ?>" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold text-dark small">Mobile Number</label>
-                            <input type="tel" name="mobile" class="form-control bg-light" placeholder="10-digit Mobile" value="<?php echo isset($_POST['mobile']) && empty($success_msg) ? sanitizeInput($_POST['mobile']) : ''; ?>" required>
+                            <label class="form-label fw-semibold text-dark small">मोबाइल नंबर</label>
+                            <input type="tel" name="mobile" class="form-control bg-light" placeholder="10-अंकों का मोबाइल" value="<?php echo isset($_POST['mobile']) && empty($success_msg) ? sanitizeInput($_POST['mobile']) : ''; ?>" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold text-dark small">Email Address</label>
+                            <label class="form-label fw-semibold text-dark small">ईमेल पता</label>
                             <input type="email" name="email" class="form-control bg-light" placeholder="name@example.com" value="<?php echo isset($_POST['email']) && empty($success_msg) ? sanitizeInput($_POST['email']) : ''; ?>">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold text-dark small">Subject</label>
+                            <label class="form-label fw-semibold text-dark small">विषय</label>
                             <select name="subject" class="form-select bg-light" required>
-                                <option value="" selected disabled>-- Select Subject --</option>
-                                <option value="Add my business">Add my business</option>
-                                <option value="General Support">General Support</option>
-                                <option value="Other Query / Suggestion">Other Query / Suggestion</option>
-                                <option value="Remove my profile (business)">Remove my profile (business)</option>
-                                <option value="Remove my profile (people)">Remove my profile (people)</option>
-                                <option value="Update Profile">Update Profile</option>
+                                <option value="" selected disabled>-- विषय चुनें --</option>
+                                <option value="Add my business">मेरा व्यवसाय जोड़ें</option>
+                                <option value="General Support">सामान्य सहायता</option>
+                                <option value="Other Query / Suggestion">अन्य प्रश्न / सुझाव</option>
+                                <option value="Remove my profile (business)">प्रोफाइल हटाएं (व्यावसायिक)</option>
+                                <option value="Remove my profile (people)">प्रोफाइल हटाएं (व्यक्तिगत)</option>
+                                <option value="Update Profile">प्रोफाइल अपडेट करें</option>
                             </select>
                         </div>
                         <div class="col-12">
-                            <label class="form-label fw-semibold text-dark small">Message</label>
-                            <textarea name="message" class="form-control bg-light" rows="4" placeholder="How can we help you?" required><?php echo isset($_POST['message']) && empty($success_msg) ? sanitizeInput($_POST['message']) : ''; ?></textarea>
+                            <label class="form-label fw-semibold text-dark small">संदेश</label>
+                            <textarea name="message" class="form-control bg-light" rows="4" placeholder="हम आपकी क्या सहायता कर सकते हैं?" required><?php echo isset($_POST['message']) && empty($success_msg) ? sanitizeInput($_POST['message']) : ''; ?></textarea>
                         </div>
                         <div class="col-12">
-                            <button type="submit" class="btn btn-primary rounded-pill px-5 py-2.5 fw-bold">Send Message</button>
+                            <button type="submit" class="btn btn-primary rounded-pill px-5 py-2.5 fw-bold">संदेश भेजें</button>
                         </div>
                     </div>
                 </form>
@@ -167,8 +167,8 @@ require_once __DIR__ . '/includes/header.php';
         <div class="col-12">
             <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
                 <div class="card-header bg-white border-0 p-4 pb-2">
-                    <h5 class="fw-bold font-heading text-dark mb-1"><i class="bi bi-geo-alt-fill text-danger me-2"></i>Find Us On Google Maps</h5>
-                    <p class="text-muted small mb-0">Visit Saran Index support office in Chapra, Saran District</p>
+                    <h5 class="fw-bold font-heading text-dark mb-1"><i class="bi bi-geo-alt-fill text-danger me-2"></i>गूगल मैप्स पर हमारा स्थान</h5>
+                    <p class="text-muted small mb-0">छपरा, सारण जिला में सारण इंडेक्स सहायता कार्यालय पर आएं</p>
                 </div>
                 <div class="card-body p-4 pt-2">
                     <div class="ratio ratio-21x9 rounded-4 overflow-hidden shadow-sm" style="min-height: 400px;">

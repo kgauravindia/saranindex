@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/includes/functions.php';
-$page_title = "Add Free Listing – Saran Index";
+$page_title = "निःशुल्क लिस्टिंग जोड़ें (पंजीकरण) – सारण इंडेक्स";
 require_once __DIR__ . '/includes/header.php';
 
 $blocks = getBlocks();
@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $success_msg = true;
     } else {
-        $error_msg = "Please fill in all required fields marked with *";
+        $error_msg = "कृपया * से चिह्नित सभी आवश्यक फ़ील्ड भरें।";
     }
 }
 ?>
@@ -77,26 +77,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="container position-relative z-1 py-2 text-center">
         <nav aria-label="breadcrumb" class="mb-2">
             <ol class="breadcrumb justify-content-center mb-0 small text-white-50">
-                <li class="breadcrumb-item"><a href="index.php" class="text-white-50 text-decoration-none"><i class="bi bi-house-door-fill"></i> Home</a></li>
-                <li class="breadcrumb-item text-white-50">Registration</li>
-                <li class="breadcrumb-item active text-white fw-semibold" aria-current="page">Add Listing</li>
+                <li class="breadcrumb-item"><a href="index.php" class="text-white-50 text-decoration-none"><i class="bi bi-house-door-fill"></i> मुख्य पृष्ठ</a></li>
+                <li class="breadcrumb-item text-white-50">पंजीकरण</li>
+                <li class="breadcrumb-item active text-white fw-semibold" aria-current="page">निःशुल्क लिस्टिंग</li>
             </ol>
         </nav>
 
         <div class="d-flex justify-content-center gap-2 mb-2 flex-wrap">
             <span class="badge bg-warning text-dark fw-bold px-3 py-1 rounded-pill fs-7">
-                <i class="bi bi-star-fill me-1"></i> Free Directory Registration
+                <i class="bi bi-star-fill me-1"></i> निःशुल्क निर्देशिका पंजीकरण
             </span>
             <span class="badge px-3 py-1 rounded-pill fs-7 text-white" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.35);">
-                <i class="bi bi-check-circle-fill me-1"></i> 20 Blocks & 1,764 Villages
+                <i class="bi bi-check-circle-fill me-1"></i> 20 प्रखंड एवं 1,764 गाँव
             </span>
         </div>
 
         <h1 class="h3 fw-bold font-heading text-white mb-1">
-            List Your Business or Entity on Saran Index
+            सारण इंडेक्स पर अपनी दुकान, संस्था या सेवा जोड़ें
         </h1>
         <p class="text-white-50 small mx-auto mb-0" style="max-width: 700px;">
-            Connect your shop, clinic, advocate chamber, school, or service with citizens across Saran District (Chapra). Instant submission & verification.
+            अपनी दुकान, क्लिनिक, वकील चैंबर, स्कूल या सेवा को सारण जिले (छपरा) के नागरिकों से जोड़ें। त्वरित पंजीकरण एवं सत्यापन।
         </p>
     </div>
 </div>
@@ -106,8 +106,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="col-lg-9">
             <?php if ($success_msg): ?>
                 <div class="alert alert-success rounded-3 p-3 shadow-sm mb-4 border-2 border-success">
-                    <h5 class="fw-bold alert-heading mb-1"><i class="bi bi-check-circle-fill me-2 text-success"></i>Registration Submitted Successfully!</h5>
-                    <p class="mb-0 small">Thank you for listing on <strong>Saran Index</strong>. Our verification team will review your information and activate your profile shortly.</p>
+                    <h5 class="fw-bold alert-heading mb-1"><i class="bi bi-check-circle-fill me-2 text-success"></i>पंजीकरण सफलतापूर्वक जमा हुआ!</h5>
+                    <p class="mb-0 small">सारण इंडेक्स पर पंजीकरण करने के लिए धन्यवाद। हमारी टीम जल्द ही आपकी जानकारी का सत्यापन करके प्रोफ़ाइल लाइव करेगी।</p>
                 </div>
             <?php endif; ?>
 
@@ -120,10 +120,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="card border-0 shadow-sm rounded-4 p-4 bg-white border-top border-4 border-primary">
                 <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-3">
                     <div>
-                        <h5 class="fw-bold font-heading text-dark mb-0 fs-5">Entity & Business Registration Form</h5>
+                        <h5 class="fw-bold font-heading text-dark mb-0 fs-5">व्यापार, कॉलेज, अस्पताल, वकील एवं संस्थान पंजीकरण फॉर्म</h5>
                     </div>
                     <span class="badge bg-primary-subtle text-primary fw-bold px-2.5 py-1 rounded-pill d-none d-md-inline-block fs-7">
-                        <i class="bi bi-shield-check me-1"></i> Verified Entry
+                        <i class="bi bi-shield-check me-1"></i> सत्यापित प्रविष्टि
                     </span>
                 </div>
                 
@@ -134,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="col-12">
                             <div class="px-3 py-2 bg-light rounded-3 border-start border-3 border-primary">
                                 <span class="fw-bold text-dark font-heading small">
-                                    <i class="bi bi-shop text-primary me-1"></i> 1. Entity & Category Information
+                                    <i class="bi bi-shop text-primary me-1"></i> 1. संस्था एवं श्रेणी की जानकारी (Entity Information)
                                 </span>
                             </div>
                         </div>
@@ -142,35 +142,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <!-- Entity Name English -->
                         <div class="col-md-6">
                             <label class="form-label fw-semibold fs-7 text-dark mb-1">
-                                Name in English <span class="text-danger">*</span>
+                                नाम अंग्रेजी में (Name in English) <span class="text-danger">*</span>
                             </label>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-light text-muted"><i class="bi bi-building"></i></span>
-                                <input type="text" name="title" class="form-control bg-light" placeholder="e.g. Rajendra College, Chapra Legal Chamber" required>
+                                <input type="text" name="title" class="form-control bg-light" placeholder="उदा. Rajendra College, Chapra Legal Chamber" required>
                             </div>
                         </div>
 
                         <!-- Entity Name Hindi -->
                         <div class="col-md-6">
                             <label class="form-label fw-semibold fs-7 text-dark mb-1">
-                                Name in Hindi (Optional)
+                                नाम हिंदी में (Name in Hindi - वैकल्पिक)
                             </label>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-light text-muted"><i class="bi bi-translate"></i></span>
-                                <input type="text" name="hindi_title" class="form-control bg-light" placeholder="e.g. Rajendra College Chapra, Dr. Kumar Hospital">
+                                <input type="text" name="hindi_title" class="form-control bg-light" placeholder="उदा. राजेंद्र कॉलेज छपरा, डॉ. कुमार अस्पताल">
                             </div>
                         </div>
 
                         <!-- Category -->
                         <div class="col-md-6">
                             <label class="form-label fw-semibold fs-7 text-dark mb-1">
-                                Category Vertical <span class="text-danger">*</span>
+                                मुख्य श्रेणी (Category Vertical) <span class="text-danger">*</span>
                             </label>
                             <select name="category_id" id="category_select" class="form-select form-select-sm bg-light" required>
-                                <option value="">Choose Category</option>
+                                <option value="">श्रेणी चुनें (Choose Category)</option>
                                 <?php foreach ($categories as $cat): ?>
                                     <option value="<?php echo sanitizeInput($cat['id']); ?>">
-                                        <?php echo sanitizeInput($cat['name']); ?>
+                                        <?php echo sanitizeInput(!empty($cat['hindi_name']) ? $cat['hindi_name'] . ' (' . $cat['name'] . ')' : $cat['name']); ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -179,10 +179,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <!-- Subcategory -->
                         <div class="col-md-6">
                             <label class="form-label fw-semibold fs-7 text-dark mb-1">
-                                Subcategory
+                                उप-श्रेणी (Subcategory)
                             </label>
                             <select name="subcategory_id" id="subcategory_select" class="form-select form-select-sm bg-light">
-                                <option value="">Select Category First</option>
+                                <option value="">पहले श्रेणी चुनें (Select Category First)</option>
                             </select>
                         </div>
 
@@ -190,7 +190,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="col-12 pt-1">
                             <div class="px-3 py-2 bg-light rounded-3 border-start border-3 border-danger">
                                 <span class="fw-bold text-dark font-heading small">
-                                    <i class="bi bi-geo-alt-fill text-danger me-1"></i> 2. Location & Census Village Selection
+                                    <i class="bi bi-geo-alt-fill text-danger me-1"></i> 2. स्थान एवं 2011 जनगणना गांव चयन (Location)
                                 </span>
                             </div>
                         </div>
@@ -198,13 +198,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <!-- Saran Block -->
                         <div class="col-md-6">
                             <label class="form-label fw-semibold fs-7 text-dark mb-1">
-                                Select Block <span class="text-danger">*</span>
+                                प्रखंड चुनें (Select Block) <span class="text-danger">*</span>
                             </label>
                             <select name="block_id" id="block_select" class="form-select form-select-sm bg-light" required>
-                                <option value="">Choose Block</option>
+                                <option value="">प्रखंड चुनें (Choose Block)</option>
                                 <?php foreach ($blocks as $blk): ?>
                                     <option value="<?php echo sanitizeInput($blk['id']); ?>" data-block-name="<?php echo sanitizeInput($blk['block_name']); ?>">
-                                        <?php echo sanitizeInput($blk['block_name']); ?>
+                                        <?php echo sanitizeInput(!empty($blk['hindi_name']) ? $blk['hindi_name'] . ' (' . $blk['block_name'] . ')' : $blk['block_name']); ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -213,29 +213,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <!-- Census 2011 Village Selection -->
                         <div class="col-md-6">
                             <label class="form-label fw-semibold fs-7 text-dark mb-1">
-                                Select Census Village (2011 Data)
+                                जनगणना गांव चुनें (2011 डेटा)
                             </label>
                             <select name="census_village_code" id="village_select" class="form-select form-select-sm bg-light">
-                                <option value="">Choose Block First</option>
+                                <option value="">पहले प्रखंड चुनें</option>
                             </select>
                         </div>
 
                         <!-- Full Address -->
                         <div class="col-md-8">
                             <label class="form-label fw-semibold fs-7 text-dark mb-1">
-                                Full Address <span class="text-danger">*</span>
+                                पूरा पता (Full Address) <span class="text-danger">*</span>
                             </label>
-                            <textarea name="address" id="address_input" class="form-control form-control-sm bg-light" rows="2" placeholder="Address, Street, Village/Panchayat, Landmark (e.g. Near Thana Chowk, Main Road, Chapra Sadar)" required></textarea>
+                            <textarea name="address" id="address_input" class="form-control form-control-sm bg-light" rows="2" placeholder="पता, सड़क, गाँव/पंचायत, लैंडमार्क (उदा. थाना चौक के पास, मुख्य मार्ग, छपरा सदर)" required></textarea>
                         </div>
 
                         <!-- PIN Code -->
                         <div class="col-md-4">
                             <label class="form-label fw-semibold fs-7 text-dark mb-1">
-                                PIN Code
+                                पिन कोड (PIN Code)
                             </label>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-light text-muted"><i class="bi bi-postcard"></i></span>
-                                <input type="text" name="pincode" class="form-control bg-light" placeholder="e.g. 841301">
+                                <input type="text" name="pincode" class="form-control bg-light" placeholder="उदा. 841301">
                             </div>
                         </div>
 
@@ -243,7 +243,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="col-12 pt-1">
                             <div class="px-3 py-2 bg-light rounded-3 border-start border-3 border-success">
                                 <span class="fw-bold text-dark font-heading small">
-                                    <i class="bi bi-person-vcard-fill text-success me-1"></i> 3. Contact & Representative Details
+                                    <i class="bi bi-person-vcard-fill text-success me-1"></i> 3. संपर्क एवं प्रतिनिधि विवरण (Contact Details)
                                 </span>
                             </div>
                         </div>
@@ -251,40 +251,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <!-- Contact Person -->
                         <div class="col-md-6">
                             <label class="form-label fw-semibold fs-7 text-dark mb-1">
-                                Contact Person Name
+                                संपर्क व्यक्ति का नाम (Contact Person)
                             </label>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-light text-muted"><i class="bi bi-person"></i></span>
-                                <input type="text" name="contact_person" class="form-control bg-light" placeholder="Owner, Principal, or Manager">
+                                <input type="text" name="contact_person" class="form-control bg-light" placeholder="मालिक, प्रिसिपल या प्रबंधक का नाम">
                             </div>
                         </div>
 
                         <!-- Mobile Number -->
                         <div class="col-md-6">
                             <label class="form-label fw-semibold fs-7 text-dark mb-1">
-                                Mobile Number <span class="text-danger">*</span>
+                                मोबाइल नंबर (Mobile Number) <span class="text-danger">*</span>
                             </label>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-light text-muted"><i class="bi bi-telephone-fill text-primary"></i></span>
-                                <input type="tel" name="mobile" class="form-control bg-light" placeholder="10-digit Mobile Number" required>
+                                <input type="tel" name="mobile" class="form-control bg-light" placeholder="10-अंकों का मोबाइल नंबर" required>
                             </div>
                         </div>
 
                         <!-- WhatsApp Number -->
                         <div class="col-md-6">
                             <label class="form-label fw-semibold fs-7 text-dark mb-1">
-                                WhatsApp Number
+                                व्हाट्सएप नंबर (WhatsApp Number)
                             </label>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-light text-muted"><i class="bi bi-whatsapp text-success"></i></span>
-                                <input type="tel" name="whatsapp" class="form-control bg-light" placeholder="WhatsApp Contact Number">
+                                <input type="tel" name="whatsapp" class="form-control bg-light" placeholder="व्हाट्सएप नंबर">
                             </div>
                         </div>
 
                         <!-- Email -->
                         <div class="col-md-6">
                             <label class="form-label fw-semibold fs-7 text-dark mb-1">
-                                Email Address (Optional)
+                                ईमेल पता (Email Address - वैकल्पिक)
                             </label>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-light text-muted"><i class="bi bi-envelope"></i></span>
@@ -296,7 +296,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="col-12 pt-1">
                             <div class="px-3 py-2 bg-light rounded-3 border-start border-3 border-warning">
                                 <span class="fw-bold text-dark font-heading small">
-                                    <i class="bi bi-file-text-fill text-warning me-1"></i> 4. Services & Facilities
+                                    <i class="bi bi-file-text-fill text-warning me-1"></i> 4. सेवा विवरण एवं सुविधाएं (Services)
                                 </span>
                             </div>
                         </div>
@@ -304,23 +304,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <!-- Services & Facilities -->
                         <div class="col-md-12">
                             <label class="form-label fw-semibold fs-7 text-dark mb-1">
-                                Key Services / Facilities Offered
+                                मुख्य सुविधाएं एवं सेवाएं (Key Services Offered)
                             </label>
-                            <input type="text" name="services" class="form-control form-control-sm bg-light" placeholder="e.g. B.A / B.Sc / B.Com Degree, OPD, ICU, 24x7 Ambulance, Legal Advice (comma separated)">
+                            <input type="text" name="services" class="form-control form-control-sm bg-light" placeholder="उदा. बी.ए / बी.एससी, ओपीडी, आईसीयू, 24x7 एम्बुलेंस, कानूनी सलाह (कॉमा से अलग करें)">
                         </div>
 
                         <!-- Description -->
                         <div class="col-md-12">
                             <label class="form-label fw-semibold fs-7 text-dark mb-1">
-                                Overview & Working Hours
+                                विवरण एवं समय की जानकारी (Overview & Timing)
                             </label>
-                            <textarea name="description" class="form-control form-control-sm bg-light" rows="3" placeholder="Enter brief details about courses, specialization, working timing..."></textarea>
+                            <textarea name="description" class="form-control form-control-sm bg-light" rows="3" placeholder="समय, अनुभव एवं सेवाओं का विस्तृत विवरण दें..."></textarea>
                         </div>
 
                         <!-- Submit Button -->
                         <div class="col-md-12 pt-2">
                             <button type="submit" class="btn btn-warning w-100 rounded-pill fw-bold text-dark shadow-sm py-2.5">
-                                <i class="bi bi-rocket-takeoff-fill me-1"></i>Submit Free Registration
+                                <i class="bi bi-rocket-takeoff-fill me-1"></i>निःशुल्क पंजीकरण जमा करें
                             </button>
                         </div>
                     </div>
@@ -340,27 +340,27 @@ document.addEventListener('DOMContentLoaded', function() {
     if (catSelect && subSelect) {
         catSelect.addEventListener('change', function() {
             const catId = this.value;
-            subSelect.innerHTML = '<option value="">Loading Subcategories...</option>';
+            subSelect.innerHTML = '<option value="">उप-श्रेणी लोड हो रही है...</option>';
             if (!catId) {
-                subSelect.innerHTML = '<option value="">Select Category First</option>';
+                subSelect.innerHTML = '<option value="">पहले श्रेणी चुनें</option>';
                 return;
             }
 
             fetch(`${BASE_URL}api/subcategories_api.php?category_id=${catId}`)
                 .then(response => response.json())
                 .then(data => {
-                    subSelect.innerHTML = '<option value="">Choose Subcategory (Optional)</option>';
+                    subSelect.innerHTML = '<option value="">उप-श्रेणी चुनें (वैकल्पिक)</option>';
                     if (data && data.length > 0) {
                         data.forEach(sub => {
                             const opt = document.createElement('option');
                             opt.value = sub.id;
-                            opt.textContent = sub.name;
+                            opt.textContent = sub.hindi_name ? `${sub.hindi_name} (${sub.name})` : sub.name;
                             subSelect.appendChild(opt);
                         });
                     }
                 })
                 .catch(() => {
-                    subSelect.innerHTML = '<option value="">All Subcategories</option>';
+                    subSelect.innerHTML = '<option value="">सभी उप-श्रेणियां</option>';
                 });
         });
     }
@@ -368,29 +368,30 @@ document.addEventListener('DOMContentLoaded', function() {
     if (blockSelect && villageSelect) {
         blockSelect.addEventListener('change', function() {
             const blockId = this.value;
-            villageSelect.innerHTML = '<option value="">Loading Census Villages...</option>';
+            villageSelect.innerHTML = '<option value="">जनगणना गांव लोड हो रहे हैं...</option>';
             if (!blockId) {
-                villageSelect.innerHTML = '<option value="">Choose Block First</option>';
+                villageSelect.innerHTML = '<option value="">पहले प्रखंड चुनें</option>';
                 return;
             }
 
             fetch(`${BASE_URL}api/villages_api.php?block_id=${blockId}`)
                 .then(response => response.json())
                 .then(data => {
-                    villageSelect.innerHTML = '<option value="">Choose Census 2011 Village (Optional)</option>';
+                    villageSelect.innerHTML = '<option value="">जनगणना 2011 गांव चुनें (वैकल्पिक)</option>';
                     if (data && data.length > 0) {
                         data.forEach(v => {
                             const opt = document.createElement('option');
                             opt.value = v.code;
-                            opt.textContent = `${v.name} - Code: ${v.code}`;
+                            const hName = v.name_hindi ? ` (${v.name_hindi})` : '';
+                            opt.textContent = `${v.name}${hName} - कोड: ${v.code}`;
                             villageSelect.appendChild(opt);
                         });
                     } else {
-                        villageSelect.innerHTML = '<option value="">No villages found for this block</option>';
+                        villageSelect.innerHTML = '<option value="">इस प्रखंड के लिए कोई गांव नहीं मिला</option>';
                     }
                 })
                 .catch(() => {
-                    villageSelect.innerHTML = '<option value="">Select Census Village (Optional)</option>';
+                    villageSelect.innerHTML = '<option value="">जनगणना गांव चुनें (वैकल्पिक)</option>';
                 });
         });
     }

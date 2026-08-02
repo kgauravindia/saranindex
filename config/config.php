@@ -14,14 +14,16 @@ define('APP_TAGLINE', 'Connecting Saran Digitally');
 define('APP_VERSION', '1.0.0');
 define('LAUNCH_DATE', '2026-07-26');
 define('PARENT_COMPANY', 'OfferPlant Technologies Private Limited');
+define('PARENT_COMPANY_EMAIL', 'ask@offerplant.com');
 define('PARENT_INCORPORATION_YEAR', '2017');
 
 // Base URL calculation
 $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $script_name = $_SERVER['SCRIPT_NAME'] ?? '';
-$dir = dirname($script_name);
-$base_path = rtrim(str_replace('\\', '/', $dir), '/');
+$dir = '/' . ltrim(str_replace('\\', '/', dirname($script_name)), '/');
+$dir = preg_replace('~/(hindi|admin)(/.*)?$~i', '', $dir);
+$base_path = rtrim($dir, '/');
 define('BASE_URL', $protocol . "://" . $host . $base_path . "/");
 
 // Database Configuration (Environment variable driven for security)
