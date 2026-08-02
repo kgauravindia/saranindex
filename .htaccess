@@ -31,6 +31,8 @@
     
     # Core Pages
     RewriteRule ^search/?$ search.php [L,QSA]
+    RewriteRule ^sources/?$ sources.php [L,QSA]
+    RewriteRule ^data-sources/?$ sources.php [L,QSA]
     RewriteRule ^emergency/?$ emergency.php [L,QSA]
     RewriteRule ^add-listing/?$ add-contact.php [L,QSA]
     RewriteRule ^add-contact/?$ add-contact.php [L,QSA]
