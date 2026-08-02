@@ -176,6 +176,29 @@ require_once __DIR__ . '/includes/header.php';
             </div>
         </div>
 
+        <!-- 7. Data.gov.in Portal -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-4 bg-white hover-lift">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-1 rounded-pill small">
+                        <i class="bi bi-database-fill me-1"></i> खुला सरकारी डेटा (Open Data)
+                    </span>
+                    <span class="badge bg-light text-muted border px-2.5 py-1 rounded-pill small">MeitY एवं NIC</span>
+                </div>
+                <h4 class="fw-bold text-dark font-heading mb-2">ओपन गवर्नमेंट डेटा प्लेटफ़ॉर्म (Data.gov.in)</h4>
+                <p class="text-muted small mb-3">Open Government Data (OGD) Platform India</p>
+                <p class="text-secondary small mb-4" style="line-height: 1.6;">
+                    भारत का राष्ट्रीय ओपन डेटा पोर्टल जो बिहार और सारण जिले से संबंधित सार्वजनिक नागरिक डेटासेट, स्थानिक डेटा और क्षेत्रीय प्रशासनिक आँकड़े प्रदान करता है।
+                </p>
+                <div class="mt-auto pt-3 border-top d-flex align-items-center justify-content-between">
+                    <span class="text-muted small"><i class="bi bi-link-45deg me-1"></i>data.gov.in</span>
+                    <a href="https://data.gov.in" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold">
+                        पोर्टल पर जाएं <i class="bi bi-box-arrow-up-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- Non-Government Disclaimer Footer Box -->
