@@ -44,39 +44,48 @@ function getVillageUrl($slug) {
 
 function getBlocks() {
     $db = getDB();
-    if ($db) {
-        try {
-            $sql = "SELECT b.id, b.name, b.name as block_name, b.name_english, b.hindi_name, b.slug, b.pincode, b.total_panchayats,
-                           c_tot.households, c_tot.pop_tot, c_tot.pop_male, c_tot.pop_female, c_tot.lit_tot, c_tot.lit_male, c_tot.lit_female, c_tot.tot_work_tot, c_tot.cd_block_code,
-                           c_rur.households as households_rural, c_rur.pop_tot as pop_rural, c_rur.pop_male as pop_male_rural, c_rur.pop_female as pop_female_rural, c_rur.lit_tot as lit_rural, c_rur.tot_work_tot as tot_work_rural,
-                           c_urb.households as households_urban, c_urb.pop_tot as pop_urban, c_urb.pop_male as pop_male_urban, c_urb.pop_female as pop_female_urban, c_urb.lit_tot as lit_urban, c_urb.tot_work_tot as tot_work_urban
-                    FROM blocks b
-                    LEFT JOIN census c_tot ON (c_tot.level = 'CD BLOCK' AND c_tot.tru_type = 'Total' AND (
-                        LOWER(c_tot.name) = LOWER(b.name) 
-                        OR LOWER(c_tot.name) = LOWER(b.name_english)
-                        OR SOUNDEX(c_tot.name) = SOUNDEX(b.name)
-                        OR LOWER(b.name) LIKE CONCAT('%', LOWER(c_tot.name), '%')
-                        OR LOWER(c_tot.name) LIKE CONCAT('%', LOWER(b.name), '%')
-                    ))
-                    LEFT JOIN census c_rur ON (c_rur.level = 'CD BLOCK' AND c_rur.tru_type = 'Rural' AND (
-                        LOWER(c_rur.name) = LOWER(b.name) 
-                        OR LOWER(c_rur.name) = LOWER(b.name_english)
-                        OR SOUNDEX(c_rur.name) = SOUNDEX(b.name)
-                        OR LOWER(b.name) LIKE CONCAT('%', LOWER(c_rur.name), '%')
-                        OR LOWER(c_rur.name) LIKE CONCAT('%', LOWER(b.name), '%')
-                    ))
-                    LEFT JOIN census c_urb ON (c_urb.level = 'CD BLOCK' AND c_urb.tru_type = 'Urban' AND (
-                        LOWER(c_urb.name) = LOWER(b.name) 
-                        OR LOWER(c_urb.name) = LOWER(b.name_english)
-                        OR SOUNDEX(c_urb.name) = SOUNDEX(b.name)
-                        OR LOWER(b.name) LIKE CONCAT('%', LOWER(c_urb.name), '%')
-                        OR LOWER(c_urb.name) LIKE CONCAT('%', LOWER(b.name), '%')
-                    ))
-                    ORDER BY b.name ASC";
-            $stmt = $db->query($sql);
-            $results = $stmt->fetchAll();
-            if ($results) return $results;
-        } catch (PDOException $e) {}
+    if (!$db) return [];
+    try {
+        $sql = "SELECT b.id, b.name, b.name as block_name, b.name_english, b.hindi_name, b.slug, b.pincode, b.total_panchayats,
+                       c_tot.households, c_tot.pop_tot, c_tot.pop_male, c_tot.pop_female, c_tot.lit_tot, c_tot.lit_male, c_tot.lit_female, c_tot.tot_work_tot, c_tot.cd_block_code,
+                       c_rur.households as households_rural, c_rur.pop_tot as pop_rural, c_rur.pop_male as pop_male_rural, c_rur.pop_female as pop_female_rural, c_rur.lit_tot as lit_rural, c_rur.tot_work_tot as tot_work_rural,
+                       c_urb.households as households_urban, c_urb.pop_tot as pop_urban, c_urb.pop_male as pop_male_urban, c_urb.pop_female as pop_female_urban, c_urb.lit_tot as lit_urban, c_urb.tot_work_tot as tot_work_urban
+                FROM blocks b
+                LEFT JOIN census c_tot ON (c_tot.level = 'CD BLOCK' AND c_tot.tru_type = 'Total' AND (
+                    LOWER(c_tot.name) = LOWER(b.name) 
+                    OR LOWER(c_tot.name) = LOWER(b.name_english)
+                    OR SOUNDEX(c_tot.name) = SOUNDEX(b.name)
+                    OR LOWER(b.name) LIKE CONCAT('%', LOWER(c_tot.name), '%')
+                    OR LOWER(c_tot.name) LIKE CONCAT('%', LOWER(b.name), '%')
+                ))
+                LEFT JOIN census c_rur ON (c_rur.level = 'CD BLOCK' AND c_rur.tru_type = 'Rural' AND (
+                    LOWER(c_rur.name) = LOWER(b.name) 
+                    OR LOWER(c_rur.name) = LOWER(b.name_english)
+                    OR SOUNDEX(c_rur.name) = SOUNDEX(b.name)
+                    OR LOWER(b.name) LIKE CONCAT('%', LOWER(c_rur.name), '%')
+                    OR LOWER(c_rur.name) LIKE CONCAT('%', LOWER(b.name), '%')
+                ))
+                LEFT JOIN census c_urb ON (c_urb.level = 'CD BLOCK' AND c_urb.tru_type = 'Urban' AND (
+                    LOWER(c_urb.name) = LOWER(b.name) 
+                    OR LOWER(c_urb.name) = LOWER(b.name_english)
+                    OR SOUNDEX(c_urb.name) = SOUNDEX(b.name)
+                    OR LOWER(b.name) LIKE CONCAT('%', LOWER(c_urb.name), '%')
+                    OR LOWER(c_urb.name) LIKE CONCAT('%', LOWER(b.name), '%')
+                ))
+                ORDER BY b.name ASC";
+        $stmt = $db->query($sql);
+        $results = $stmt->fetchAll();
+        if ($results) return $results;
+    } catch (PDOException $e) {
+        error_log("getBlocks census query failed: " . $e->getMessage());
+    }
+
+    // Fallback: Query blocks table directly without census join if census table is missing or fails
+    try {
+        $stmt = $db->query("SELECT *, name as block_name FROM blocks ORDER BY name ASC");
+        return $stmt->fetchAll();
+    } catch (PDOException $e) {
+        error_log("getBlocks fallback failed: " . $e->getMessage());
     }
     return [];
 }
@@ -117,6 +126,15 @@ function getBlockBySlug($slug) {
         $stmt->execute(['slug' => $slug]);
         $res = $stmt->fetch();
         if ($res) return $res;
+    } catch (PDOException $e) {
+        error_log("getBlockBySlug census query failed: " . $e->getMessage());
+    }
+
+    // Fallback: Query blocks table directly
+    try {
+        $stmt = $db->prepare("SELECT *, name as block_name FROM blocks WHERE slug = :slug LIMIT 1");
+        $stmt->execute(['slug' => $slug]);
+        return $stmt->fetch();
     } catch (PDOException $e) {}
     return null;
 }
