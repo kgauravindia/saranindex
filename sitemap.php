@@ -2,6 +2,7 @@
 // Dynamic XML Sitemap Generator for SaranIndex.com
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/config/db.php';
+require_once __DIR__ . '/includes/functions.php';
 
 header("Content-Type: application/xml; charset=utf-8");
 
@@ -69,9 +70,9 @@ if ($db) {
 
     // 3. Villages
     try {
-        $stmt = $db->query("SELECT slug, town_village_code FROM villages WHERE (slug IS NOT NULL AND slug != '') OR (town_village_code IS NOT NULL AND town_village_code != '')");
+        $stmt = $db->query("SELECT name, town_village_code FROM census WHERE level = 'VILLAGE' AND name IS NOT NULL AND name != '' ORDER BY name ASC");
         while ($row = $stmt->fetch()) {
-            $vSlug = !empty($row['slug']) ? $row['slug'] : $row['town_village_code'];
+            $vSlug = getVillageUniqueSlug($row['name'], $row['town_village_code']);
             addSitemapUrl($baseUrl . 'villages/' . rawurlencode($vSlug), $today, 'weekly', '0.7');
             addSitemapUrl($baseUrl . 'hindi/villages/' . rawurlencode($vSlug), $today, 'weekly', '0.7');
         }
