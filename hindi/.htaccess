@@ -7,11 +7,13 @@
     RewriteRule ^ - [L]
 
     # Friendly URLs Rewrites for Hindi Section
+    RewriteRule ^sitemap\.xml$ ../sitemap.php [L]
     RewriteRule ^blocks/?$ block.php [L,QSA]
     RewriteRule ^block/([a-zA-Z0-9_-]+)/?$ block.php?slug=$1 [L,QSA]
     RewriteRule ^panchayats/?$ panchayat.php [L,QSA]
     RewriteRule ^panchayat/([a-zA-Z0-9_-]+)/?$ panchayat.php?slug=$1 [L,QSA]
     RewriteRule ^villages/?$ village.php [L,QSA]
+    RewriteRule ^villages/([a-zA-Z0-9_-]+)/?$ village.php?slug=$1 [L,QSA]
     RewriteRule ^village/?$ village.php [L,QSA]
     RewriteRule ^village/([a-zA-Z0-9_-]+)/?$ village.php?slug=$1 [L,QSA]
     RewriteRule ^halkas/?$ halka.php [L,QSA]

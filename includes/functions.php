@@ -37,7 +37,8 @@ function getPanchayatUrl($slug) {
 }
 
 function getVillageUrl($slug) {
-    return "village/" . rawurlencode($slug);
+    if (empty($slug)) return "villages";
+    return "villages/" . rawurlencode($slug);
 }
 
 
