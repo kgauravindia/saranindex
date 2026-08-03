@@ -222,6 +222,29 @@ require_once __DIR__ . '/includes/header.php';
             </div>
         </div>
 
+        <!-- 9. Aryabhatta Knowledge University Portal -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-4 bg-white hover-lift">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="badge bg-info-subtle text-info-emphasis fw-bold px-3 py-1 rounded-pill small">
+                        <i class="bi bi-cpu-fill me-1"></i> इंजीनियरिंग एवं मेडिकल शिक्षा
+                    </span>
+                    <span class="badge bg-light text-muted border px-2.5 py-1 rounded-pill small">बिहार सरकार</span>
+                </div>
+                <h4 class="fw-bold text-dark font-heading mb-2">आर्यभट्ट ज्ञान विश्वविद्यालय (AKU)</h4>
+                <p class="text-muted small mb-3">AKU पटना (बिहार का तकनीकी राज्य विश्वविद्यालय)</p>
+                <p class="text-secondary small mb-4" style="line-height: 1.6;">
+                    सारण जिले में स्थित सरकारी इंजीनियरिंग कॉलेज (LNJPIT छपरा), मेडिकल, नर्सिंग और तकनीकी संस्थानों का आधिकारिक तकनीकी विश्वविद्यालय।
+                </p>
+                <div class="mt-auto pt-3 border-top d-flex align-items-center justify-content-between">
+                    <span class="text-muted small"><i class="bi bi-link-45deg me-1"></i>akubihar.ac.in</span>
+                    <a href="https://akubihar.ac.in/" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold">
+                        पोर्टल पर जाएं <i class="bi bi-box-arrow-up-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- Non-Government Disclaimer Footer Box -->

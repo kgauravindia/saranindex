@@ -27,7 +27,7 @@ function getListingUrl($slug) {
 
 function getBlockUrl($slug = '') {
     if (!empty($slug)) {
-        return "block/" . rawurlencode($slug);
+        return "blocks/" . rawurlencode($slug);
     }
     return "blocks";
 }
@@ -46,12 +46,79 @@ function getBlocks() {
     $db = getDB();
     if ($db) {
         try {
-            $stmt = $db->query("SELECT * FROM blocks ORDER BY block_name ASC");
+            $sql = "SELECT b.id, b.name, b.name as block_name, b.name_english, b.hindi_name, b.slug, b.pincode, b.total_panchayats,
+                           c_tot.households, c_tot.pop_tot, c_tot.pop_male, c_tot.pop_female, c_tot.lit_tot, c_tot.lit_male, c_tot.lit_female, c_tot.tot_work_tot, c_tot.cd_block_code,
+                           c_rur.households as households_rural, c_rur.pop_tot as pop_rural, c_rur.pop_male as pop_male_rural, c_rur.pop_female as pop_female_rural, c_rur.lit_tot as lit_rural, c_rur.tot_work_tot as tot_work_rural,
+                           c_urb.households as households_urban, c_urb.pop_tot as pop_urban, c_urb.pop_male as pop_male_urban, c_urb.pop_female as pop_female_urban, c_urb.lit_tot as lit_urban, c_urb.tot_work_tot as tot_work_urban
+                    FROM blocks b
+                    LEFT JOIN census c_tot ON (c_tot.level = 'CD BLOCK' AND c_tot.tru_type = 'Total' AND (
+                        LOWER(c_tot.name) = LOWER(b.name) 
+                        OR LOWER(c_tot.name) = LOWER(b.name_english)
+                        OR SOUNDEX(c_tot.name) = SOUNDEX(b.name)
+                        OR LOWER(b.name) LIKE CONCAT('%', LOWER(c_tot.name), '%')
+                        OR LOWER(c_tot.name) LIKE CONCAT('%', LOWER(b.name), '%')
+                    ))
+                    LEFT JOIN census c_rur ON (c_rur.level = 'CD BLOCK' AND c_rur.tru_type = 'Rural' AND (
+                        LOWER(c_rur.name) = LOWER(b.name) 
+                        OR LOWER(c_rur.name) = LOWER(b.name_english)
+                        OR SOUNDEX(c_rur.name) = SOUNDEX(b.name)
+                        OR LOWER(b.name) LIKE CONCAT('%', LOWER(c_rur.name), '%')
+                        OR LOWER(c_rur.name) LIKE CONCAT('%', LOWER(b.name), '%')
+                    ))
+                    LEFT JOIN census c_urb ON (c_urb.level = 'CD BLOCK' AND c_urb.tru_type = 'Urban' AND (
+                        LOWER(c_urb.name) = LOWER(b.name) 
+                        OR LOWER(c_urb.name) = LOWER(b.name_english)
+                        OR SOUNDEX(c_urb.name) = SOUNDEX(b.name)
+                        OR LOWER(b.name) LIKE CONCAT('%', LOWER(c_urb.name), '%')
+                        OR LOWER(c_urb.name) LIKE CONCAT('%', LOWER(b.name), '%')
+                    ))
+                    ORDER BY b.name ASC";
+            $stmt = $db->query($sql);
             $results = $stmt->fetchAll();
             if ($results) return $results;
         } catch (PDOException $e) {}
     }
     return [];
+}
+
+function getBlockBySlug($slug) {
+    $db = getDB();
+    if (!$db || empty($slug)) return null;
+
+    try {
+        $sql = "SELECT b.id, b.name, b.name as block_name, b.name_english, b.hindi_name, b.slug, b.pincode, b.total_panchayats,
+                       c_tot.households, c_tot.pop_tot, c_tot.pop_male, c_tot.pop_female, c_tot.lit_tot, c_tot.lit_male, c_tot.lit_female, c_tot.tot_work_tot, c_tot.cd_block_code,
+                       c_rur.households as households_rural, c_rur.pop_tot as pop_rural, c_rur.pop_male as pop_male_rural, c_rur.pop_female as pop_female_rural, c_rur.lit_tot as lit_rural, c_rur.tot_work_tot as tot_work_rural,
+                       c_urb.households as households_urban, c_urb.pop_tot as pop_urban, c_urb.pop_male as pop_male_urban, c_urb.pop_female as pop_female_urban, c_urb.lit_tot as lit_urban, c_urb.tot_work_tot as tot_work_urban
+                FROM blocks b
+                LEFT JOIN census c_tot ON (c_tot.level = 'CD BLOCK' AND c_tot.tru_type = 'Total' AND (
+                    LOWER(c_tot.name) = LOWER(b.name) 
+                    OR LOWER(c_tot.name) = LOWER(b.name_english)
+                    OR SOUNDEX(c_tot.name) = SOUNDEX(b.name)
+                    OR LOWER(b.name) LIKE CONCAT('%', LOWER(c_tot.name), '%')
+                    OR LOWER(c_tot.name) LIKE CONCAT('%', LOWER(b.name), '%')
+                ))
+                LEFT JOIN census c_rur ON (c_rur.level = 'CD BLOCK' AND c_rur.tru_type = 'Rural' AND (
+                    LOWER(c_rur.name) = LOWER(b.name) 
+                    OR LOWER(c_rur.name) = LOWER(b.name_english)
+                    OR SOUNDEX(c_rur.name) = SOUNDEX(b.name)
+                    OR LOWER(b.name) LIKE CONCAT('%', LOWER(c_rur.name), '%')
+                    OR LOWER(c_rur.name) LIKE CONCAT('%', LOWER(b.name), '%')
+                ))
+                LEFT JOIN census c_urb ON (c_urb.level = 'CD BLOCK' AND c_urb.tru_type = 'Urban' AND (
+                    LOWER(c_urb.name) = LOWER(b.name) 
+                    OR LOWER(c_urb.name) = LOWER(b.name_english)
+                    OR SOUNDEX(c_urb.name) = SOUNDEX(b.name)
+                    OR LOWER(b.name) LIKE CONCAT('%', LOWER(c_urb.name), '%')
+                    OR LOWER(c_urb.name) LIKE CONCAT('%', LOWER(b.name), '%')
+                ))
+                WHERE b.slug = :slug LIMIT 1";
+        $stmt = $db->prepare($sql);
+        $stmt->execute(['slug' => $slug]);
+        $res = $stmt->fetch();
+        if ($res) return $res;
+    } catch (PDOException $e) {}
+    return null;
 }
 
 function getCategories() {
@@ -93,7 +160,7 @@ function getListings($search = '', $category_slug = '', $block_slug = '', $limit
     $db = getDB();
     if ($db) {
         try {
-            $sql = "SELECT l.*, c.name as category_name, sc.name as subcategory_name, sc.hindi_name as subcategory_hindi_name, b.block_name 
+            $sql = "SELECT l.*, c.name as category_name, sc.name as subcategory_name, sc.hindi_name as subcategory_hindi_name, b.name as block_name 
                     FROM listings l 
                     LEFT JOIN categories c ON l.category_id = c.id 
                     LEFT JOIN subcategories sc ON l.subcategory_id = sc.id
@@ -132,7 +199,7 @@ function getListingBySlug($slug) {
     $db = getDB();
     if ($db) {
         try {
-            $stmt = $db->prepare("SELECT l.*, c.name as category_name, b.block_name FROM listings l LEFT JOIN categories c ON l.category_id = c.id LEFT JOIN blocks b ON l.block_id = b.id WHERE l.slug = :slug LIMIT 1");
+            $stmt = $db->prepare("SELECT l.*, c.name as category_name, b.name as block_name FROM listings l LEFT JOIN categories c ON l.category_id = c.id LEFT JOIN blocks b ON l.block_id = b.id WHERE l.slug = :slug LIMIT 1");
             $stmt->execute(['slug' => $slug]);
             $res = $stmt->fetch();
             if ($res) return $res;
@@ -270,7 +337,7 @@ function getAllAdminListings($status = null, $search = null) {
     $db = getDB();
     if ($db) {
         try {
-            $sql = "SELECT l.*, c.name as category_name, b.block_name 
+            $sql = "SELECT l.*, c.name as category_name, b.name as block_name 
                     FROM listings l 
                     LEFT JOIN categories c ON l.category_id = c.id 
                     LEFT JOIN blocks b ON l.block_id = b.id WHERE 1=1";
@@ -549,7 +616,7 @@ function getPeople($block_id = null, $limit = 50) {
     $db = getDB();
     if ($db) {
         try {
-            $sql = "SELECT p.*, b.block_name FROM people p LEFT JOIN blocks b ON p.block_id = b.id WHERE p.status = 'ACTIVE'";
+            $sql = "SELECT p.*, b.name as block_name FROM people p LEFT JOIN blocks b ON p.block_id = b.id WHERE p.status = 'ACTIVE'";
             $params = [];
             if ($block_id) {
                 $sql .= " AND p.block_id = :bid";
@@ -574,7 +641,7 @@ function getPersonBySlug($slug) {
     $db = getDB();
     if ($db) {
         try {
-            $stmt = $db->prepare("SELECT p.*, b.block_name FROM people p LEFT JOIN blocks b ON p.block_id = b.id WHERE p.slug = :slug LIMIT 1");
+            $stmt = $db->prepare("SELECT p.*, b.name as block_name FROM people p LEFT JOIN blocks b ON p.block_id = b.id WHERE p.slug = :slug LIMIT 1");
             $stmt->execute(['slug' => $slug]);
             $res = $stmt->fetch();
             if ($res) return $res;
@@ -965,3 +1032,372 @@ function getHalkaStats() {
         return ['maujas' => 0, 'halkas' => 0, 'blocks' => 0];
     }
 }
+
+// -------------------------------------------------------------
+// PUBLIC USER AUTHENTICATION & DASHBOARD FUNCTIONS
+// -------------------------------------------------------------
+
+function ensureUsersTable() {
+    $db = getDB();
+    if (!$db) return;
+    try {
+        $db->exec("CREATE TABLE IF NOT EXISTS `users` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `full_name` VARCHAR(100) NOT NULL,
+            `mobile` VARCHAR(20) NOT NULL UNIQUE,
+            `whatsapp` VARCHAR(20) DEFAULT NULL,
+            `email` VARCHAR(100) DEFAULT NULL,
+            `password_hash` VARCHAR(255) NOT NULL,
+            `business_name` VARCHAR(150) DEFAULT NULL,
+            `designation` VARCHAR(100) DEFAULT NULL,
+            `block_id` INT DEFAULT NULL,
+            `panchayat_id` INT DEFAULT NULL,
+            `village_id` INT DEFAULT NULL,
+            `address` TEXT DEFAULT NULL,
+            `pincode` VARCHAR(10) DEFAULT NULL,
+            `profile_image` VARCHAR(255) DEFAULT NULL,
+            `bio` TEXT DEFAULT NULL,
+            `status` ENUM('ACTIVE','INACTIVE','SUSPENDED') DEFAULT 'ACTIVE',
+            `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+            `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+        // Add missing columns dynamically
+        $cols = $db->query("SHOW COLUMNS FROM `users`")->fetchAll(PDO::FETCH_COLUMN);
+        
+        $newColumns = [
+            'whatsapp' => "VARCHAR(20) DEFAULT NULL",
+            'business_name' => "VARCHAR(150) DEFAULT NULL",
+            'designation' => "VARCHAR(100) DEFAULT NULL",
+            'panchayat_id' => "INT DEFAULT NULL",
+            'village_id' => "INT DEFAULT NULL",
+            'pincode' => "VARCHAR(10) DEFAULT NULL",
+            'profile_image' => "VARCHAR(255) DEFAULT NULL",
+            'bio' => "TEXT DEFAULT NULL",
+            // Newly requested fields
+            'name' => "VARCHAR(150) DEFAULT NULL",
+            'mobile_status' => "VARCHAR(20) DEFAULT 'UNVERIFIED'",
+            'mobile_visibility' => "VARCHAR(20) DEFAULT 'PUBLIC'",
+            'email_status' => "VARCHAR(20) DEFAULT 'UNVERIFIED'",
+            'email_visibility' => "VARCHAR(20) DEFAULT 'PUBLIC'",
+            'password' => "VARCHAR(255) DEFAULT NULL",
+            'token' => "VARCHAR(255) DEFAULT NULL",
+            'type' => "VARCHAR(50) DEFAULT 'USER'",
+            'address_visibility' => "VARCHAR(20) DEFAULT 'PUBLIC'",
+            'state_code' => "VARCHAR(20) DEFAULT NULL",
+            'district_code' => "VARCHAR(20) DEFAULT NULL",
+            'dob' => "DATE DEFAULT NULL",
+            'r_name' => "VARCHAR(150) DEFAULT NULL",
+            'education' => "VARCHAR(150) DEFAULT NULL",
+            'gender' => "VARCHAR(20) DEFAULT NULL",
+            'public_url' => "VARCHAR(255) DEFAULT NULL",
+            'counter' => "INT DEFAULT 0",
+            'univ_code' => "VARCHAR(50) DEFAULT NULL",
+            'college_code' => "VARCHAR(50) DEFAULT NULL",
+            'about' => "TEXT DEFAULT NULL",
+            'photo' => "VARCHAR(255) DEFAULT NULL",
+            'id_proof' => "VARCHAR(255) DEFAULT NULL",
+            'wallet' => "DECIMAL(10,2) DEFAULT 0.00",
+            'created_by' => "INT DEFAULT 0",
+            'updated_by' => "INT DEFAULT 0",
+            'plan_type' => "VARCHAR(50) DEFAULT NULL",
+            'plan_expiry' => "DATETIME DEFAULT NULL",
+            'languages' => "VARCHAR(255) DEFAULT NULL",
+            'otp_code' => "VARCHAR(20) DEFAULT NULL",
+            'otp_expiry' => "DATETIME DEFAULT NULL",
+            'linkedin' => "VARCHAR(255) DEFAULT NULL",
+            'twitter' => "VARCHAR(255) DEFAULT NULL",
+            'facebook' => "VARCHAR(255) DEFAULT NULL",
+            'instagram' => "VARCHAR(255) DEFAULT NULL",
+            'google_maps_link' => "TEXT DEFAULT NULL"
+        ];
+
+        foreach ($newColumns as $col => $def) {
+            if (!in_array($col, $cols)) {
+                $db->exec("ALTER TABLE `users` ADD COLUMN `$col` $def");
+            }
+        }
+    } catch (PDOException $e) {
+        error_log("Error creating/altering users table: " . $e->getMessage());
+    }
+}
+
+function isUserLoggedIn() {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    return !empty($_SESSION['user_id']);
+}
+
+function getLoggedInUser() {
+    if (!isUserLoggedIn()) return null;
+    $db = getDB();
+    if (!$db) return null;
+
+    try {
+        $stmt = $db->prepare("SELECT u.*, b.name as block_name, b.hindi_name as block_hindi FROM users u LEFT JOIN blocks b ON u.block_id = b.id WHERE u.id = :id AND u.status = 'ACTIVE' LIMIT 1");
+        $stmt->execute(['id' => $_SESSION['user_id']]);
+        return $stmt->fetch();
+    } catch (PDOException $e) {
+        error_log("getLoggedInUser error: " . $e->getMessage());
+        return null;
+    }
+}
+
+
+function registerPublicUser($fullName, $mobile, $password, $email = '', $blockId = null, $address = '') {
+    $db = getDB();
+    if (!$db) {
+        return ['success' => false, 'message' => 'Database connection failed.'];
+    }
+
+    ensureUsersTable();
+
+    $fullName = sanitizeInput($fullName);
+    $mobile = preg_replace('/[^0-9]/', '', $mobile);
+    $email = sanitizeInput($email);
+    $address = sanitizeInput($address);
+
+    if (empty($fullName)) {
+        return ['success' => false, 'message' => 'Full name is required.'];
+    }
+
+    if (strlen($mobile) < 10) {
+        return ['success' => false, 'message' => 'Please enter a valid 10-digit mobile number.'];
+    }
+
+    if (strlen($password) < 6) {
+        return ['success' => false, 'message' => 'Password must be at least 6 characters long.'];
+    }
+
+    try {
+        // Check if mobile already exists
+        $stmt = $db->prepare("SELECT id FROM users WHERE mobile = :mobile LIMIT 1");
+        $stmt->execute(['mobile' => $mobile]);
+        if ($stmt->fetch()) {
+            return ['success' => false, 'message' => 'This mobile number is already registered. Please login.'];
+        }
+
+        $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+
+        $stmt = $db->prepare("INSERT INTO users (full_name, mobile, email, password_hash, block_id, address) VALUES (:name, :mobile, :email, :pass, :block, :address)");
+        $stmt->execute([
+            'name' => $fullName,
+            'mobile' => $mobile,
+            'email' => !empty($email) ? $email : null,
+            'pass' => $passwordHash,
+            'block' => !empty($blockId) ? intval($blockId) : null,
+            'address' => !empty($address) ? $address : null
+        ]);
+
+        $userId = $db->lastInsertId();
+
+        // Send registration SMS via gateway
+        require_once __DIR__ . '/sms_helper.php';
+        if (function_exists('send_registration_sms')) {
+            send_registration_sms($mobile, $fullName, $password);
+        }
+
+        // Auto Login user
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        $_SESSION['user_id'] = $userId;
+        $_SESSION['user_name'] = $fullName;
+        $_SESSION['user_mobile'] = $mobile;
+
+        return ['success' => true, 'message' => 'Registration successful! Welcome to Saran Index.', 'user_id' => $userId];
+    } catch (PDOException $e) {
+        error_log("Registration error: " . $e->getMessage());
+        return ['success' => false, 'message' => 'An error occurred during registration. Please try again.'];
+    }
+}
+
+function loginPublicUser($mobileOrEmail, $password) {
+    $db = getDB();
+    if (!$db) {
+        return ['success' => false, 'message' => 'Database connection error.'];
+    }
+
+    $input = sanitizeInput($mobileOrEmail);
+    $cleanMobile = preg_replace('/[^0-9]/', '', $input);
+
+    if (empty($input) || empty($password)) {
+        return ['success' => false, 'message' => 'Please enter your mobile number and password.'];
+    }
+
+    try {
+        $stmt = $db->prepare("SELECT * FROM users WHERE (mobile = :mobile OR email = :email) AND status = 'ACTIVE' LIMIT 1");
+        $stmt->execute([
+            'mobile' => $cleanMobile,
+            'email' => $input
+        ]);
+        $user = $stmt->fetch();
+
+        if (!$user) {
+            return ['success' => false, 'message' => 'No active user account found with this mobile number or email.'];
+        }
+
+        if (!password_verify($password, $user['password_hash'])) {
+            return ['success' => false, 'message' => 'Incorrect password. Please try again.'];
+        }
+
+        // Set session
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['user_name'] = $user['full_name'];
+        $_SESSION['user_mobile'] = $user['mobile'];
+
+        return ['success' => true, 'message' => 'Login successful!', 'user' => $user];
+    } catch (PDOException $e) {
+        error_log("Login error: " . $e->getMessage());
+        return ['success' => false, 'message' => 'An error occurred while logging in.'];
+    }
+}
+
+function logoutPublicUser() {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    unset($_SESSION['user_id']);
+    unset($_SESSION['user_name']);
+    unset($_SESSION['user_mobile']);
+}
+
+function getUserListings($mobileOrUserId) {
+    $db = getDB();
+    if (!$db) return [];
+
+    try {
+        if (is_numeric($mobileOrUserId) && strlen($mobileOrUserId) < 10) {
+            // Find mobile first
+            $stmt = $db->prepare("SELECT mobile FROM users WHERE id = :id");
+            $stmt->execute(['id' => $mobileOrUserId]);
+            $mobile = $stmt->fetchColumn();
+        } else {
+            $mobile = $mobileOrUserId;
+        }
+
+        if (empty($mobile)) return [];
+
+        $stmt = $db->prepare("SELECT l.*, c.name as category_name, b.name as block_name FROM listings l LEFT JOIN categories c ON l.category_id = c.id LEFT JOIN blocks b ON l.block_id = b.id WHERE l.mobile = :mobile ORDER BY l.id DESC");
+        $stmt->execute(['mobile' => $mobile]);
+        return $stmt->fetchAll();
+    } catch (PDOException $e) {
+        return [];
+    }
+}
+
+function updateUserProfile($userId, $fullName, $email = '', $blockId = null, $address = '', $newPassword = '', $whatsapp = '', $businessName = '', $designation = '', $pincode = '', $panchayatId = null, $villageId = null, $bio = '') {
+    $db = getDB();
+    if (!$db) {
+        return ['success' => false, 'message' => 'Database connection error.'];
+    }
+
+    ensureUsersTable();
+
+    $fullName = sanitizeInput($fullName);
+    $email = sanitizeInput($email);
+    $address = sanitizeInput($address);
+    $whatsapp = preg_replace('/[^0-9]/', '', $whatsapp);
+    $businessName = sanitizeInput($businessName);
+    $designation = sanitizeInput($designation);
+    $pincode = sanitizeInput($pincode);
+    $bio = sanitizeInput($bio);
+
+    if (empty($fullName)) {
+        return ['success' => false, 'message' => 'Full name cannot be empty.'];
+    }
+
+    try {
+        $params = [
+            'name' => $fullName,
+            'wa' => !empty($whatsapp) ? $whatsapp : null,
+            'email' => !empty($email) ? $email : null,
+            'bname' => !empty($businessName) ? $businessName : null,
+            'desig' => !empty($designation) ? $designation : null,
+            'block' => !empty($blockId) ? intval($blockId) : null,
+            'panchayat' => !empty($panchayatId) ? intval($panchayatId) : null,
+            'village' => !empty($villageId) ? intval($villageId) : null,
+            'address' => !empty($address) ? $address : null,
+            'pin' => !empty($pincode) ? $pincode : null,
+            'bio' => !empty($bio) ? $bio : null,
+            'id' => intval($userId)
+        ];
+
+        if (!empty($newPassword)) {
+            if (strlen($newPassword) < 6) {
+                return ['success' => false, 'message' => 'New password must be at least 6 characters long.'];
+            }
+            $params['pass'] = password_hash($newPassword, PASSWORD_DEFAULT);
+            $stmt = $db->prepare("UPDATE users SET full_name = :name, whatsapp = :wa, email = :email, business_name = :bname, designation = :desig, block_id = :block, panchayat_id = :panchayat, village_id = :village, address = :address, pincode = :pin, bio = :bio, password_hash = :pass WHERE id = :id");
+        } else {
+            $stmt = $db->prepare("UPDATE users SET full_name = :name, whatsapp = :wa, email = :email, business_name = :bname, designation = :desig, block_id = :block, panchayat_id = :panchayat, village_id = :village, address = :address, pincode = :pin, bio = :bio WHERE id = :id");
+        }
+
+        $stmt->execute($params);
+
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        $_SESSION['user_name'] = $fullName;
+
+        return ['success' => true, 'message' => 'Profile updated successfully!'];
+    } catch (PDOException $e) {
+        error_log("Update user error: " . $e->getMessage());
+        return ['success' => false, 'message' => 'Failed to update profile. Please try again.'];
+    }
+}
+
+function generateMobileOTP($mobile, $userName = 'User') {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    $cleanMobile = preg_replace('/[^0-9]/', '', $mobile);
+    $otp = sprintf("%06d", rand(100000, 999999));
+
+    $_SESSION['otp_mobile'] = $cleanMobile;
+    $_SESSION['otp_code'] = $otp;
+    $_SESSION['otp_expiry'] = time() + (10 * 60); // 10 minutes
+
+    // Dispatch SMS via SMS Gateway
+    require_once __DIR__ . '/sms_helper.php';
+    if (function_exists('send_registration_sms')) {
+        send_registration_sms($cleanMobile, $userName, $otp);
+    }
+
+    return $otp;
+}
+
+function verifyMobileOTP($mobile, $inputOtp) {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    $cleanMobile = preg_replace('/[^0-9]/', '', $mobile);
+    $sessionMobile = $_SESSION['otp_mobile'] ?? '';
+    $sessionOtp = $_SESSION['otp_code'] ?? '';
+    $expiry = $_SESSION['otp_expiry'] ?? 0;
+
+    if (empty($sessionOtp) || time() > $expiry) {
+        return ['success' => false, 'message' => 'OTP has expired. Please request a new OTP.'];
+    }
+
+    if ($cleanMobile !== $sessionMobile) {
+        return ['success' => false, 'message' => 'Mobile number mismatch. Please request OTP again.'];
+    }
+
+    if (trim($inputOtp) !== trim($sessionOtp)) {
+        return ['success' => false, 'message' => 'Invalid OTP code entered. Please check and try again.'];
+    }
+
+    // OTP verified
+    unset($_SESSION['otp_code']);
+    unset($_SESSION['otp_expiry']);
+
+    return ['success' => true, 'message' => 'Mobile number verified successfully!'];
+}
+
+
+

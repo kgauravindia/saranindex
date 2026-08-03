@@ -29,6 +29,15 @@
     
     # Core Pages
     RewriteRule ^search/?$ search.php [L,QSA]
+    RewriteRule ^login/?$ login.php [L,QSA]
+    RewriteRule ^register/?$ register.php [L,QSA]
+    RewriteRule ^forgot-password/?$ forgot-password.php [L,QSA]
+    RewriteRule ^reset-password/?$ forgot-password.php [L,QSA]
+    RewriteRule ^dashboard/?$ dashboard.php [L,QSA]
+    RewriteRule ^logout/?$ logout.php [L,QSA]
+    RewriteRule ^university/?$ university.php [L,QSA]
+    RewriteRule ^jpu/?$ university.php [L,QSA]
+    RewriteRule ^jpu-chapra/?$ university.php [L,QSA]
     RewriteRule ^sources/?$ sources.php [L,QSA]
     RewriteRule ^data-sources/?$ sources.php [L,QSA]
     RewriteRule ^emergency/?$ emergency.php [L,QSA]

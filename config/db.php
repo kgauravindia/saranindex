@@ -70,5 +70,3 @@ class Database {
 function getDB() {
     return Database::getInstance()->getConnection();
 }
-?>
-

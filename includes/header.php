@@ -76,12 +76,20 @@ $meta_description = $meta_description ?? 'Saran Index is the digital directory o
                 <li class="nav-item">
                     <a class="nav-link text-dark px-3" href="village"><i class="bi bi-houses me-1"></i>Villages</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link text-dark px-3" href="halka"><i class="bi bi-map me-1"></i>Halka & Mauja</a>
-                </li>
             </ul>
 
             <div class="d-flex align-items-center gap-2">
+                <?php if (isUserLoggedIn()): 
+                    $headerUser = getLoggedInUser();
+                ?>
+                    <a href="dashboard.php" class="btn btn-outline-primary rounded-pill px-3 py-1.5 btn-sm fw-bold" title="My Account Dashboard">
+                        <i class="bi bi-person-circle me-1"></i><?php echo htmlspecialchars($headerUser['full_name'] ?? 'Dashboard'); ?>
+                    </a>
+                <?php else: ?>
+                    <a href="login.php" class="btn btn-outline-primary rounded-pill px-3 py-1.5 btn-sm fw-bold" title="User Login">
+                        <i class="bi bi-box-arrow-in-right me-1"></i>Login
+                    </a>
+                <?php endif; ?>
                 <a href="hindi/" class="btn btn-outline-warning text-dark border-warning rounded-pill px-3 py-1.5 btn-sm fw-bold">
                     <i class="bi bi-translate me-1"></i>हिन्दी
                 </a>

@@ -79,12 +79,20 @@ $meta_description = $meta_description ?? 'सारण इंडेक्स स
                 <li class="nav-item">
                     <a class="nav-link text-dark px-3" href="village"><i class="bi bi-houses me-1"></i>गाँव</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link text-dark px-3" href="halka"><i class="bi bi-map me-1"></i>हलका एवं मौजा</a>
-                </li>
             </ul>
 
             <div class="d-flex align-items-center gap-2">
+                <?php if (isUserLoggedIn()): 
+                    $headerUser = getLoggedInUser();
+                ?>
+                    <a href="dashboard.php" class="btn btn-outline-primary rounded-pill px-3 py-1.5 btn-sm fw-bold" title="मेरा खाता डैशबोर्ड">
+                        <i class="bi bi-person-circle me-1"></i><?php echo htmlspecialchars($headerUser['full_name'] ?? 'डैशबोर्ड'); ?>
+                    </a>
+                <?php else: ?>
+                    <a href="login.php" class="btn btn-outline-primary rounded-pill px-3 py-1.5 btn-sm fw-bold" title="उपयोगकर्ता लॉगिन">
+                        <i class="bi bi-box-arrow-in-right me-1"></i>लॉगिन
+                    </a>
+                <?php endif; ?>
                 <a href="../" class="btn btn-outline-primary rounded-pill px-3 py-1.5 btn-sm fw-bold" title="Switch to English Website">
                     <i class="bi bi-globe me-1"></i>English
                 </a>
