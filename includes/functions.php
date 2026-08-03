@@ -1408,11 +1408,17 @@ function generateMobileOTP($mobile, $userName = 'User') {
         session_start();
     }
     $cleanMobile = preg_replace('/[^0-9]/', '', $mobile);
+    if (strlen($cleanMobile) >= 10) {
+        $cleanMobile = substr($cleanMobile, -10);
+    }
     $otp = sprintf("%06d", rand(100000, 999999));
 
     $_SESSION['otp_mobile'] = $cleanMobile;
-    $_SESSION['otp_code'] = $otp;
+    $_SESSION['otp_code']   = $otp;
     $_SESSION['otp_expiry'] = time() + (10 * 60); // 10 minutes
+
+    // Log OTP for debugging/development
+    error_log("OTP generated for +91 {$cleanMobile}: {$otp}");
 
     // Dispatch SMS via SMS Gateway
     require_once __DIR__ . '/sms_helper.php';
@@ -1428,15 +1434,23 @@ function verifyMobileOTP($mobile, $inputOtp) {
         session_start();
     }
     $cleanMobile = preg_replace('/[^0-9]/', '', $mobile);
+    if (strlen($cleanMobile) >= 10) {
+        $cleanMobile = substr($cleanMobile, -10);
+    }
+
     $sessionMobile = $_SESSION['otp_mobile'] ?? '';
-    $sessionOtp = $_SESSION['otp_code'] ?? '';
-    $expiry = $_SESSION['otp_expiry'] ?? 0;
+    if (strlen($sessionMobile) >= 10) {
+        $sessionMobile = substr($sessionMobile, -10);
+    }
+
+    $sessionOtp = $_SESSION['otp_code']   ?? '';
+    $expiry     = $_SESSION['otp_expiry'] ?? 0;
 
     if (empty($sessionOtp) || time() > $expiry) {
         return ['success' => false, 'message' => 'OTP has expired. Please request a new OTP.'];
     }
 
-    if ($cleanMobile !== $sessionMobile) {
+    if (!empty($sessionMobile) && $cleanMobile !== $sessionMobile) {
         return ['success' => false, 'message' => 'Mobile number mismatch. Please request OTP again.'];
     }
 

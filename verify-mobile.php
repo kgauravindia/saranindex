@@ -32,41 +32,21 @@ $otp_sent = !empty($_SESSION['otp_code']) && !empty($_SESSION['otp_expiry']) && 
 
 // ─── Send OTP ─────────────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'send_otp') {
-    $otp = sprintf("%06d", rand(100000, 999999));
-    $_SESSION['otp_mobile'] = $user['mobile'];
-    $_SESSION['otp_code']   = $otp;
-    $_SESSION['otp_expiry'] = time() + 600; // 10 minutes
-
-    $smsResult = send_registration_sms($user['mobile'], $user['full_name'], $otp);
-
-    if ($smsResult['status'] === 'success') {
-        $success  = "OTP sent to +91 {$user['mobile']}. Valid for 10 minutes.";
-        $otp_sent = true;
-    } else {
-        // Dev fallback — show OTP on screen
-        $error    = "SMS failed. Test OTP: <strong>$otp</strong>";
-        $otp_sent = true;
+    $cleanMob = preg_replace('/[^0-9]/', '', $user['mobile']);
+    if (strlen($cleanMob) >= 10) {
+        $cleanMob = substr($cleanMob, -10);
     }
+    $otp = generateMobileOTP($cleanMob, $user['full_name']);
+    $success  = "OTP sent to +91 {$cleanMob}. Valid for 10 minutes.";
+    $otp_sent = true;
 }
 
 // ─── Verify OTP ───────────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'verify_otp') {
     $inputOtp = trim($_POST['otp_code'] ?? '');
+    $res = verifyMobileOTP($user['mobile'], $inputOtp);
 
-    $sessionOtp    = $_SESSION['otp_code']   ?? '';
-    $sessionMobile = $_SESSION['otp_mobile'] ?? '';
-    $expiry        = $_SESSION['otp_expiry'] ?? 0;
-
-    if (empty($sessionOtp) || time() > $expiry) {
-        $error    = "OTP has expired. Please request a new one.";
-        $otp_sent = false;
-    } elseif ($sessionMobile !== $user['mobile']) {
-        $error    = "Mobile mismatch. Please request OTP again.";
-        $otp_sent = false;
-    } elseif (trim($inputOtp) !== trim($sessionOtp)) {
-        $error    = "Invalid OTP. Please check and try again.";
-        $otp_sent = true;
-    } else {
+    if ($res['success']) {
         // ✅ OTP Correct → mark mobile as VERIFIED
         $upd = $db->prepare("UPDATE users SET mobile_status = 'VERIFIED' WHERE id = :id");
         $upd->execute(['id' => $user['id']]);
@@ -75,6 +55,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         header("Location: dashboard.php?verified=1");
         exit;
+    } else {
+        $error    = $res['message'];
+        $otp_sent = !empty($_SESSION['otp_code']) && !empty($_SESSION['otp_expiry']) && time() < $_SESSION['otp_expiry'];
     }
 }
 

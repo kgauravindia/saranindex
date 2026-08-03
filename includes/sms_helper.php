@@ -8,11 +8,16 @@ function bulk_msg($mobile_list, $sms, $count = 1, $smstype = 'english')
     global $auth_key_msg;
     global $sender_id;
     
+    $clean_mobiles = preg_replace('/[^0-9]/', '', $mobile_list);
+    if (strlen($clean_mobiles) >= 10) {
+        $clean_mobiles = substr($clean_mobiles, -10);
+    }
+
     $data = array(
         'smsContent' => $sms,
         'groupId' => '',
         'routeId' => 1,
-        'mobileNumbers' => $mobile_list,
+        'mobileNumbers' => $clean_mobiles,
         'senderId' => $sender_id,
         'signature' => '',
         'smsContentType' => $smstype

@@ -16,6 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'verify_mobile') {
         $inputMobile = trim($_POST['mobile'] ?? '');
         $cleanMobile = preg_replace('/[^0-9]/', '', $inputMobile);
+        $m10 = (strlen($cleanMobile) >= 10) ? substr($cleanMobile, -10) : $cleanMobile;
 
         if (strlen($cleanMobile) < 10) {
             $error = "कृपया 10-अंकों का वैध मोबाइल नंबर दर्ज करें।";
@@ -24,24 +25,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db = getDB();
             if ($db) {
                 ensureUsersTable();
-                $stmt = $db->prepare("SELECT id, full_name FROM users WHERE mobile = :mobile AND status = 'ACTIVE' LIMIT 1");
-                $stmt->execute(['mobile' => $cleanMobile]);
+                $stmt = $db->prepare("SELECT id, full_name, mobile FROM users WHERE (mobile = :mobile OR mobile = :m10 OR RIGHT(mobile, 10) = :m10) LIMIT 1");
+                $stmt->execute(['mobile' => $cleanMobile, 'm10' => $m10]);
                 $user = $stmt->fetch();
 
                 if ($user) {
-                    $_SESSION['reset_mobile'] = $cleanMobile;
+                    $_SESSION['reset_mobile'] = $m10;
                     $_SESSION['reset_user_name'] = $user['full_name'];
-                    $mobile = $cleanMobile;
+                    $mobile = $m10;
                     
                     // Generate Mobile OTP
-                    $otp = generateMobileOTP($cleanMobile, $user['full_name']);
+                    $otp = generateMobileOTP($m10, $user['full_name']);
                     $activeOtp = $otp;
 
                     $_SESSION['pwd_reset_step'] = 2;
                     $step = 2;
-                    $success = "+91 " . htmlspecialchars($cleanMobile) . " पर सत्यापन ओटीपी भेजा गया। कृपया नीचे 6-अंकों का कोड दर्ज करें।";
+                    $success = "+91 " . htmlspecialchars($m10) . " पर सत्यापन ओटीपी भेजा गया। कृपया नीचे 6-अंकों का कोड दर्ज करें।";
                 } else {
-                    $error = "मोबाइल नंबर +91 " . htmlspecialchars($cleanMobile) . " के लिए कोई सक्रिय खाता नहीं मिला। कृपया नया खाता बनाएं।";
+                    $error = "मोबाइल नंबर +91 " . htmlspecialchars($m10) . " के लिए कोई खाता नहीं मिला। कृपया नया खाता बनाएं।";
                     $step = 1;
                 }
             }
