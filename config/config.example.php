@@ -1,10 +1,28 @@
 <?php
 // SaranIndex.com Configuration Template for GitHub Public Setup
+date_default_timezone_set('Asia/Kolkata');
+
+// Dynamic Base URL calculation
+$protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$script_name = $_SERVER['SCRIPT_NAME'] ?? '';
+$dir = '/' . ltrim(str_replace('\\', '/', dirname($script_name)), '/');
+$dir = preg_replace('~/(hindi|admin)(/.*)?$~i', '', $dir);
+$base_path = rtrim($dir, '/');
+define('BASE_URL', $protocol . "://" . $host . $base_path . "/");
+
+// Session configuration with dynamic cookie path
 if (session_status() === PHP_SESSION_NONE) {
+    $cookie_path = !empty($base_path) ? $base_path . '/' : '/';
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path'     => $cookie_path,
+        'secure'   => false,
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
     session_start();
 }
-
-date_default_timezone_set('Asia/Kolkata');
 
 define('APP_NAME', 'Saran Index');
 define('APP_TAGLINE', 'Connecting Saran Digitally');
@@ -13,15 +31,6 @@ define('LAUNCH_DATE', '2026-07-26');
 define('PARENT_COMPANY', 'OfferPlant Technologies Private Limited');
 define('PARENT_COMPANY_EMAIL', 'ask@offerplant.com');
 define('PARENT_INCORPORATION_YEAR', '2017');
-
-// Base URL calculation
-$protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
-$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-$script_name = $_SERVER['SCRIPT_NAME'] ?? '';
-$dir = '/' . ltrim(str_replace('\\', '/', dirname($script_name)), '/');
-$dir = preg_replace('~/(hindi|admin)(/.*)?$~i', '', $dir);
-$base_path = rtrim($dir, '/');
-define('BASE_URL', $protocol . "://" . $host . $base_path . "/");
 
 // Database Configuration (Customize credentials for your local environment)
 define('DB_HOST', getenv('DB_HOST') ?: 'localhost');

@@ -1153,11 +1153,19 @@ function getLoggedInUser() {
     if (!$db) return null;
 
     try {
-        $stmt = $db->prepare("SELECT u.*, b.name as block_name, b.hindi_name as block_hindi FROM users u LEFT JOIN blocks b ON u.block_id = b.id WHERE u.id = :id AND u.status = 'ACTIVE' LIMIT 1");
+        $stmt = $db->prepare("SELECT u.*, b.name as block_name, b.hindi_name as block_hindi FROM users u LEFT JOIN blocks b ON u.block_id = b.id WHERE u.id = :id LIMIT 1");
         $stmt->execute(['id' => $_SESSION['user_id']]);
-        return $stmt->fetch();
+        $user = $stmt->fetch();
+        if ($user) return $user;
     } catch (PDOException $e) {
         error_log("getLoggedInUser error: " . $e->getMessage());
+    }
+
+    try {
+        $stmt = $db->prepare("SELECT * FROM users WHERE id = :id LIMIT 1");
+        $stmt->execute(['id' => $_SESSION['user_id']]);
+        return $stmt->fetch() ?: null;
+    } catch (PDOException $e) {
         return null;
     }
 }
@@ -1237,26 +1245,52 @@ function loginPublicUser($mobileOrEmail, $password) {
         return ['success' => false, 'message' => 'Database connection error.'];
     }
 
+    ensureUsersTable();
+
     $input = sanitizeInput($mobileOrEmail);
     $cleanMobile = preg_replace('/[^0-9]/', '', $input);
+    $mobile10 = (strlen($cleanMobile) >= 10) ? substr($cleanMobile, -10) : $cleanMobile;
 
     if (empty($input) || empty($password)) {
         return ['success' => false, 'message' => 'Please enter your mobile number and password.'];
     }
 
     try {
-        $stmt = $db->prepare("SELECT * FROM users WHERE (mobile = :mobile OR email = :email) AND status = 'ACTIVE' LIMIT 1");
+        $stmt = $db->prepare("SELECT * FROM users WHERE (mobile = :mobile OR mobile = :m10 OR RIGHT(mobile, 10) = :m10 OR email = :email) LIMIT 1");
         $stmt->execute([
             'mobile' => $cleanMobile,
-            'email' => $input
+            'm10'    => $mobile10,
+            'email'  => $input
         ]);
         $user = $stmt->fetch();
 
         if (!$user) {
-            return ['success' => false, 'message' => 'No active user account found with this mobile number or email.'];
+            return ['success' => false, 'message' => 'No account found with this mobile number or email.'];
         }
 
-        if (!password_verify($password, $user['password_hash'])) {
+        if (isset($user['status']) && strtoupper($user['status']) !== 'ACTIVE') {
+            return ['success' => false, 'message' => 'Your account status is ' . htmlspecialchars($user['status']) . '. Please contact support.'];
+        }
+
+        // Verify password with fallbacks
+        $isPasswordValid = false;
+        if (!empty($user['password_hash']) && password_verify($password, $user['password_hash'])) {
+            $isPasswordValid = true;
+        } elseif (!empty($user['password']) && password_verify($password, $user['password'])) {
+            $isPasswordValid = true;
+        } elseif (!empty($user['password_hash']) && ($password === $user['password_hash'] || md5($password) === $user['password_hash'])) {
+            $isPasswordValid = true;
+            // Upgrade legacy password to password_hash
+            $newHash = password_hash($password, PASSWORD_DEFAULT);
+            $db->prepare("UPDATE users SET password_hash = :hash WHERE id = :id")->execute(['hash' => $newHash, 'id' => $user['id']]);
+        } elseif (!empty($user['password']) && ($password === $user['password'] || md5($password) === $user['password'])) {
+            $isPasswordValid = true;
+            // Upgrade legacy password to password_hash
+            $newHash = password_hash($password, PASSWORD_DEFAULT);
+            $db->prepare("UPDATE users SET password_hash = :hash WHERE id = :id")->execute(['hash' => $newHash, 'id' => $user['id']]);
+        }
+
+        if (!$isPasswordValid) {
             return ['success' => false, 'message' => 'Incorrect password. Please try again.'];
         }
 
@@ -1265,7 +1299,7 @@ function loginPublicUser($mobileOrEmail, $password) {
             session_start();
         }
         $_SESSION['user_id'] = $user['id'];
-        $_SESSION['user_name'] = $user['full_name'];
+        $_SESSION['user_name'] = !empty($user['full_name']) ? $user['full_name'] : ($user['name'] ?? 'User');
         $_SESSION['user_mobile'] = $user['mobile'];
 
         return ['success' => true, 'message' => 'Login successful!', 'user' => $user];
