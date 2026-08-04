@@ -33,8 +33,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db = getDB();
             if ($db) {
                 ensureUsersTable();
-                $stmt = $db->prepare("SELECT id, full_name, mobile FROM users WHERE (mobile = :mobile OR mobile = :m10 OR RIGHT(mobile, 10) = :m10) LIMIT 1");
-                $stmt->execute(['mobile' => $cleanMobile, 'm10' => $m10]);
+                $stmt = $db->prepare("SELECT id, full_name, mobile FROM users WHERE (mobile = :mobile OR mobile = :m10_1 OR RIGHT(mobile, 10) = :m10_2) LIMIT 1");
+                $stmt->execute(['mobile' => $cleanMobile, 'm10_1' => $m10, 'm10_2' => $m10]);
                 $user = $stmt->fetch();
 
                 if ($user) {

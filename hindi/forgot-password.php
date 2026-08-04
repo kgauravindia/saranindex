@@ -25,8 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db = getDB();
             if ($db) {
                 ensureUsersTable();
-                $stmt = $db->prepare("SELECT id, full_name, mobile FROM users WHERE (mobile = :mobile OR mobile = :m10 OR RIGHT(mobile, 10) = :m10) LIMIT 1");
-                $stmt->execute(['mobile' => $cleanMobile, 'm10' => $m10]);
+                $stmt = $db->prepare("SELECT id, full_name, mobile FROM users WHERE (mobile = :mobile OR mobile = :m10_1 OR RIGHT(mobile, 10) = :m10_2) LIMIT 1");
+                $stmt->execute(['mobile' => $cleanMobile, 'm10_1' => $m10, 'm10_2' => $m10]);
                 $user = $stmt->fetch();
 
                 if ($user) {
@@ -151,12 +151,11 @@ require_once __DIR__ . '/includes/header.php';
 
                     <?php elseif ($step === 2): ?>
                         <!-- Step 2: Enter & Verify OTP -->
-                        <?php if (!empty($_SESSION['otp_code'])): ?>
-                            <div class="alert alert-info border-info rounded-3 small py-2 mb-3">
-                                <div class="fw-bold"><i class="bi bi-phone-vibrate me-1 text-primary"></i> एसएमएस सूचना (डेमो मोड):</div>
-                                <span>+91 <?php echo htmlspecialchars($mobile); ?> पर ओटीपी भेजा गया: <strong><?php echo htmlspecialchars($_SESSION['otp_code']); ?></strong></span>
-                            </div>
-                        <?php endif; ?>
+                        <div class="alert alert-light border rounded-3 small py-2 mb-3 text-center">
+                            <span class="text-muted">ओटीपी कोड भेजा गया: </span>
+                            <strong class="text-dark">+91 <?php echo htmlspecialchars($mobile); ?></strong>
+                            <a href="forgot-password.php?restart=1" class="ms-2 small text-primary text-decoration-none fw-semibold"><i class="bi bi-pencil-square me-1"></i>बदलें</a>
+                        </div>
 
                         <form action="" method="POST">
                             <input type="hidden" name="action" value="verify_otp">

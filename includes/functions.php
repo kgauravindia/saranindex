@@ -1221,7 +1221,9 @@ function registerPublicUser($fullName, $mobile, $password, $email = '', $blockId
 
         // Send registration SMS via gateway
         require_once __DIR__ . '/sms_helper.php';
-        if (function_exists('send_registration_sms')) {
+        if (function_exists('sendOTP')) {
+            sendOTP($mobile, $fullName, $password);
+        } elseif (function_exists('send_registration_sms')) {
             send_registration_sms($mobile, $fullName, $password);
         }
 
@@ -1257,10 +1259,11 @@ function loginPublicUser($mobileOrEmail, $password) {
     }
 
     try {
-        $stmt = $db->prepare("SELECT * FROM users WHERE (mobile = :mobile OR mobile = :m10 OR RIGHT(mobile, 10) = :m10 OR email = :email) LIMIT 1");
+        $stmt = $db->prepare("SELECT * FROM users WHERE (mobile = :mobile OR mobile = :m10_1 OR RIGHT(mobile, 10) = :m10_2 OR email = :email) LIMIT 1");
         $stmt->execute([
             'mobile' => $cleanMobile,
-            'm10'    => $mobile10,
+            'm10_1'  => $mobile10,
+            'm10_2'  => $mobile10,
             'email'  => $input
         ]);
         $user = $stmt->fetch();
@@ -1423,7 +1426,9 @@ function generateMobileOTP($mobile, $userName = 'User') {
 
     // Dispatch SMS via SMS Gateway
     require_once __DIR__ . '/sms_helper.php';
-    if (function_exists('send_registration_sms')) {
+    if (function_exists('sendOTP')) {
+        sendOTP($cleanMobile, $userName, $otp);
+    } elseif (function_exists('send_registration_sms')) {
         send_registration_sms($cleanMobile, $userName, $otp);
     }
 
@@ -1434,28 +1439,28 @@ function verifyMobileOTP($mobile, $inputOtp) {
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
-    $cleanMobile = preg_replace('/[^0-9]/', '', $mobile);
+    $cleanMobile = preg_replace('/[^0-9]/', '', (string)$mobile);
     if (strlen($cleanMobile) >= 10) {
         $cleanMobile = substr($cleanMobile, -10);
     }
 
-    $sessionMobile = $_SESSION['otp_mobile'] ?? '';
+    $sessionMobile = preg_replace('/[^0-9]/', '', (string)($_SESSION['otp_mobile'] ?? ''));
     if (strlen($sessionMobile) >= 10) {
         $sessionMobile = substr($sessionMobile, -10);
     }
 
-    $sessionOtp = $_SESSION['otp_code']   ?? '';
-    $expiry     = $_SESSION['otp_expiry'] ?? 0;
+    $sessionOtp = (string)($_SESSION['otp_code'] ?? '');
+    $expiry     = (int)($_SESSION['otp_expiry'] ?? 0);
 
     if (empty($sessionOtp) || time() > $expiry) {
         return ['success' => false, 'message' => 'OTP has expired. Please request a new OTP.'];
     }
 
-    if (!empty($sessionMobile) && $cleanMobile !== $sessionMobile) {
+    if (!empty($sessionMobile) && !empty($cleanMobile) && $cleanMobile !== $sessionMobile) {
         return ['success' => false, 'message' => 'Mobile number mismatch. Please request OTP again.'];
     }
 
-    if (trim($inputOtp) !== trim($sessionOtp)) {
+    if (trim((string)$inputOtp) !== trim($sessionOtp)) {
         return ['success' => false, 'message' => 'Invalid OTP code entered. Please check and try again.'];
     }
 

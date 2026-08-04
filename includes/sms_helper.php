@@ -42,34 +42,43 @@ function bulk_msg($mobile_list, $sms, $count = 1, $smstype = 'english')
 
     $response = curl_exec($curl);
     $err = curl_error($curl);
-
     curl_close($curl);
 
+    // Log raw response for debugging
+    $log_entry = date('Y-m-d H:i:s') . " | Mobile: {$clean_mobiles} | Sender: {$sender_id} | Response: {$response} | Error: {$err}" . PHP_EOL;
+    @file_put_contents(__DIR__ . '/../sms_debug.log', $log_entry, FILE_APPEND);
+    error_log("SMS Dispatch: " . $log_entry);
+
     $res = array();
+    $jsonResp = json_decode($response, true);
+
     if ($err) {
         $res['status'] = 'error';
         $res['count'] = 0;
-        $res['msg'] = $err;
+        $res['msg'] = "cURL Error: " . $err;
+    } elseif (is_array($jsonResp) && isset($jsonResp['responseCode']) && $jsonResp['responseCode'] != '3001') {
+        $res['status'] = 'error';
+        $res['count'] = 0;
+        $res['msg'] = "Gateway Error ({$jsonResp['responseCode']}): " . ($jsonResp['response'] ?? 'SMS dispatch failed');
     } else {
         $res['status'] = 'success';
         $res['count'] = $count;
-        $res['msg'] = $count . " SMS Send Successfully";
-        // Optionally log raw response for debugging
-        // file_put_contents('sms_debug.log', $response . PHP_EOL, FILE_APPEND);
+        $res['msg'] = $count . " SMS Sent Successfully";
     }
     return $res;
 }
 
+
 // Wrapper function for OTP using CITYXI OfferPlant template
-// Template: Dear {#var#}, Your OTP / EVC / Password is {#var#} For saranindex.com
-function send_registration_sms($mobile, $name, $code) {
-    $template = "Dear {#var#},\n Your OTP / EVC / Password is {#var#}\n  \n Regards\n CITYXI\n OfferPlant";
-
-    // Replace {#var#} sequentially: 1st = name, 2nd = OTP/code
-    $vars = [$name, $code];
-    foreach ($vars as $var) {
-        $template = preg_replace('/\{#var#\}/', $var, $template, 1);
-    }
-
-    return bulk_msg($mobile, $template);
+function sendOTP($mobile, $name, $otp) {
+    $displayName = !empty(trim($name)) ? trim($name) : 'User';
+    $message = "Dear $displayName,\nYour OTP / EVC / Password is $otp for Saran Index\n \n Regards\n CITYXI\n OfferPlant";
+    
+    return bulk_msg($mobile, $message);
 }
+
+// Backward compatibility wrapper
+function send_registration_sms($mobile, $name, $code) {
+    return sendOTP($mobile, $name, $code);
+}
+

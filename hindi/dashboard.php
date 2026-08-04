@@ -13,6 +13,11 @@ if (!$user) {
     exit;
 }
 
+if (empty($user['mobile_status']) || strtoupper($user['mobile_status']) !== 'VERIFIED') {
+    header("Location: ../verify-mobile.php");
+    exit;
+}
+
 $msg = '';
 $msg_type = '';
 
