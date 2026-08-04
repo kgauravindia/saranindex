@@ -26,18 +26,26 @@ if ($user['mobile_status'] === 'VERIFIED') {
     exit;
 }
 
+$cleanMob = preg_replace('/[^0-9]/', '', $user['mobile']);
+if (strlen($cleanMob) >= 10) {
+    $cleanMob = substr($cleanMob, -10);
+}
+
 $error   = '';
 $success = '';
-$otp_sent = !empty($_SESSION['otp_code']) && !empty($_SESSION['otp_expiry']) && time() < $_SESSION['otp_expiry'];
+$otp_sent = !empty($_SESSION['otp_code']) && !empty($_SESSION['otp_expiry']) && time() < $_SESSION['otp_expiry'] && (!empty($_SESSION['otp_mobile']) && $_SESSION['otp_mobile'] === $cleanMob);
 
-// ─── Send OTP ─────────────────────────────────────────────────────────────────
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'send_otp') {
-    $cleanMob = preg_replace('/[^0-9]/', '', $user['mobile']);
-    if (strlen($cleanMob) >= 10) {
-        $cleanMob = substr($cleanMob, -10);
-    }
+// Auto-send OTP on page access if not already active (same behavior as forgot-password.php)
+if (!$otp_sent && $_SERVER['REQUEST_METHOD'] !== 'POST') {
     $otp = generateMobileOTP($cleanMob, $user['full_name']);
-    $success  = "OTP sent to +91 {$cleanMob}. Valid for 10 minutes.";
+    $success  = "Verification OTP sent to +91 {$cleanMob}. Valid for 10 minutes.";
+    $otp_sent = true;
+}
+
+// ─── Send / Resend OTP ────────────────────────────────────────────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'send_otp') {
+    $otp = generateMobileOTP($cleanMob, $user['full_name']);
+    $success  = "A new verification OTP code sent to +91 {$cleanMob}. Valid for 10 minutes.";
     $otp_sent = true;
 }
 
