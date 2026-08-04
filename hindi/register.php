@@ -24,19 +24,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $otherState = $_POST['other_state'] ?? '';
     $otherDistrict = $_POST['other_district'] ?? '';
     $otherBlock = $_POST['other_block'] ?? '';
-    $villageId = $_POST['village_id'] ?? null;
-    $villageName = $_POST['village_name'] ?? '';
+    $maujaCode = $_POST['mauja_code'] ?? null;
+    $maujaName = $_POST['mauja_name'] ?? '';
 
-    if ($password !== $confirmPassword) {
+    if (empty($_POST['terms'])) {
+        $error = "पंजीकरण जारी रखने के लिए कृपया हमारी सेवा की शर्तों और गोपनीयता नीति से सहमत हों।";
+    } elseif ($password !== $confirmPassword) {
         $error = "पासवर्ड मेल नहीं खाते। कृपया पुनः दर्ज करें।";
     } else {
         $finalAddress = $address;
         if ($blockId === 'other' && !empty($otherBlock)) {
             $finalAddress .= (!empty($finalAddress) ? ', ' : '') . 'प्रखंड: ' . sanitizeInput($otherBlock);
-        } elseif (is_numeric($blockId) && !empty($villageName)) {
-            $finalAddress .= (!empty($finalAddress) ? ', ' : '') . 'गाँव: ' . sanitizeInput($villageName);
+        } elseif (is_numeric($blockId) && !empty($maujaCode)) {
+            $villageId = null;
+            $db = getDB();
+            if ($db) {
+                $stmtM = $db->prepare("SELECT * FROM halka WHERE mauja_code = :mcode LIMIT 1");
+                $stmtM->execute(['mcode' => $maujaCode]);
+                $maujaInfo = $stmtM->fetch(PDO::FETCH_ASSOC);
+                if ($maujaInfo) {
+                    $villageId = intval($maujaInfo['id']);
+                    $finalAddress .= (!empty($finalAddress) ? ', ' : '') . 'मौजा: ' . sanitizeInput($maujaInfo['mauja_name']) . ' (कोड: ' . sanitizeInput($maujaCode) . ')';
+                } else {
+                    $vInfo = getCensusVillageByCodeOrId($maujaCode);
+                    if ($vInfo) {
+                        $villageId = intval($vInfo['id']);
+                        $finalAddress .= (!empty($finalAddress) ? ', ' : '') . 'गाँव: ' . sanitizeInput($vInfo['name']) . ' (कोड: ' . sanitizeInput($maujaCode) . ')';
+                    }
+                }
+            }
         }
-        $result = registerPublicUser($fullName, $mobile, $password, $email, $blockId, $finalAddress, $otherState, $otherDistrict, $villageId);
+        $result = registerPublicUser($fullName, $mobile, $password, $email, $blockId, $finalAddress, $otherState, $otherDistrict, $villageId ?? null);
         if ($result['success']) {
             header("Location: dashboard.php");
             exit;
@@ -155,13 +173,13 @@ require_once __DIR__ . '/includes/header.php';
                                 <label for="block_id" class="text-muted"><i class="bi bi-geo-alt me-2"></i>सारण में आपका प्रखंड</label>
                             </div>
 
-                            <!-- Dynamic Saran Village Selection Dropdown -->
+                            <!-- Dynamic Saran Mauja Selection Dropdown -->
                             <div id="saran_village_fields" class="form-floating mb-3" style="display: none;">
-                                <select name="village_id" id="village_id" class="form-select border-secondary-subtle rounded-3" onchange="updateVillageNameHidden(this)">
-                                    <option value="">-- गाँव चुनें (जनगणना 2011) --</option>
+                                <select name="mauja_code" id="mauja_code" class="form-select border-secondary-subtle rounded-3" onchange="updateMaujaNameHidden(this)">
+                                    <option value="">-- राजस्व मौजा चुनें (ऐच्छिक) --</option>
                                 </select>
-                                <input type="hidden" name="village_name" id="village_name" value="<?php echo isset($_POST['village_name']) ? htmlspecialchars($_POST['village_name']) : ''; ?>">
-                                <label for="village_id" class="text-muted"><i class="bi bi-houses me-2"></i>प्रखंड में अपना गाँव चुनें</label>
+                                <input type="hidden" name="mauja_name" id="mauja_name" value="<?php echo isset($_POST['mauja_name']) ? htmlspecialchars($_POST['mauja_name']) : ''; ?>">
+                                <label for="mauja_code" class="text-muted"><i class="bi bi-houses me-2"></i>अपना राजस्व मौजा चुनें</label>
                             </div>
 
                             <!-- Dynamic 3 Dropdowns Container for Other Location (State, District, Block) -->
@@ -214,6 +232,14 @@ require_once __DIR__ . '/includes/header.php';
                                         <label for="confirm_password" class="text-muted"><i class="bi bi-check2-circle me-2"></i>पुष्टि करें <span class="text-danger">*</span></label>
                                     </div>
                                 </div>
+                            </div>
+
+                            <!-- Terms & Privacy Checkbox -->
+                            <div class="mb-4 form-check text-start">
+                                <input class="form-check-input border-secondary-subtle" type="checkbox" name="terms" id="terms" required <?php echo isset($_POST['terms']) ? 'checked' : ''; ?>>
+                                <label class="form-check-label small text-muted ms-1" for="terms">
+                                    पंजीकरण करके, आप हमारी <a href="terms.php" class="text-primary text-decoration-none fw-semibold hover-underline" target="_blank">सेवा की शर्तों</a> और <a href="privacy-policy.php" class="text-primary text-decoration-none fw-semibold hover-underline" target="_blank">गोपनीयता नीति</a> से सहमत होते हैं। <span class="text-danger">*</span>
+                                </label>
                             </div>
 
                             <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold mb-4 shadow-sm fs-6 d-flex align-items-center justify-content-center gap-2">
@@ -292,7 +318,7 @@ function onBlockSelectChange(val) {
         if (otherFields) otherFields.style.display = 'none';
         if (villageFields) {
             villageFields.style.display = 'block';
-            loadSaranVillages(val, '<?php echo isset($_POST['village_id']) ? htmlspecialchars($_POST['village_id']) : ''; ?>');
+            loadSaranMaujas(val, '<?php echo isset($_POST['mauja_code']) ? htmlspecialchars($_POST['mauja_code']) : ''; ?>');
         }
     } else {
         if (villageFields) villageFields.style.display = 'none';
@@ -300,34 +326,34 @@ function onBlockSelectChange(val) {
     }
 }
 
-function loadSaranVillages(blockId, selectedVillageId = '') {
-    const villageSelect = document.getElementById('village_id');
-    if (!villageSelect) return;
-    villageSelect.innerHTML = '<option value="">-- गाँव चुनें (जनगणना 2011) --</option>';
+function loadSaranMaujas(blockId, selectedMaujaCode = '') {
+    const maujaSelect = document.getElementById('mauja_code');
+    if (!maujaSelect) return;
+    maujaSelect.innerHTML = '<option value="">-- राजस्व मौजा चुनें (ऐच्छिक) --</option>';
 
     if (!blockId) return;
 
-    fetch('<?php echo BASE_URL; ?>api/location_api.php?type=saran_villages&block_id=' + encodeURIComponent(blockId))
+    fetch('<?php echo BASE_URL; ?>api/villages_api.php?block_id=' + encodeURIComponent(blockId))
         .then(res => res.json())
-        .then(villages => {
-            villages.forEach(v => {
+        .then(maujas => {
+            maujas.forEach(v => {
                 const opt = document.createElement('option');
-                opt.value = v.id;
-                opt.textContent = v.name + ' (कोड: ' + v.town_village_code + ')';
-                opt.setAttribute('data-name', v.name);
-                if (selectedVillageId && v.id == selectedVillageId) {
+                opt.value = v.code || v.mauja_code;
+                opt.textContent = v.name_hindi || v.display_name;
+                opt.setAttribute('data-name', v.name_hindi || v.display_name);
+                if (selectedMaujaCode && opt.value == selectedMaujaCode) {
                     opt.selected = true;
-                    document.getElementById('village_name').value = v.name;
+                    document.getElementById('mauja_name').value = opt.getAttribute('data-name');
                 }
-                villageSelect.appendChild(opt);
+                maujaSelect.appendChild(opt);
             });
         }).catch(err => console.error(err));
 }
 
-function updateVillageNameHidden(selectElem) {
+function updateMaujaNameHidden(selectElem) {
     const selectedOpt = selectElem.options[selectElem.selectedIndex];
-    const vName = selectedOpt ? (selectedOpt.getAttribute('data-name') || '') : '';
-    document.getElementById('village_name').value = vName;
+    const mName = selectedOpt ? (selectedOpt.getAttribute('data-name') || '') : '';
+    document.getElementById('mauja_name').value = mName;
 }
 
 function loadStates(selectedStateCode = '') {

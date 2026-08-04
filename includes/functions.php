@@ -982,9 +982,11 @@ function getHalkaRecords($block = null, $search = null, $limit = 24, $offset = 0
         }
 
         if (!empty($search)) {
-            $where[] = "(mauja_name LIKE :s1 OR halka_name LIKE :s2 OR mauja_code LIKE :s3 OR halka_code = :s4 OR block LIKE :s5)";
+            $where[] = "(mauja_name LIKE :s1 OR halka_name LIKE :s2 OR mauja_english LIKE :s6 OR halka_english LIKE :s7 OR mauja_code LIKE :s3 OR halka_code = :s4 OR block LIKE :s5)";
             $params['s1'] = "%$search%";
             $params['s2'] = "%$search%";
+            $params['s6'] = "%$search%";
+            $params['s7'] = "%$search%";
             $params['s3'] = "%$search%";
             $params['s4'] = is_numeric($search) ? intval($search) : -1;
             $params['s5'] = "%$search%";
@@ -1020,9 +1022,11 @@ function getTotalHalkaCount($block = null, $search = null) {
         }
 
         if (!empty($search)) {
-            $where[] = "(mauja_name LIKE :s1 OR halka_name LIKE :s2 OR mauja_code LIKE :s3 OR halka_code = :s4 OR block LIKE :s5)";
+            $where[] = "(mauja_name LIKE :s1 OR halka_name LIKE :s2 OR mauja_english LIKE :s6 OR halka_english LIKE :s7 OR mauja_code LIKE :s3 OR halka_code = :s4 OR block LIKE :s5)";
             $params['s1'] = "%$search%";
             $params['s2'] = "%$search%";
+            $params['s6'] = "%$search%";
+            $params['s7'] = "%$search%";
             $params['s3'] = "%$search%";
             $params['s4'] = is_numeric($search) ? intval($search) : -1;
             $params['s5'] = "%$search%";

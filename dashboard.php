@@ -206,9 +206,14 @@ require_once __DIR__ . '/includes/header.php';
                                             <?php endif; ?>
                                         </td>
                                         <td>
-                                            <a href="<?php echo getListingUrl($l['slug']); ?>" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                                View <i class="bi bi-box-arrow-up-right ms-1"></i>
-                                            </a>
+                                            <div class="d-flex gap-2">
+                                                <a href="<?php echo getListingUrl($l['slug']); ?>" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                                    View <i class="bi bi-box-arrow-up-right ms-1"></i>
+                                                </a>
+                                                <a href="edit-listing.php?id=<?php echo sanitizeInput($l['id']); ?>" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                                                    Edit <i class="bi bi-pencil-square ms-1"></i>
+                                                </a>
+                                            </div>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>

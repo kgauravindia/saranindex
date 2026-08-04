@@ -90,7 +90,18 @@ $meta_description = $meta_description ?? 'Saran Index is the digital directory o
                         <i class="bi bi-box-arrow-in-right me-1"></i>Login
                     </a>
                 <?php endif; ?>
-                <a href="hindi/" class="btn btn-outline-warning text-dark border-warning rounded-pill px-3 py-1.5 btn-sm fw-bold">
+                <?php
+                $currentScript = basename($_SERVER['PHP_SELF'] ?? 'index.php');
+                $queryString = !empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '';
+                $targetHindiFile = __DIR__ . '/../hindi/' . $currentScript;
+
+                if (file_exists($targetHindiFile) && is_file($targetHindiFile)) {
+                    $langSwitchUrl = 'hindi/' . $currentScript . $queryString;
+                } else {
+                    $langSwitchUrl = 'hindi/';
+                }
+                ?>
+                <a href="<?php echo htmlspecialchars($langSwitchUrl); ?>" class="btn btn-outline-warning text-dark border-warning rounded-pill px-3 py-1.5 btn-sm fw-bold">
                     <i class="bi bi-translate me-1"></i>हिन्दी
                 </a>
                 <a href="search" class="btn btn-outline-secondary rounded-pill px-3 py-2 btn-sm fw-semibold">

@@ -123,8 +123,10 @@ require_once __DIR__ . '/includes/header.php';
         <div class="row g-4 mb-5">
             <?php foreach ($records as $item): 
                 $mName = sanitizeInput($item['mauja_name']);
+                $mEng = sanitizeInput($item['mauja_english'] ?? '');
                 $mCode = sanitizeInput($item['mauja_code']);
                 $hName = sanitizeInput($item['halka_name']);
+                $hEng = sanitizeInput($item['halka_english'] ?? '');
                 $hCode = intval($item['halka_code']);
                 $bName = sanitizeInput($item['block']);
             ?>
@@ -144,6 +146,9 @@ require_once __DIR__ . '/includes/header.php';
                             <h3 class="fw-bold text-dark mb-0 font-heading fs-4">
                                 <?php echo $mName; ?>
                             </h3>
+                            <?php if (!empty($mEng)): ?>
+                                <span class="text-secondary small fw-medium"><?php echo $mEng; ?></span>
+                            <?php endif; ?>
                         </div>
 
                         <div class="p-3 bg-light rounded-3 border mb-3">
@@ -153,6 +158,9 @@ require_once __DIR__ . '/includes/header.php';
                                     <div class="fw-bold text-dark fs-6">
                                         हलका <?php echo $hCode; ?>: <?php echo $hName; ?>
                                     </div>
+                                    <?php if (!empty($hEng)): ?>
+                                        <div class="text-muted small fs-7"><?php echo $hEng; ?></div>
+                                    <?php endif; ?>
                                 </div>
                                 <span class="badge bg-warning text-dark fw-bold rounded-circle p-2 fs-7">
                                     H-<?php echo $hCode; ?>

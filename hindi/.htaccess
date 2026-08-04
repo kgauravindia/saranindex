@@ -11,6 +11,7 @@
     RewriteRule ^sitemap-villages\.xml$ ../sitemap-villages.php [L]
     RewriteRule ^village-sitemap\.xml$ ../sitemap-villages.php [L]
     RewriteRule ^blocks/?$ block.php [L,QSA]
+    RewriteRule ^blocks/([a-zA-Z0-9_-]+)/?$ block.php?slug=$1 [L,QSA]
     RewriteRule ^block/([a-zA-Z0-9_-]+)/?$ block.php?slug=$1 [L,QSA]
     RewriteRule ^panchayats/?$ panchayat.php [L,QSA]
     RewriteRule ^panchayat/([a-zA-Z0-9_-]+)/?$ panchayat.php?slug=$1 [L,QSA]
@@ -26,6 +27,7 @@
     # Category & Subcategory Friendly URLs
     RewriteRule ^category/([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/?$ category.php?slug=$1&sub=$2 [L,QSA]
     RewriteRule ^category/([a-zA-Z0-9_-]+)/?$ category.php?slug=$1 [L,QSA]
+    RewriteRule ^categories/?$ categories.php [L,QSA]
     
     # Listing & Person Profiles
     RewriteRule ^listing/([a-zA-Z0-9_-]+)/?$ profile.php?slug=$1 [L,QSA]
@@ -35,8 +37,8 @@
     RewriteRule ^search/?$ search.php [L,QSA]
     RewriteRule ^login/?$ login.php [L,QSA]
     RewriteRule ^register/?$ register.php [L,QSA]
-    RewriteRule ^forgot-password/?$ forgot-password.php [L,QSA]
-    RewriteRule ^reset-password/?$ forgot-password.php [L,QSA]
+    RewriteRule ^forgot-password(\.php)?/?$ forgot-password.php [L,QSA]
+    RewriteRule ^reset-password(\.php)?/?$ forgot-password.php [L,QSA]
     RewriteRule ^dashboard/?$ dashboard.php [L,QSA]
     RewriteRule ^logout/?$ logout.php [L,QSA]
     RewriteRule ^university/?$ university.php [L,QSA]
@@ -45,8 +47,8 @@
     RewriteRule ^sources/?$ sources.php [L,QSA]
     RewriteRule ^data-sources/?$ sources.php [L,QSA]
     RewriteRule ^emergency/?$ emergency.php [L,QSA]
-    RewriteRule ^add-listing/?$ add-contact.php [L,QSA]
-    RewriteRule ^add-contact/?$ add-contact.php [L,QSA]
+    RewriteRule ^add-listing(\.php)?/?$ add-contact.php [L,QSA]
+    RewriteRule ^add-contact(\.php)?/?$ add-contact.php [L,QSA]
     RewriteRule ^about/?$ about.php [L,QSA]
     RewriteRule ^contact/?$ contact.php [L,QSA]
     RewriteRule ^privacy-policy/?$ privacy-policy.php [L,QSA]

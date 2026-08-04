@@ -123,8 +123,10 @@ require_once __DIR__ . '/includes/header.php';
         <div class="row g-4 mb-5">
             <?php foreach ($records as $item): 
                 $mName = sanitizeInput($item['mauja_name']);
+                $mEng = sanitizeInput($item['mauja_english'] ?? '');
                 $mCode = sanitizeInput($item['mauja_code']);
                 $hName = sanitizeInput($item['halka_name']);
+                $hEng = sanitizeInput($item['halka_english'] ?? '');
                 $hCode = intval($item['halka_code']);
                 $bName = sanitizeInput($item['block']);
             ?>
@@ -142,8 +144,11 @@ require_once __DIR__ . '/includes/header.php';
                         <div class="mb-3">
                             <span class="text-muted fs-7 text-uppercase fw-bold">Revenue Village / Mauja</span>
                             <h3 class="fw-bold text-dark mb-0 font-heading fs-4">
-                                <?php echo $mName; ?>
+                                <?php echo !empty($mEng) ? $mEng : $mName; ?>
                             </h3>
+                            <?php if (!empty($mEng) && $mEng !== $mName): ?>
+                                <span class="text-secondary small fw-medium"><i class="bi bi-translate me-1"></i><?php echo $mName; ?></span>
+                            <?php endif; ?>
                         </div>
 
                         <div class="p-3 bg-light rounded-3 border mb-3">
@@ -151,8 +156,11 @@ require_once __DIR__ . '/includes/header.php';
                                 <div>
                                     <div class="text-muted fs-7 fw-semibold">Halka Circle</div>
                                     <div class="fw-bold text-dark fs-6">
-                                        Halka <?php echo $hCode; ?>: <?php echo $hName; ?>
+                                        Halka <?php echo $hCode; ?>: <?php echo !empty($hEng) ? $hEng : $hName; ?>
                                     </div>
+                                    <?php if (!empty($hEng) && $hEng !== $hName): ?>
+                                        <div class="text-muted small fs-7"><?php echo $hName; ?></div>
+                                    <?php endif; ?>
                                 </div>
                                 <span class="badge bg-warning text-dark fw-bold rounded-circle p-2 fs-7">
                                     H-<?php echo $hCode; ?>

@@ -421,8 +421,10 @@ CREATE TABLE IF NOT EXISTS `halka` (
     `block` VARCHAR(100) NOT NULL,
     `halka_code` INT NOT NULL,
     `halka_name` VARCHAR(255) DEFAULT NULL,
+    `halka_english` VARCHAR(255) DEFAULT NULL,
     `mauja_code` VARCHAR(50) DEFAULT NULL,
-    `mauja_name` VARCHAR(255) DEFAULT NULL
+    `mauja_name` VARCHAR(255) DEFAULT NULL,
+    `mauja_english` VARCHAR(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 12. Saran District Census Table (96 Demographic & Economic Indicator Columns)

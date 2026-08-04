@@ -8,7 +8,19 @@ if (!isUserLoggedIn()) {
 
 $currentUser = getLoggedInUser();
 
-$page_title = "Add Free Listing – Saran Index";
+$listing_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+if ($listing_id <= 0) {
+    header("Location: dashboard.php");
+    exit;
+}
+
+$listing = getListingById($listing_id);
+if (!$listing || $listing['user_id'] != $currentUser['id']) {
+    header("Location: dashboard.php");
+    exit;
+}
+
+$page_title = "Edit Listing – Saran Index";
 require_once __DIR__ . '/includes/header.php';
 
 $blocks = getBlocks();
@@ -16,21 +28,51 @@ $categories = getCategories();
 $success_msg = false;
 $error_msg = false;
 
+// Pre-fill values from $listing if not POSTed
+$title = $_POST['title'] ?? $listing['title'];
+$hindi_title = $_POST['hindi_title'] ?? $listing['hindi_title'];
+$category_id = isset($_POST['category_id']) ? intval($_POST['category_id']) : $listing['category_id'];
+$subcategory_id = !empty($_POST['subcategory_id']) ? intval($_POST['subcategory_id']) : $listing['subcategory_id'];
+$block_id = isset($_POST['block_id']) ? intval($_POST['block_id']) : $listing['block_id'];
+$contact_person = $_POST['contact_person'] ?? $listing['contact_person'];
+$mobile = $_POST['mobile'] ?? $listing['mobile'];
+$whatsapp = $_POST['whatsapp'] ?? $listing['whatsapp'];
+$email = $_POST['email'] ?? $listing['email'];
+$address = $_POST['address'] ?? $listing['address'];
+$pincode = $_POST['pincode'] ?? $listing['pincode'];
+$services = $_POST['services'] ?? $listing['services'];
+$description = $_POST['description'] ?? $listing['description'];
+
+// Determine mauja_code for pre-filling
+$db = getDB();
+$listing_mauja_code = '';
+if (!empty($listing['village_id'])) {
+    $stmtM = $db->prepare("SELECT mauja_code FROM halka WHERE id = :id OR census_village_id = :id LIMIT 1");
+    $stmtM->execute(['id' => $listing['village_id']]);
+    $h = $stmtM->fetch(PDO::FETCH_ASSOC);
+    if ($h) {
+        $listing_mauja_code = $h['mauja_code'];
+    } else {
+        $vInfo = getCensusVillageByCodeOrId($listing['village_id']);
+        if ($vInfo) {
+            $listing_mauja_code = $vInfo['town_village_code'];
+        }
+    }
+}
+$mauja_code = isset($_POST['mauja_code']) ? sanitizeInput($_POST['mauja_code']) : (isset($_POST['census_village_code']) ? sanitizeInput($_POST['census_village_code']) : $listing_mauja_code);
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $title = isset($_POST['title']) ? sanitizeInput($_POST['title']) : '';
-    $hindi_title = isset($_POST['hindi_title']) ? sanitizeInput($_POST['hindi_title']) : '';
-    $category_id = isset($_POST['category_id']) ? intval($_POST['category_id']) : 0;
-    $subcategory_id = !empty($_POST['subcategory_id']) ? intval($_POST['subcategory_id']) : null;
-    $block_id = isset($_POST['block_id']) ? intval($_POST['block_id']) : 0;
-    $mauja_code = isset($_POST['mauja_code']) ? sanitizeInput($_POST['mauja_code']) : (isset($_POST['census_village_code']) ? sanitizeInput($_POST['census_village_code']) : '');
-    $contact_person = isset($_POST['contact_person']) ? sanitizeInput($_POST['contact_person']) : '';
-    $mobile = isset($_POST['mobile']) ? sanitizeInput($_POST['mobile']) : '';
-    $whatsapp = isset($_POST['whatsapp']) ? sanitizeInput($_POST['whatsapp']) : '';
-    $email = isset($_POST['email']) ? sanitizeInput($_POST['email']) : '';
-    $address = isset($_POST['address']) ? sanitizeInput($_POST['address']) : '';
-    $pincode = isset($_POST['pincode']) ? sanitizeInput($_POST['pincode']) : '';
-    $services = isset($_POST['services']) ? sanitizeInput($_POST['services']) : '';
-    $description = isset($_POST['description']) ? sanitizeInput($_POST['description']) : '';
+    // Basic assignment from POST to allow sanitization logic below if needed, though they are already populated above.
+    $title = sanitizeInput($_POST['title']);
+    $hindi_title = sanitizeInput($_POST['hindi_title'] ?? '');
+    $contact_person = sanitizeInput($_POST['contact_person'] ?? '');
+    $mobile = sanitizeInput($_POST['mobile']);
+    $whatsapp = sanitizeInput($_POST['whatsapp'] ?? '');
+    $email = sanitizeInput($_POST['email'] ?? '');
+    $address = sanitizeInput($_POST['address']);
+    $pincode = sanitizeInput($_POST['pincode'] ?? '');
+    $services = sanitizeInput($_POST['services'] ?? '');
+    $description = sanitizeInput($_POST['description'] ?? '');
 
     if (!empty($title) && !empty($mobile) && $category_id > 0 && $block_id > 0) {
         $db = getDB();
@@ -62,16 +104,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
 
-                $stmt = $db->prepare("INSERT INTO listings (user_id, category_id, subcategory_id, block_id, village_id, title, hindi_title, slug, contact_person, mobile, whatsapp, email, address, pincode, services, description, is_verified, status) VALUES (:uid, :cat, :sub, :blk, :vid, :title, :htitle, :slug, :cp, :mob, :wa, :email, :addr, :pin, :srv, :desc, 'NO', 'ACTIVE')");
+                $stmt = $db->prepare("UPDATE listings SET category_id = :cat, subcategory_id = :sub, block_id = :blk, village_id = :vid, title = :title, hindi_title = :htitle, contact_person = :cp, mobile = :mob, whatsapp = :wa, email = :email, address = :addr, pincode = :pin, services = :srv, description = :desc WHERE id = :id AND user_id = :uid");
                 $stmt->execute([
-                    'uid' => $currentUser['id'] ?? null,
                     'cat' => $category_id,
                     'sub' => $subcategory_id,
                     'blk' => $block_id,
                     'vid' => $village_id_val,
                     'title' => $title,
                     'htitle' => $hindi_title,
-                    'slug' => $slug,
                     'cp' => $contact_person,
                     'mob' => $mobile,
                     'wa' => $whatsapp,
@@ -79,12 +119,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'addr' => $address,
                     'pin' => $pincode,
                     'srv' => $services,
-                    'desc' => $description
+                    'desc' => $description,
+                    'id' => $listing_id,
+                    'uid' => $currentUser['id']
                 ]);
                 $success_msg = true;
             } catch (PDOException $e) {
-                error_log("Listing insert failed: " . $e->getMessage());
-                $error_msg = "Database error while creating listing: " . $e->getMessage();
+                error_log("Listing update failed: " . $e->getMessage());
+                $error_msg = "Database error while updating listing: " . $e->getMessage();
             }
         } else {
             $error_msg = "Database connection failed. Please try again.";
@@ -117,7 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
         <h1 class="h2 fw-bold font-heading text-white mb-2">
-            List Your Business or Entity on Saran Index
+            Update Your Listing on Saran Index
         </h1>
         <p class="text-white-50 fs-6 mx-auto mb-0" style="max-width: 680px;">
             Reach citizens across Chapra and all 20 blocks of Saran District. Connect your shop, clinic, chamber, school, or service instantly.
@@ -136,11 +178,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <i class="bi bi-check-lg fs-4"></i>
                         </div>
                         <div class="flex-grow-1">
-                            <h5 class="fw-bold text-success mb-1">Listing Submitted Successfully!</h5>
-                            <p class="text-secondary small mb-3">Thank you for adding your entity on <strong>Saran Index</strong>. Your listing has been created and will be reviewed by our moderation team shortly.</p>
+                            <h5 class="fw-bold text-success mb-1">Listing Updated Successfully!</h5>
+                            <p class="text-secondary small mb-3">Thank you for updating your entity on <strong>Saran Index</strong>. Your listing has been updated successfully.</p>
                             <div class="d-flex gap-2 flex-wrap">
                                 <a href="dashboard.php" class="btn btn-sm btn-success rounded-pill px-3 fw-bold"><i class="bi bi-speedometer2 me-1"></i> Go to Dashboard</a>
-                                <a href="add-contact.php" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold"><i class="bi bi-plus-lg me-1"></i> Add Another Listing</a>
+                                <a href="dashboard.php" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold"><i class="bi bi-arrow-left me-1"></i> Back to Dashboard</a>
                             </div>
                         </div>
                     </div>
@@ -164,8 +206,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <i class="bi bi-file-earmark-plus-fill fs-4"></i>
                             </div>
                             <div>
-                                <h4 class="fw-bold font-heading text-dark mb-0 fs-5">Business & Service Entry Form</h4>
-                                <p class="text-muted small mb-0">Fill in the details below to publish your entity on Saran Index</p>
+                                <h4 class="fw-bold font-heading text-dark mb-0 fs-5">Update Business & Service Entry Form</h4>
+                                <p class="text-muted small mb-0">Update the details below to modify your entity on Saran Index</p>
                             </div>
                         </div>
                         <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-1.5 rounded-pill fs-7">
@@ -192,7 +234,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light border-secondary-subtle text-muted"><i class="bi bi-building"></i></span>
-                                        <input type="text" name="title" class="form-control border-secondary-subtle rounded-end-3 py-2.5" placeholder="e.g. Rajendra College, Chapra Diagnostics" required>
+                                        <input type="text" name="title" class="form-control border-secondary-subtle rounded-end-3 py-2.5" placeholder="e.g. Rajendra College, Chapra Diagnostics" required value="<?php echo htmlspecialchars($title); ?>">
                                     </div>
                                 </div>
 
@@ -203,7 +245,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light border-secondary-subtle text-muted"><i class="bi bi-translate"></i></span>
-                                        <input type="text" name="hindi_title" class="form-control border-secondary-subtle rounded-end-3 py-2.5" placeholder="e.g. राजेंद्र कॉलेज, छपरा डायग्नोस्टिक्स">
+                                        <input type="text" name="hindi_title" class="form-control border-secondary-subtle rounded-end-3 py-2.5" placeholder="e.g. राजेंद्र कॉलेज, छपरा डायग्नोस्टिक्स" value="<?php echo htmlspecialchars($hindi_title); ?>">
                                     </div>
                                 </div>
 
@@ -215,7 +257,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <select name="category_id" id="category_select" class="form-select border-secondary-subtle rounded-3 py-2.5" required>
                                         <option value="">-- Choose Category --</option>
                                         <?php foreach ($categories as $cat): ?>
-                                            <option value="<?php echo sanitizeInput($cat['id']); ?>">
+                                            <option value="<?php echo sanitizeInput($cat['id']); ?>" <?php echo ($category_id == $cat['id']) ? 'selected' : ''; ?>>
                                                 <?php echo sanitizeInput($cat['name']); ?>
                                             </option>
                                         <?php endforeach; ?>
@@ -252,7 +294,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <select name="block_id" id="block_select" class="form-select border-secondary-subtle rounded-3 py-2.5" required>
                                         <option value="">-- Choose Block --</option>
                                         <?php foreach ($blocks as $blk): ?>
-                                            <option value="<?php echo sanitizeInput($blk['id']); ?>" data-block-name="<?php echo sanitizeInput($blk['block_name']); ?>">
+                                            <option value="<?php echo sanitizeInput($blk['id']); ?>" data-block-name="<?php echo sanitizeInput($blk['block_name']); ?>" <?php echo ($block_id == $blk['id']) ? 'selected' : ''; ?>>
                                                 <?php echo sanitizeInput($blk['block_name']); ?>
                                             </option>
                                         <?php endforeach; ?>
@@ -274,7 +316,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <label class="form-label fw-semibold fs-7 text-dark mb-1">
                                         Full Address <span class="text-danger">*</span>
                                     </label>
-                                    <textarea name="address" id="address_input" class="form-control border-secondary-subtle rounded-3" rows="2.5" placeholder="Building, Street, Landmark, Panchayat / Ward (e.g. Near Thana Chowk, Main Road)" required></textarea>
+                                    <textarea name="address" id="address_input" class="form-control border-secondary-subtle rounded-3" rows="2.5" placeholder="Building, Street, Landmark, Panchayat / Ward (e.g. Near Thana Chowk, Main Road)" required><?php echo htmlspecialchars($address); ?></textarea>
                                 </div>
 
                                 <!-- PIN Code -->
@@ -284,7 +326,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light border-secondary-subtle text-muted"><i class="bi bi-geo"></i></span>
-                                        <input type="text" name="pincode" class="form-control border-secondary-subtle rounded-end-3 py-2.5" placeholder="e.g. 841301" maxlength="6">
+                                        <input type="text" name="pincode" class="form-control border-secondary-subtle rounded-end-3 py-2.5" placeholder="e.g. 841301" maxlength="6" value="<?php echo htmlspecialchars($pincode); ?>">
                                     </div>
                                 </div>
                             </div>
@@ -307,7 +349,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light border-secondary-subtle text-muted"><i class="bi bi-person"></i></span>
-                                        <input type="text" name="contact_person" class="form-control border-secondary-subtle rounded-end-3 py-2.5" placeholder="Owner, Principal, or Manager Name">
+                                        <input type="text" name="contact_person" class="form-control border-secondary-subtle rounded-end-3 py-2.5" placeholder="Owner, Principal, or Manager Name" value="<?php echo htmlspecialchars($contact_person); ?>">
                                     </div>
                                 </div>
 
@@ -318,7 +360,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light border-secondary-subtle text-primary"><i class="bi bi-phone-fill"></i></span>
-                                        <input type="tel" name="mobile" class="form-control border-secondary-subtle rounded-end-3 py-2.5" placeholder="10-digit Mobile Number" required maxlength="10">
+                                        <input type="tel" name="mobile" class="form-control border-secondary-subtle rounded-end-3 py-2.5" placeholder="10-digit Mobile Number" required maxlength="10" value="<?php echo htmlspecialchars($mobile); ?>">
                                     </div>
                                 </div>
 
@@ -329,7 +371,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light border-secondary-subtle text-success"><i class="bi bi-whatsapp"></i></span>
-                                        <input type="tel" name="whatsapp" class="form-control border-secondary-subtle rounded-end-3 py-2.5" placeholder="10-digit WhatsApp Number" maxlength="10">
+                                        <input type="tel" name="whatsapp" class="form-control border-secondary-subtle rounded-end-3 py-2.5" placeholder="10-digit WhatsApp Number" maxlength="10" value="<?php echo htmlspecialchars($whatsapp); ?>">
                                     </div>
                                 </div>
 
@@ -340,7 +382,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light border-secondary-subtle text-muted"><i class="bi bi-envelope"></i></span>
-                                        <input type="email" name="email" class="form-control border-secondary-subtle rounded-end-3 py-2.5" placeholder="contact@example.com">
+                                        <input type="email" name="email" class="form-control border-secondary-subtle rounded-end-3 py-2.5" placeholder="contact@example.com" value="<?php echo htmlspecialchars($email); ?>">
                                     </div>
                                 </div>
                             </div>
@@ -361,7 +403,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <label class="form-label fw-semibold fs-7 text-dark mb-1">
                                         Key Services / Facilities Offered
                                     </label>
-                                    <input type="text" name="services" class="form-control border-secondary-subtle rounded-3 py-2.5" placeholder="e.g. OPD, ICU, 24x7 Ambulance, Legal Consultation, Admissions Open (comma separated)">
+                                    <input type="text" name="services" class="form-control border-secondary-subtle rounded-3 py-2.5" placeholder="e.g. OPD, ICU, 24x7 Ambulance, Legal Consultation, Admissions Open (comma separated)" value="<?php echo htmlspecialchars($services); ?>">
                                 </div>
 
                                 <!-- Description -->
@@ -369,7 +411,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <label class="form-label fw-semibold fs-7 text-dark mb-1">
                                         About & Working Hours
                                     </label>
-                                    <textarea name="description" class="form-control border-secondary-subtle rounded-3" rows="3" placeholder="Enter brief overview, specialization, business timings, or key highlights..."></textarea>
+                                    <textarea name="description" class="form-control border-secondary-subtle rounded-3" rows="3" placeholder="Enter brief overview, specialization, business timings, or key highlights..."><?php echo htmlspecialchars($description); ?></textarea>
                                 </div>
                             </div>
                         </div>
@@ -383,8 +425,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow-sm fs-6 d-flex align-items-center justify-content-center gap-2 transition-all">
-                            <span>Submit Free Listing</span>
-                            <i class="bi bi-rocket-takeoff-fill"></i>
+                            <span>Update Listing</span>
+                            <i class="bi bi-pencil-square"></i>
                         </button>
 
                     </form>
@@ -409,6 +451,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const blockSelect = document.getElementById('block_select');
     const villageSelect = document.getElementById('village_select');
 
+    const preSelectedSubcategory = "<?php echo $subcategory_id; ?>";
+    const preSelectedVillage = "<?php echo $mauja_code; ?>";
+
+    let isInitialLoad = true;
+
     if (catSelect && subSelect) {
         catSelect.addEventListener('change', function() {
             const catId = this.value;
@@ -427,6 +474,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             const opt = document.createElement('option');
                             opt.value = sub.id;
                             opt.textContent = sub.name;
+                            if (isInitialLoad && preSelectedSubcategory == sub.id) {
+                                opt.selected = true;
+                            }
                             subSelect.appendChild(opt);
                         });
                     }
@@ -455,6 +505,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             const opt = document.createElement('option');
                             opt.value = v.code || v.mauja_code;
                             opt.textContent = v.name || v.display_name;
+                            if (isInitialLoad && preSelectedVillage == (v.code || v.mauja_code)) {
+                                opt.selected = true;
+                            }
                             villageSelect.appendChild(opt);
                         });
                     } else {
@@ -466,6 +519,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         });
     }
+
+    if (catSelect && catSelect.value) {
+        catSelect.dispatchEvent(new Event('change'));
+    }
+    if (blockSelect && blockSelect.value) {
+        blockSelect.dispatchEvent(new Event('change'));
+    }
+    
+    // After a short delay, disable the initial load flag so subsequent changes are normal
+    setTimeout(() => { isInitialLoad = false; }, 1000);
 });
 </script>
 

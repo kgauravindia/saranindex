@@ -202,6 +202,12 @@ require_once __DIR__ . '/includes/header.php';
                     </div>
                 </div>
             </div>
+
+            <!-- Share & Claim Box -->
+            <div class="card border-0 shadow-sm rounded-4 bg-light text-center p-3 mt-3">
+                <div class="small text-muted mb-2">क्या यह आपका व्यवसाय या संगठन है?</div>
+                <a href="add-contact.php" class="btn btn-outline-primary rounded-pill btn-sm fw-bold">लिस्टिंग पर दावा करें और जानकारी अपडेट करें</a>
+            </div>
         </div>
     </div>
 </div>

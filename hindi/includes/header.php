@@ -93,7 +93,18 @@ $meta_description = $meta_description ?? 'सारण इंडेक्स स
                         <i class="bi bi-box-arrow-in-right me-1"></i>लॉगिन
                     </a>
                 <?php endif; ?>
-                <a href="../" class="btn btn-outline-primary rounded-pill px-3 py-1.5 btn-sm fw-bold" title="Switch to English Website">
+                <?php
+                $currentScript = basename($_SERVER['PHP_SELF'] ?? 'index.php');
+                $queryString = !empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '';
+                $targetEnglishFile = __DIR__ . '/../../' . $currentScript;
+
+                if (file_exists($targetEnglishFile) && is_file($targetEnglishFile)) {
+                    $langSwitchUrl = '../' . $currentScript . $queryString;
+                } else {
+                    $langSwitchUrl = '../';
+                }
+                ?>
+                <a href="<?php echo htmlspecialchars($langSwitchUrl); ?>" class="btn btn-outline-primary rounded-pill px-3 py-1.5 btn-sm fw-bold" title="Switch to English Website">
                     <i class="bi bi-globe me-1"></i>English
                 </a>
                 <a href="search" class="btn btn-outline-secondary rounded-pill px-3 py-2 btn-sm fw-semibold">

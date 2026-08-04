@@ -62,6 +62,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $res = verifyMobileOTP($mobile, $inputOtp);
 
         if ($res['success']) {
+            $db = getDB();
+            if ($db) {
+                ensureUsersTable();
+                $stmt = $db->prepare("UPDATE users SET mobile_status = 'VERIFIED' WHERE (mobile = :mobile OR mobile = :m10_1 OR RIGHT(mobile, 10) = :m10_2)");
+                $stmt->execute(['mobile' => $mobile, 'm10_1' => $mobile, 'm10_2' => $mobile]);
+            }
+
             $_SESSION['pwd_reset_step'] = 3;
             $_SESSION['otp_verified'] = true;
             $step = 3;
@@ -95,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $db = getDB();
                 if ($db) {
                     $passHash = password_hash($newPassword, PASSWORD_DEFAULT);
-                    $stmt = $db->prepare("UPDATE users SET password_hash = :pass WHERE (mobile = :mobile OR mobile = :m10_1 OR RIGHT(mobile, 10) = :m10_2)");
+                    $stmt = $db->prepare("UPDATE users SET password_hash = :pass, mobile_status = 'VERIFIED' WHERE (mobile = :mobile OR mobile = :m10_1 OR RIGHT(mobile, 10) = :m10_2)");
                     $stmt->execute(['pass' => $passHash, 'mobile' => $mobile, 'm10_1' => $mobile, 'm10_2' => $mobile]);
 
                     unset($_SESSION['reset_mobile']);
