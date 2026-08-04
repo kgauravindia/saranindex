@@ -1,5 +1,13 @@
 <?php
 require_once __DIR__ . '/includes/functions.php';
+
+if (!isUserLoggedIn()) {
+    header("Location: login.php?redirect=" . urlencode($_SERVER['REQUEST_URI']));
+    exit;
+}
+
+$currentUser = getLoggedInUser();
+
 $page_title = "Add Free Listing – Saran Index";
 require_once __DIR__ . '/includes/header.php';
 
@@ -43,8 +51,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
 
-                $stmt = $db->prepare("INSERT INTO listings (category_id, subcategory_id, block_id, village_id, title, hindi_title, slug, contact_person, mobile, whatsapp, email, address, pincode, services, description, is_verified, status) VALUES (:cat, :sub, :blk, :vid, :title, :htitle, :slug, :cp, :mob, :wa, :email, :addr, :pin, :srv, :desc, 'NO', 'ACTIVE')");
+                $stmt = $db->prepare("INSERT INTO listings (user_id, category_id, subcategory_id, block_id, village_id, title, hindi_title, slug, contact_person, mobile, whatsapp, email, address, pincode, services, description, is_verified, status) VALUES (:uid, :cat, :sub, :blk, :vid, :title, :htitle, :slug, :cp, :mob, :wa, :email, :addr, :pin, :srv, :desc, 'NO', 'ACTIVE')");
                 $stmt->execute([
+                    'uid' => $currentUser['id'] ?? null,
                     'cat' => $category_id,
                     'sub' => $subcategory_id,
                     'blk' => $block_id,
@@ -61,13 +70,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'srv' => $services,
                     'desc' => $description
                 ]);
+                $success_msg = true;
             } catch (PDOException $e) {
                 error_log("Listing insert failed: " . $e->getMessage());
+                $error_msg = "Database error while creating listing: " . $e->getMessage();
             }
+        } else {
+            $error_msg = "Database connection failed. Please try again.";
         }
-        $success_msg = true;
     } else {
-        $error_msg = "Please fill in all required fields marked with *";
+        $error_msg = "Please fill in all required fields marked with * (Title, Mobile, Category, and Block)";
     }
 }
 ?>
@@ -127,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </span>
                 </div>
                 
-                <form action="add-contact.php" method="POST">
+                <form action="" method="POST">
                     <div class="row g-3">
                         
                         <!-- SECTION 1: ENTITY & CATEGORY -->
