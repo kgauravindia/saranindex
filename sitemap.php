@@ -52,10 +52,10 @@ $db = getDB();
 if ($db) {
     // 1. Blocks
     try {
-        $stmt = $db->query("SELECT slug FROM blocks WHERE slug IS NOT NULL AND slug != ''");
+        $stmt = $db->query("SELECT slug FROM blocks WHERE slug IS NOT NULL AND slug != '' ORDER BY name ASC");
         while ($row = $stmt->fetch()) {
-            addSitemapUrl($baseUrl . 'blocks/' . rawurlencode($row['slug']), $today, 'weekly', '0.8');
-            addSitemapUrl($baseUrl . 'hindi/blocks/' . rawurlencode($row['slug']), $today, 'weekly', '0.8');
+            addSitemapUrl($baseUrl . 'blocks/' . rawurlencode($row['slug']), $today, 'weekly', '0.9');
+            addSitemapUrl($baseUrl . 'hindi/blocks/' . rawurlencode($row['slug']), $today, 'weekly', '0.9');
         }
     } catch (Exception $e) {}
 

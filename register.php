@@ -19,11 +19,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $confirmPassword = $_POST['confirm_password'] ?? '';
     $blockId = $_POST['block_id'] ?? null;
     $address = $_POST['address'] ?? '';
+    $otherState = $_POST['other_state'] ?? '';
+    $otherDistrict = $_POST['other_district'] ?? '';
+    $otherBlock = $_POST['other_block'] ?? '';
+    $villageId = $_POST['village_id'] ?? null;
+    $villageName = $_POST['village_name'] ?? '';
 
     if ($password !== $confirmPassword) {
         $error = "Passwords do not match. Please re-enter.";
     } else {
-        $result = registerPublicUser($fullName, $mobile, $password, $email, $blockId, $address);
+        $finalAddress = $address;
+        if ($blockId === 'other' && !empty($otherBlock)) {
+            $finalAddress .= (!empty($finalAddress) ? ', ' : '') . 'Block: ' . sanitizeInput($otherBlock);
+        } elseif (is_numeric($blockId) && !empty($villageName)) {
+            $finalAddress .= (!empty($finalAddress) ? ', ' : '') . 'Village: ' . sanitizeInput($villageName);
+        }
+        $result = registerPublicUser($fullName, $mobile, $password, $email, $blockId, $finalAddress, $otherState, $otherDistrict, $villageId);
         if ($result['success']) {
             header("Location: dashboard.php");
             exit;
@@ -52,7 +63,7 @@ require_once __DIR__ . '/includes/header.php';
                         <div class="position-absolute bottom-0 end-0 w-100 h-100" style="background: radial-gradient(circle at bottom right, rgba(59,130,246,0.3) 0%, rgba(0,0,0,0) 50%); pointer-events: none;"></div>
                         
                         <div class="position-relative z-index-1">
-                            <img src="assets/logo.png" alt="Saran Index Logo" height="65" class="mb-4 rounded-3 shadow-sm bg-white p-2">
+                            <img src="<?php echo BASE_URL; ?>assets/logo.png" alt="Saran Index Logo" height="65" class="mb-4 rounded-3 shadow-sm bg-white p-2">
                             <h2 class="fw-bold font-heading mb-3 text-white lh-base">Join the<br><span class="text-warning">Saran Network</span></h2>
                             <p class="text-white-50 mb-5 fs-6 lh-lg">Create your free account to list your business, discover local contacts, and connect with the district.</p>
                             
@@ -85,7 +96,7 @@ require_once __DIR__ . '/includes/header.php';
                         
                         <!-- Mobile Header (Hidden on Desktop) -->
                         <div class="text-center d-md-none mb-4 pb-2 border-bottom">
-                            <img src="assets/logo.png" alt="Saran Index Logo" height="50" class="mb-3 rounded-3 shadow-sm">
+                            <img src="<?php echo BASE_URL; ?>assets/logo.png" alt="Saran Index Logo" height="50" class="mb-3 rounded-3 shadow-sm">
                             <h4 class="fw-bold font-heading mb-1">Create Account</h4>
                             <p class="text-muted small">Join Saran's premier directory network</p>
                         </div>
@@ -130,15 +141,56 @@ require_once __DIR__ . '/includes/header.php';
 
                             <!-- Block Selection -->
                             <div class="form-floating mb-3">
-                                <select name="block_id" id="block_id" class="form-select border-secondary-subtle rounded-3">
+                                <select name="block_id" id="block_id" class="form-select border-secondary-subtle rounded-3" onchange="onBlockSelectChange(this.value)">
                                     <option value="">-- Select Block (Optional) --</option>
                                     <?php foreach ($blocks as $b): ?>
                                         <option value="<?php echo $b['id']; ?>" <?php echo (isset($_POST['block_id']) && $_POST['block_id'] == $b['id']) ? 'selected' : ''; ?>>
                                             <?php echo htmlspecialchars($b['block_name']); ?> (<?php echo htmlspecialchars($b['hindi_name']); ?>)
                                         </option>
                                     <?php endforeach; ?>
+                                    <option value="other" <?php echo (isset($_POST['block_id']) && $_POST['block_id'] === 'other') ? 'selected' : ''; ?>>Other (Outside Saran / Other Location)</option>
                                 </select>
                                 <label for="block_id" class="text-muted"><i class="bi bi-geo-alt me-2"></i>Your Block in Saran</label>
+                            </div>
+
+                            <!-- Dynamic Saran Village Selection Dropdown -->
+                            <div id="saran_village_fields" class="form-floating mb-3" style="display: none;">
+                                <select name="village_id" id="village_id" class="form-select border-secondary-subtle rounded-3" onchange="updateVillageNameHidden(this)">
+                                    <option value="">-- Select Village (Census 2011) --</option>
+                                </select>
+                                <input type="hidden" name="village_name" id="village_name" value="<?php echo isset($_POST['village_name']) ? htmlspecialchars($_POST['village_name']) : ''; ?>">
+                                <label for="village_id" class="text-muted"><i class="bi bi-houses me-2"></i>Select Your Village in Block</label>
+                            </div>
+
+                            <!-- Dynamic 3 Dropdowns Container for Other Location (State, District, Block) -->
+                            <div id="other_location_fields" class="bg-light p-3 rounded-3 mb-3 border border-secondary-subtle shadow-sm" style="display: <?php echo (isset($_POST['block_id']) && $_POST['block_id'] === 'other') ? 'block' : 'none'; ?>;">
+                                <div class="fw-bold small text-dark mb-2"><i class="bi bi-geo-alt-fill text-primary me-1"></i>Location Details (Outside Saran)</div>
+                                <div class="row g-2">
+                                    <div class="col-md-4">
+                                        <div class="form-floating">
+                                            <select name="other_state" id="other_state" class="form-select border-secondary-subtle rounded-3" onchange="loadDistricts(this.value)">
+                                                <option value="">-- State --</option>
+                                            </select>
+                                            <label for="other_state" class="text-muted">State</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-floating">
+                                            <select name="other_district" id="other_district" class="form-select border-secondary-subtle rounded-3" onchange="loadOtherBlocks(document.getElementById('other_state').value, this.value)">
+                                                <option value="">-- District --</option>
+                                            </select>
+                                            <label for="other_district" class="text-muted">District</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-floating">
+                                            <select name="other_block" id="other_block" class="form-select border-secondary-subtle rounded-3">
+                                                <option value="">-- Block --</option>
+                                            </select>
+                                            <label for="other_block" class="text-muted">Block</label>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="row g-3 mb-4">
@@ -223,6 +275,138 @@ require_once __DIR__ . '/includes/header.php';
 </style>
 
 <script>
+function onBlockSelectChange(val) {
+    const villageFields = document.getElementById('saran_village_fields');
+    const otherFields = document.getElementById('other_location_fields');
+    
+    if (val === 'other') {
+        if (villageFields) villageFields.style.display = 'none';
+        if (otherFields) {
+            otherFields.style.display = 'block';
+            if (document.getElementById('other_state').options.length <= 1) {
+                loadStates('<?php echo isset($_POST['other_state']) ? htmlspecialchars($_POST['other_state']) : ''; ?>');
+            }
+        }
+    } else if (val && val !== '') {
+        if (otherFields) otherFields.style.display = 'none';
+        if (villageFields) {
+            villageFields.style.display = 'block';
+            loadSaranVillages(val, '<?php echo isset($_POST['village_id']) ? htmlspecialchars($_POST['village_id']) : ''; ?>');
+        }
+    } else {
+        if (villageFields) villageFields.style.display = 'none';
+        if (otherFields) otherFields.style.display = 'none';
+    }
+}
+
+function loadSaranVillages(blockId, selectedVillageId = '') {
+    const villageSelect = document.getElementById('village_id');
+    if (!villageSelect) return;
+    villageSelect.innerHTML = '<option value="">-- Select Village (Census 2011) --</option>';
+
+    if (!blockId) return;
+
+    fetch('<?php echo BASE_URL; ?>api/location_api.php?type=saran_villages&block_id=' + encodeURIComponent(blockId))
+        .then(res => res.json())
+        .then(villages => {
+            villages.forEach(v => {
+                const opt = document.createElement('option');
+                opt.value = v.id;
+                opt.textContent = v.name + ' (Code: ' + v.town_village_code + ')';
+                opt.setAttribute('data-name', v.name);
+                if (selectedVillageId && v.id == selectedVillageId) {
+                    opt.selected = true;
+                    document.getElementById('village_name').value = v.name;
+                }
+                villageSelect.appendChild(opt);
+            });
+        }).catch(err => console.error(err));
+}
+
+function updateVillageNameHidden(selectElem) {
+    const selectedOpt = selectElem.options[selectElem.selectedIndex];
+    const vName = selectedOpt ? (selectedOpt.getAttribute('data-name') || '') : '';
+    document.getElementById('village_name').value = vName;
+}
+
+function loadStates(selectedStateCode = '') {
+    fetch('<?php echo BASE_URL; ?>api/location_api.php?type=states')
+        .then(res => res.json())
+        .then(states => {
+            const stateSelect = document.getElementById('other_state');
+            if (!stateSelect) return;
+            stateSelect.innerHTML = '<option value="">-- Select State --</option>';
+            states.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.state_code;
+                opt.textContent = s.state;
+                if (selectedStateCode && (s.state_code == selectedStateCode || s.state == selectedStateCode)) {
+                    opt.selected = true;
+                }
+                stateSelect.appendChild(opt);
+            });
+            if (selectedStateCode) {
+                loadDistricts(stateSelect.value || selectedStateCode, '<?php echo isset($_POST['other_district']) ? htmlspecialchars($_POST['other_district']) : ''; ?>');
+            }
+        }).catch(err => console.error(err));
+}
+
+function loadDistricts(stateCode, selectedDistrictCode = '') {
+    const distSelect = document.getElementById('other_district');
+    const blockSelect = document.getElementById('other_block');
+    if (!distSelect || !blockSelect) return;
+    distSelect.innerHTML = '<option value="">-- Select District --</option>';
+    blockSelect.innerHTML = '<option value="">-- Select Block --</option>';
+
+    if (!stateCode) return;
+
+    fetch('<?php echo BASE_URL; ?>api/location_api.php?type=districts&state_code=' + encodeURIComponent(stateCode))
+        .then(res => res.json())
+        .then(districts => {
+            districts.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.district_code;
+                opt.textContent = d.district;
+                if (selectedDistrictCode && (d.district_code == selectedDistrictCode || d.district == selectedDistrictCode)) {
+                    opt.selected = true;
+                }
+                distSelect.appendChild(opt);
+            });
+            if (selectedDistrictCode) {
+                loadOtherBlocks(stateCode, distSelect.value || selectedDistrictCode, '<?php echo isset($_POST['other_block']) ? htmlspecialchars($_POST['other_block']) : ''; ?>');
+            }
+        }).catch(err => console.error(err));
+}
+
+function loadOtherBlocks(stateCode, districtCode, selectedBlockName = '') {
+    const blockSelect = document.getElementById('other_block');
+    if (!blockSelect) return;
+    blockSelect.innerHTML = '<option value="">-- Select Block --</option>';
+
+    if (!stateCode || !districtCode) return;
+
+    fetch('<?php echo BASE_URL; ?>api/location_api.php?type=blocks&state_code=' + encodeURIComponent(stateCode) + '&district_code=' + encodeURIComponent(districtCode))
+        .then(res => res.json())
+        .then(blocks => {
+            blocks.forEach(b => {
+                const opt = document.createElement('option');
+                opt.value = b.block;
+                opt.textContent = b.block;
+                if (selectedBlockName && b.block === selectedBlockName) {
+                    opt.selected = true;
+                }
+                blockSelect.appendChild(opt);
+            });
+        }).catch(err => console.error(err));
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const blockSelect = document.getElementById('block_id');
+    if (blockSelect && blockSelect.value) {
+        onBlockSelectChange(blockSelect.value);
+    }
+});
+
 document.getElementById('togglePassword')?.addEventListener('click', function () {
     const passwordInput = document.getElementById('password');
     const confirmInput = document.getElementById('confirm_password');

@@ -93,8 +93,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $db = getDB();
                 if ($db) {
                     $passHash = password_hash($newPassword, PASSWORD_DEFAULT);
-                    $stmt = $db->prepare("UPDATE users SET password_hash = :pass WHERE mobile = :mobile");
-                    $stmt->execute(['pass' => $passHash, 'mobile' => $mobile]);
+                    $stmt = $db->prepare("UPDATE users SET password_hash = :pass WHERE (mobile = :mobile OR mobile = :m10_1 OR RIGHT(mobile, 10) = :m10_2)");
+                    $stmt->execute(['pass' => $passHash, 'mobile' => $mobile, 'm10_1' => $mobile, 'm10_2' => $mobile]);
 
                     unset($_SESSION['reset_mobile']);
                     unset($_SESSION['reset_user_name']);

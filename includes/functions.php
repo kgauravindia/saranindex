@@ -95,6 +95,8 @@ function getBlockBySlug($slug) {
     $db = getDB();
     if (!$db || empty($slug)) return null;
 
+    $cleanSlug = str_replace('-', ' ', strtolower($slug));
+
     try {
         $sql = "SELECT b.id, b.name, b.name as block_name, b.name_english, b.hindi_name, b.slug, b.pincode, b.total_panchayats,
                        c_tot.households, c_tot.pop_tot, c_tot.pop_male, c_tot.pop_female, c_tot.lit_tot, c_tot.lit_male, c_tot.lit_female, c_tot.tot_work_tot, c_tot.cd_block_code,
@@ -122,9 +124,15 @@ function getBlockBySlug($slug) {
                     OR LOWER(b.name) LIKE CONCAT('%', LOWER(c_urb.name), '%')
                     OR LOWER(c_urb.name) LIKE CONCAT('%', LOWER(b.name), '%')
                 ))
-                WHERE b.slug = :slug LIMIT 1";
+                WHERE (b.slug = :s1 OR LOWER(b.name) = :cs1 OR LOWER(b.name_english) = :cs2 OR LOWER(REPLACE(b.name, ' ', '-')) = :s2 OR LOWER(REPLACE(b.name_english, ' ', '-')) = :s3) LIMIT 1";
         $stmt = $db->prepare($sql);
-        $stmt->execute(['slug' => $slug]);
+        $stmt->execute([
+            's1'  => $slug,
+            'cs1' => $cleanSlug,
+            'cs2' => $cleanSlug,
+            's2'  => $slug,
+            's3'  => $slug
+        ]);
         $res = $stmt->fetch();
         if ($res) return $res;
     } catch (PDOException $e) {
@@ -133,8 +141,14 @@ function getBlockBySlug($slug) {
 
     // Fallback: Query blocks table directly
     try {
-        $stmt = $db->prepare("SELECT *, name as block_name FROM blocks WHERE slug = :slug LIMIT 1");
-        $stmt->execute(['slug' => $slug]);
+        $stmt = $db->prepare("SELECT *, name as block_name FROM blocks WHERE (slug = :s1 OR LOWER(name) = :cs1 OR LOWER(name_english) = :cs2 OR LOWER(REPLACE(name, ' ', '-')) = :s2 OR LOWER(REPLACE(name_english, ' ', '-')) = :s3) LIMIT 1");
+        $stmt->execute([
+            's1'  => $slug,
+            'cs1' => $cleanSlug,
+            'cs2' => $cleanSlug,
+            's2'  => $slug,
+            's3'  => $slug
+        ]);
         return $stmt->fetch();
     } catch (PDOException $e) {}
     return null;
@@ -1172,7 +1186,7 @@ function getLoggedInUser() {
 }
 
 
-function registerPublicUser($fullName, $mobile, $password, $email = '', $blockId = null, $address = '') {
+function registerPublicUser($fullName, $mobile, $password, $email = '', $blockId = null, $address = '', $stateCode = null, $districtCode = null, $villageId = null) {
     $db = getDB();
     if (!$db) {
         return ['success' => false, 'message' => 'Database connection failed.'];
@@ -1184,6 +1198,8 @@ function registerPublicUser($fullName, $mobile, $password, $email = '', $blockId
     $mobile = preg_replace('/[^0-9]/', '', $mobile);
     $email = sanitizeInput($email);
     $address = sanitizeInput($address);
+    $stateCode = !empty($stateCode) ? sanitizeInput($stateCode) : null;
+    $districtCode = !empty($districtCode) ? sanitizeInput($districtCode) : null;
 
     if (empty($fullName)) {
         return ['success' => false, 'message' => 'Full name is required.'];
@@ -1207,14 +1223,20 @@ function registerPublicUser($fullName, $mobile, $password, $email = '', $blockId
 
         $passwordHash = password_hash($password, PASSWORD_DEFAULT);
 
-        $stmt = $db->prepare("INSERT INTO users (full_name, mobile, email, password_hash, block_id, address) VALUES (:name, :mobile, :email, :pass, :block, :address)");
+        $numericBlockId = (is_numeric($blockId) && intval($blockId) > 0) ? intval($blockId) : null;
+        $numericVillageId = (is_numeric($villageId) && intval($villageId) > 0) ? intval($villageId) : null;
+
+        $stmt = $db->prepare("INSERT INTO users (full_name, mobile, email, password_hash, block_id, village_id, address, state_code, district_code) VALUES (:name, :mobile, :email, :pass, :block, :village, :address, :state, :district)");
         $stmt->execute([
             'name' => $fullName,
             'mobile' => $mobile,
             'email' => !empty($email) ? $email : null,
             'pass' => $passwordHash,
-            'block' => !empty($blockId) ? intval($blockId) : null,
-            'address' => !empty($address) ? $address : null
+            'block' => $numericBlockId,
+            'village' => $numericVillageId,
+            'address' => !empty($address) ? $address : null,
+            'state' => $stateCode,
+            'district' => $districtCode
         ]);
 
         $userId = $db->lastInsertId();
@@ -1320,6 +1342,13 @@ function logoutPublicUser() {
     unset($_SESSION['user_id']);
     unset($_SESSION['user_name']);
     unset($_SESSION['user_mobile']);
+    unset($_SESSION['otp_code']);
+    unset($_SESSION['otp_expiry']);
+    unset($_SESSION['otp_mobile']);
+    unset($_SESSION['otp_verified']);
+    unset($_SESSION['pwd_reset_step']);
+    unset($_SESSION['reset_mobile']);
+    unset($_SESSION['reset_user_name']);
 }
 
 function getUserListings($mobileOrUserId) {
