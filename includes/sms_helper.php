@@ -1,13 +1,24 @@
 <?php
 // SMS Gateway Configuration
-$auth_key_msg = "b0e99bea1fa7d15e27e1c5fd8e3c868";
-$sender_id = "CITYXI";
+if (!defined('SMS_AUTH_KEY')) {
+    define('SMS_AUTH_KEY', 'b0e99bea1fa7d15e27e1c5fd8e3c868');
+}
+if (!defined('SMS_SENDER_ID')) {
+    define('SMS_SENDER_ID', 'CITYXI');
+}
+
+$GLOBALS['auth_key_msg'] = SMS_AUTH_KEY;
+$GLOBALS['sender_id']    = SMS_SENDER_ID;
+$auth_key_msg            = SMS_AUTH_KEY;
+$sender_id               = SMS_SENDER_ID;
 
 function bulk_msg($mobile_list, $sms, $count = 1, $smstype = 'english')
 {
-    global $auth_key_msg;
-    global $sender_id;
+    global $auth_key_msg, $sender_id;
     
+    $activeAuthKey = !empty($auth_key_msg) ? $auth_key_msg : ($GLOBALS['auth_key_msg'] ?? SMS_AUTH_KEY);
+    $activeSenderId = !empty($sender_id) ? $sender_id : ($GLOBALS['sender_id'] ?? SMS_SENDER_ID);
+
     $clean_mobiles = preg_replace('/[^0-9]/', '', $mobile_list);
     if (strlen($clean_mobiles) >= 10) {
         $clean_mobiles = substr($clean_mobiles, -10);
@@ -18,7 +29,7 @@ function bulk_msg($mobile_list, $sms, $count = 1, $smstype = 'english')
         'groupId' => '',
         'routeId' => 1,
         'mobileNumbers' => $clean_mobiles,
-        'senderId' => $sender_id,
+        'senderId' => $activeSenderId,
         'signature' => '',
         'smsContentType' => $smstype
     );
@@ -26,7 +37,7 @@ function bulk_msg($mobile_list, $sms, $count = 1, $smstype = 'english')
     $text_sms = json_encode($data);
     $curl = curl_init();
     curl_setopt_array($curl, array(
-        CURLOPT_URL => "http://msg.morg.in/rest/services/sendSMS/sendGroupSms?AUTH_KEY=$auth_key_msg",
+        CURLOPT_URL => "http://msg.morg.in/rest/services/sendSMS/sendGroupSms?AUTH_KEY=" . urlencode($activeAuthKey),
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => "",
         CURLOPT_MAXREDIRS => 10,
@@ -45,7 +56,7 @@ function bulk_msg($mobile_list, $sms, $count = 1, $smstype = 'english')
     curl_close($curl);
 
     // Log raw response for debugging
-    $log_entry = date('Y-m-d H:i:s') . " | Mobile: {$clean_mobiles} | Sender: {$sender_id} | Response: {$response} | Error: {$err}" . PHP_EOL;
+    $log_entry = date('Y-m-d H:i:s') . " | Mobile: {$clean_mobiles} | Sender: {$activeSenderId} | Response: {$response} | Error: {$err}" . PHP_EOL;
     @file_put_contents(__DIR__ . '/../sms_debug.log', $log_entry, FILE_APPEND);
     error_log("SMS Dispatch: " . $log_entry);
 
