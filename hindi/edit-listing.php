@@ -470,11 +470,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(response => response.json())
                 .then(data => {
                     subSelect.innerHTML = '<option value="">उपश्रेणी चुनें (ऐच्छिक)</option>';
-                    if (data && data.length > 0) {
-                        data.forEach(sub => {
+                    const subList = Array.isArray(data) ? data : (data.subcategories || []);
+                    if (subList.length > 0) {
+                        subList.forEach(sub => {
                             const opt = document.createElement('option');
                             opt.value = sub.id;
-                            opt.textContent = sub.name;
+                            opt.textContent = sub.hindi_name ? sub.hindi_name : sub.name;
                             subSelect.appendChild(opt);
                         });
                     }
@@ -498,11 +499,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(response => response.json())
                 .then(data => {
                     villageSelect.innerHTML = '<option value="">-- राजस्व मौजा चुनें (ऐच्छिक) --</option>';
-                    if (data && data.length > 0) {
-                        data.forEach(v => {
+                    const villageList = Array.isArray(data) ? data : (data.villages || []);
+                    if (villageList.length > 0) {
+                        villageList.forEach(v => {
                             const opt = document.createElement('option');
-                            opt.value = v.code || v.mauja_code;
-                            opt.textContent = v.name_hindi || v.name || v.display_name;
+                            const code = v.mauja_code || v.code;
+                            opt.value = code;
+                            opt.textContent = v.name_hindi || v.display_name || v.name || ('मौजा ' + code);
                             villageSelect.appendChild(opt);
                         });
                     } else {
@@ -514,6 +517,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         });
     }
+
 });
 </script>
 

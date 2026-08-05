@@ -94,4 +94,8 @@ if ($db) {
     }
 }
 
-echo json_encode($results, JSON_UNESCAPED_UNICODE);
+echo json_encode([
+    'status' => 'success',
+    'villages' => $results
+], JSON_UNESCAPED_UNICODE);
+

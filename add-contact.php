@@ -486,9 +486,10 @@ document.addEventListener('DOMContentLoaded', function() {
             fetch('api/subcategories_api.php?category_id=' + encodeURIComponent(catId))
                 .then(res => res.json())
                 .then(data => {
-                    if (data.status === 'success' && data.subcategories.length > 0) {
+                    const subList = Array.isArray(data) ? data : (data.subcategories || []);
+                    if (subList.length > 0) {
                         let html = '<option value="">-- Choose Subcategory --</option>';
-                        data.subcategories.forEach(sub => {
+                        subList.forEach(sub => {
                             let displayName = sub.name;
                             if (sub.hindi_name) displayName += ' (' + sub.hindi_name + ')';
                             html += `<option value="${sub.id}">${displayName}</option>`;
@@ -516,12 +517,13 @@ document.addEventListener('DOMContentLoaded', function() {
             fetch('api/villages_api.php?block_id=' + encodeURIComponent(blockId))
                 .then(res => res.json())
                 .then(data => {
-                    if (data.status === 'success' && data.villages.length > 0) {
+                    const villageList = Array.isArray(data) ? data : (data.villages || []);
+                    if (villageList.length > 0) {
                         let html = '<option value="">-- Choose Mauja / Village --</option>';
-                        data.villages.forEach(v => {
-                            let displayName = v.name;
-                            if (v.mauja_code) displayName += ' (Code: ' + v.mauja_code + ')';
-                            html += `<option value="${v.mauja_code}">${displayName}</option>`;
+                        villageList.forEach(v => {
+                            let code = v.mauja_code || v.code || '';
+                            let displayName = v.display_name || v.name || 'Village ' + code;
+                            html += `<option value="${code}">${displayName}</option>`;
                         });
                         villageSelect.innerHTML = html;
                     } else {
@@ -535,5 +537,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

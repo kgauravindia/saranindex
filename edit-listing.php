@@ -472,11 +472,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(response => response.json())
                 .then(data => {
                     subSelect.innerHTML = '<option value="">Choose Subcategory (Optional)</option>';
-                    if (data && data.length > 0) {
-                        data.forEach(sub => {
+                    const subList = Array.isArray(data) ? data : (data.subcategories || []);
+                    if (subList.length > 0) {
+                        subList.forEach(sub => {
                             const opt = document.createElement('option');
                             opt.value = sub.id;
-                            opt.textContent = sub.name;
+                            opt.textContent = sub.name + (sub.hindi_name ? ' (' + sub.hindi_name + ')' : '');
                             if (isInitialLoad && preSelectedSubcategory == sub.id) {
                                 opt.selected = true;
                             }
@@ -503,12 +504,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(response => response.json())
                 .then(data => {
                     villageSelect.innerHTML = '<option value="">-- Select Revenue Mauja (Optional) --</option>';
-                    if (data && data.length > 0) {
-                        data.forEach(v => {
+                    const villageList = Array.isArray(data) ? data : (data.villages || []);
+                    if (villageList.length > 0) {
+                        villageList.forEach(v => {
                             const opt = document.createElement('option');
-                            opt.value = v.code || v.mauja_code;
-                            opt.textContent = v.name || v.display_name;
-                            if (isInitialLoad && preSelectedVillage == (v.code || v.mauja_code)) {
+                            const code = v.mauja_code || v.code;
+                            opt.value = code;
+                            opt.textContent = v.display_name || v.name || ('Mauja ' + code);
+                            if (isInitialLoad && preSelectedVillage == code) {
                                 opt.selected = true;
                             }
                             villageSelect.appendChild(opt);
@@ -522,6 +525,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         });
     }
+
 
     if (catSelect && catSelect.value) {
         catSelect.dispatchEvent(new Event('change'));
