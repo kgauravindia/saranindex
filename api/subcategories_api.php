@@ -11,9 +11,10 @@ if ($category_id > 0) {
     $db = getDB();
     if ($db) {
         try {
-            $stmt = $db->prepare("SELECT id, name, hindi_name, slug FROM subcategories WHERE category_id = :cat_id ORDER BY name ASC");
+            $stmt = $db->prepare("SELECT id, name, hindi_name, slug, type FROM subcategories WHERE category_id = :cat_id ORDER BY CASE WHEN type = 'PROFESSIONAL' THEN 1 ELSE 2 END ASC, name ASC");
             $stmt->execute(['cat_id' => $category_id]);
             $subcategories = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
         } catch (Exception $e) {
             error_log("subcategories_api error: " . $e->getMessage());
         }

@@ -493,13 +493,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(data => {
                     const subList = Array.isArray(data) ? data : (data.subcategories || []);
                     if (subList.length > 0) {
+                        const profList = subList.filter(s => s.type === 'PROFESSIONAL' || !s.type || s.type !== 'BUSINESS');
+                        const bizList = subList.filter(s => s.type === 'BUSINESS');
+
                         let html = '<option value="">-- उप-श्रेणी चुनें --</option>';
-                        subList.forEach(sub => {
-                            let displayName = sub.hindi_name ? sub.hindi_name : sub.name;
-                            html += `<option value="${sub.id}">${displayName}</option>`;
-                        });
+                        if (profList.length > 0) {
+                            html += '<optgroup label="👨‍💼 पेशेवर सेवा एवं कुशल कार्यकर्ता">';
+                            profList.forEach(sub => {
+                                let displayName = sub.hindi_name ? sub.hindi_name : sub.name;
+                                html += `<option value="${sub.id}">${displayName}</option>`;
+                            });
+                            html += '</optgroup>';
+                        }
+                        if (bizList.length > 0) {
+                            html += '<optgroup label="🏪 व्यापार एवं प्रतिष्ठान">';
+                            bizList.forEach(sub => {
+                                let displayName = sub.hindi_name ? sub.hindi_name : sub.name;
+                                html += `<option value="${sub.id}">${displayName}</option>`;
+                            });
+                            html += '</optgroup>';
+                        }
                         subSelect.innerHTML = html;
                     } else {
+
                         subSelect.innerHTML = '<option value="">कोई उप-श्रेणी उपलब्ध नहीं</option>';
                     }
                 })

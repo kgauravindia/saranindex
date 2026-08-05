@@ -173,7 +173,7 @@ function getSubcategoriesByCategoryId($category_id) {
     $db = getDB();
     if ($db) {
         try {
-            $stmt = $db->prepare("SELECT * FROM subcategories WHERE category_id = :cat_id ORDER BY name ASC");
+            $stmt = $db->prepare("SELECT * FROM subcategories WHERE category_id = :cat_id ORDER BY CASE WHEN type = 'PROFESSIONAL' THEN 1 ELSE 2 END ASC, name ASC");
             $stmt->execute(['cat_id' => $category_id]);
             return $stmt->fetchAll();
         } catch (PDOException $e) {}
@@ -185,12 +185,13 @@ function getAllSubcategories() {
     $db = getDB();
     if ($db) {
         try {
-            $stmt = $db->query("SELECT s.*, c.name as category_name FROM subcategories s LEFT JOIN categories c ON s.category_id = c.id ORDER BY c.name ASC, s.name ASC");
+            $stmt = $db->query("SELECT s.*, c.name as category_name FROM subcategories s LEFT JOIN categories c ON s.category_id = c.id ORDER BY c.name ASC, CASE WHEN s.type = 'PROFESSIONAL' THEN 1 ELSE 2 END ASC, s.name ASC");
             return $stmt->fetchAll();
         } catch (PDOException $e) {}
     }
     return [];
 }
+
 
 function getListings($search = '', $category_slug = '', $block_slug = '', $limit = 20, $offset = 0, $subcategory_slug = '') {
     $db = getDB();
