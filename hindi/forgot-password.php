@@ -1,8 +1,11 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+
 require_once __DIR__ . '/includes/functions.php';
+
+if (isUserLoggedIn()) {
+    header("Location: dashboard.php");
+    exit;
+}
 
 if (isset($_GET['restart']) || isset($_GET['reset'])) {
     unset($_SESSION['pwd_reset_step']);

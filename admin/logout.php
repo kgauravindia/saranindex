@@ -1,7 +1,7 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/../config/config.php';
+
+
 $_SESSION = array();
 if (ini_get("session.use_cookies")) {
     $params = session_get_cookie_params();
@@ -12,7 +12,6 @@ if (ini_get("session.use_cookies")) {
 }
 session_destroy();
 
-require_once __DIR__ . '/../config/config.php';
 header("Location: " . BASE_URL . "admin/login.php");
 exit;
 ?>
