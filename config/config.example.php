@@ -40,8 +40,9 @@ define('DB_NAME', getenv('DB_NAME') ?: 'saranindex');
 define('DB_CHARSET', 'utf8mb4');
 
 // SMS Template Configuration
-define('SMS_SENDER_ID', 'CITYXN');
-define('SMS_REGISTRATION_TEMPLATE', "Dear {#var#},\n Your registration is completed as {#var#}\n Your OTP / EVC / Password is {#var#}\n \n Regards\n CITYXN\n OfferPlant");
+define('SMS_SENDER_ID', 'SARDEX');
+define('SMS_REGISTRATION_TEMPLATE', "Dear {#var#}, \n Your Application / Website EVC / OTP / Password is {#var#} \n \n Regards\n SARDEX\n OfferPlant");
+
 
 // Prime Social Media Handles (@saranindex)
 define('SOCIAL_HANDLE', '@saranindex');

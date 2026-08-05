@@ -33,12 +33,17 @@ $meta_description = $meta_description ?? 'सारण इंडेक्स स
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     
     <!-- Custom Design System CSS -->
-    <link href="<?php echo BASE_URL; ?>assets/css/style.css" rel="stylesheet">
+    <link href="<?php echo BASE_URL; ?>assets/css/style.css?v=<?php echo time(); ?>" rel="stylesheet">
+    
+    <!-- Razorpay Online Payment Checkout SDK -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    
     <script>
         const BASE_URL = "<?php echo BASE_URL; ?>";
         const HINDI_BASE_URL = "<?php echo HINDI_BASE_URL; ?>";
     </script>
 </head>
+
 <body>
 
 <!-- Top Notification Bar -->
@@ -79,6 +84,10 @@ $meta_description = $meta_description ?? 'सारण इंडेक्स स
                 <li class="nav-item">
                     <a class="nav-link text-dark px-3" href="village"><i class="bi bi-houses me-1"></i>गाँव</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link text-dark px-3" href="pricing.php"><i class="bi bi-star me-1 text-warning"></i>मेंबरशिप प्लान</a>
+                </li>
+
             </ul>
 
             <div class="d-flex align-items-center gap-2">

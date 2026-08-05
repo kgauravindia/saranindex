@@ -47,10 +47,15 @@ require_once __DIR__ . '/includes/header.php';
             <div class="col-lg-8">
                 <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
                     <span class="badge bg-primary px-3 py-1.5 rounded-pill fw-semibold"><?php echo sanitizeInput($listing['category_name']); ?></span>
-                    <?php if ($listing['is_verified'] === 'YES'): ?>
+                    <?php if (isset($listing['plan_type']) && $listing['plan_type'] === 'PLATINUM'): ?>
+                        <span class="vip-platinum-badge"><i class="bi bi-crown-fill me-1"></i> वीआईपी प्लैटिनम</span>
+                    <?php elseif (isset($listing['plan_type']) && $listing['plan_type'] === 'GOLD'): ?>
+                        <span class="gold-business-badge"><i class="bi bi-patch-check-fill me-1"></i> गोल्ड बिजनेस</span>
+                    <?php elseif ($listing['is_verified'] === 'YES'): ?>
                         <span class="verified-badge"><i class="bi bi-patch-check-fill"></i> सत्यापित प्रविष्टि</span>
                     <?php endif; ?>
                 </div>
+
 
                 <h1 class="fw-bolder font-heading text-white display-5 mb-2">
                     <?php echo sanitizeInput($listingTitle); ?>

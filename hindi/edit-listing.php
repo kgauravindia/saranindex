@@ -47,8 +47,10 @@ $description = $_POST['description'] ?? $listing['description'];
 $db = getDB();
 $listing_mauja_code = '';
 if (!empty($listing['village_id'])) {
-    $stmtM = $db->prepare("SELECT mauja_code FROM halka WHERE id = :id OR census_village_id = :id LIMIT 1");
-    $stmtM->execute(['id' => $listing['village_id']]);
+    $stmtM = $db->prepare("SELECT mauja_code FROM halka WHERE id = :id1 OR mauja_code = :id2 LIMIT 1");
+    $stmtM->execute(['id1' => $listing['village_id'], 'id2' => $listing['village_id']]);
+
+
     $h = $stmtM->fetch(PDO::FETCH_ASSOC);
     if ($h) {
         $listing_mauja_code = $h['mauja_code'];
@@ -161,8 +163,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             सारण इंडेक्स पर अपनी लिस्टिंग अपडेट करें
         </h1>
         <p class="text-white-50 fs-6 mx-auto mb-0" style="max-width: 680px;">
-            अपनी दुकान, क्लिनिक, वकील चैंबर, स्कूल या सेवा को सारण जिले (छपरा) के नागरिकों से जोड़ें। त्वरित पंजीकरण एवं सत्यापन।
+            अपनी दुकान, क्लिनिक, स्कूल या सेवा को सारण जिले (छपरा) के नागरिकों से जोड़ें। त्वरित पंजीकरण एवं सत्यापन।
         </p>
+
     </div>
 </div>
 

@@ -1,26 +1,23 @@
 <?php
 require_once __DIR__ . '/includes/functions.php';
 
+// Auth Guard: Require Login
 if (!isUserLoggedIn()) {
-    header("Location: login.php");
+    header('Location: login.php?redirect=dashboard.php');
     exit;
 }
 
 $user = getLoggedInUser();
 if (!$user) {
     logoutPublicUser();
-    header("Location: login.php");
-    exit;
-}
-
-if (empty($user['mobile_status']) || strtoupper($user['mobile_status']) !== 'VERIFIED') {
-    header("Location: ../verify-mobile.php");
+    header('Location: login.php');
     exit;
 }
 
 $msg = '';
 $msg_type = '';
 
+// Handle Profile Update POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_profile') {
     $fullName = $_POST['full_name'] ?? '';
     $email = $_POST['email'] ?? '';
@@ -44,11 +41,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
-$userListings = getUserListings($user['mobile']);
+// Handle Plan Upgrade & Online Payment POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'upgrade_plan') {
+    $listingId = intval($_POST['listing_id'] ?? 0);
+    $newPlan = isset($_POST['plan_type']) && in_array($_POST['plan_type'], ['FREE', 'GOLD', 'PLATINUM']) ? $_POST['plan_type'] : 'FREE';
+
+    if ($listingId > 0) {
+        $db = getDB();
+        if ($db) {
+            try {
+                if ($newPlan === 'FREE') {
+                    $stmtU = $db->prepare("UPDATE listings SET plan_type = 'FREE', plan_expires_at = NULL, is_featured = 'NO', is_verified = 'NO' WHERE id = :id");
+                    $stmtU->execute(['id' => $listingId]);
+                    $msg = "मेंबरशिप प्लान बुनियादी मुफ्त (FREE) में सेट कर दिया गया!";
+                    $msg_type = 'success';
+                } else {
+                    $amount = ($newPlan === 'GOLD') ? 499.00 : 1499.00;
+                    $payment = createOnlinePayment($user['id'], $listingId, $newPlan, $amount, 'RAZORPAY_UPI');
+                    if ($payment) {
+                        $payId = 'PAY_ONLINE_' . time() . '_' . rand(100, 999);
+                        completeOnlinePayment($payment['transaction_id'], $payId, 'SUCCESS', 'Online Payment Verification Successful');
+                        $msg = "ऑनलाइन भुगतान ₹" . number_format($amount, 0) . " प्राप्त हुआ (ट्रांजैक्शन ID: " . $payment['transaction_id'] . ")। " . $newPlan . " मेंबरशिप सक्रिय हो गई!";
+                        $msg_type = 'success';
+                    } else {
+                        $msg = "ऑनलाइन भुगतान में त्रुटि। कृपया पुनः प्रयास करें।";
+                        $msg_type = 'danger';
+                    }
+                }
+            } catch (PDOException $e) {
+                $msg = "प्ला अपग्रेड करने में त्रुटि: " . $e->getMessage();
+                $msg_type = 'danger';
+            }
+        }
+    }
+}
+
+$viewAll = isset($_GET['view']) && $_GET['view'] === 'all';
+$myListings = getUserListings($user['mobile']);
+$allListings = getAllListings();
+$userListings = $viewAll ? $allListings : $myListings;
+$userPayments = getUserPayments($user['id']);
 $blocks = getBlocks();
 
-$page_title = "मेरा खाता डैशबोर्ड – सारण इंडेक्स";
-$meta_description = "सारण इंडेक्स पर आपका खाता डैशबोर्ड। अपनी लिस्टिंग, प्रोफ़ाइल और व्यावसायिक प्रविष्टियाँ प्रबंधित करें।";
+$page_title = "मेरा खाता एवं डैशबोर्ड – सारण इंडेक्स";
+$meta_description = "सारण इंडेक्स पर आपका उपयोगकर्ता खाता डैशबोर्ड। अपनी लिस्टिंग, प्रोफ़ाइल, ऑनलाइन भुगतान और व्यवसाय निर्देशिका प्रविष्टियों को प्रबंधित करें।";
 
 require_once __DIR__ . '/includes/header.php';
 ?>
@@ -57,121 +93,117 @@ require_once __DIR__ . '/includes/header.php';
     <div class="container">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
             <div>
-                <span class="badge bg-success-subtle text-success fw-bold px-3 py-1 rounded-pill small mb-1">
-                    <i class="bi bi-shield-check me-1"></i> सक्रिय सदस्य खाता
-                </span>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1 small text-muted">
+                        <li class="breadcrumb-item"><a href="index.php" class="text-decoration-none">मुख्य पृष्ठ</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">डैशबोर्ड</li>
+                    </ol>
+                </nav>
                 <h2 class="fw-bold font-heading text-dark mb-0">स्वागत है, <?php echo htmlspecialchars($user['full_name']); ?>!</h2>
-                <small class="text-muted"><i class="bi bi-telephone me-1"></i>+91 <?php echo htmlspecialchars($user['mobile']); ?> <?php echo !empty($user['email']) ? '• <i class="bi bi-envelope me-1"></i>' . htmlspecialchars($user['email']) : ''; ?></small>
+                <small class="text-muted"><i class="bi bi-phone me-1"></i>+91 <?php echo htmlspecialchars($user['mobile']); ?> | यूजर ID: #<?php echo intval($user['id']); ?></small>
             </div>
-
             <div class="d-flex gap-2">
-                <button type="button" class="btn btn-primary rounded-pill fw-bold px-3" data-bs-toggle="modal" data-bs-target="#editProfileModal">
-                    <i class="bi bi-pencil-square me-1"></i> प्रोफ़ाइल बदलें
+                <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                    <i class="bi bi-pencil-square me-1"></i> प्रोफ़ाइल अपडेट करें
                 </button>
-                <a href="add-listing.php" class="btn btn-warning text-dark fw-bold rounded-pill shadow-sm px-4">
-                    <i class="bi bi-plus-circle-fill me-1"></i> मुफ़्त व्यवसाय जोड़ें
-                </a>
-                <a href="logout.php" class="btn btn-outline-danger rounded-pill fw-semibold px-3">
-                    <i class="bi bi-box-arrow-right me-1"></i> लॉगआउट
+                <a href="add-contact.php" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold text-dark shadow-xs">
+                    <i class="bi bi-plus-circle me-1"></i> नई लिस्टिंग जोड़ें
                 </a>
             </div>
         </div>
     </div>
 </div>
 
-<div class="container py-5">
-    <?php if (!empty($msg)): ?>
-        <div class="alert alert-<?php echo $msg_type; ?> alert-dismissible fade show rounded-3 small py-2.5 mb-4" role="alert">
-            <i class="bi bi-info-circle-fill me-1"></i> <?php echo $msg; ?>
-            <button type="button" class="btn-close py-2.5" data-bs-dismiss="alert"></button>
+<div class="container py-4">
+    <?php if ($msg): ?>
+        <div class="alert alert-<?php echo $msg_type; ?> alert-dismissible fade show rounded-3 p-3 shadow-sm mb-4 small" role="alert">
+            <i class="bi bi-info-circle-fill me-2 fs-6"></i><?php echo htmlspecialchars($msg); ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     <?php endif; ?>
 
     <div class="row g-4">
-        
-        <!-- Sidebar Profile Card -->
+        <!-- Sidebar: User Profile Card & Quick Stats -->
         <div class="col-lg-4">
-            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
-                <div class="text-center pb-3 border-bottom mb-3">
-                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-bold fs-2 mb-3" style="width: 72px; height: 72px;">
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+                <div class="text-center mb-3">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-bold fs-3 mb-2 shadow-sm" style="width: 72px; height: 72px;">
                         <?php echo strtoupper(substr($user['full_name'], 0, 1)); ?>
                     </div>
-                    <h5 class="fw-bold text-dark font-heading mb-1"><?php echo htmlspecialchars($user['full_name']); ?></h5>
-                    <?php if (!empty($user['designation'])): ?>
-                        <div class="text-muted small mb-1 fw-semibold"><i class="bi bi-briefcase me-1"></i><?php echo htmlspecialchars($user['designation']); ?></div>
-                    <?php endif; ?>
+                    <h5 class="fw-bold text-dark mb-1 font-heading"><?php echo htmlspecialchars($user['full_name']); ?></h5>
                     <?php if (!empty($user['business_name'])): ?>
-                        <div class="badge bg-warning-subtle text-dark border px-3 py-1 rounded-pill small mb-1"><i class="bi bi-building me-1"></i><?php echo htmlspecialchars($user['business_name']); ?></div>
-                    <?php else: ?>
-                        <span class="badge bg-light text-secondary border px-3 py-1 rounded-pill small">सारण इंडेक्स सदस्य</span>
+                        <div class="badge bg-primary-subtle text-primary fw-semibold mb-2"><?php echo htmlspecialchars($user['business_name']); ?></div>
                     <?php endif; ?>
-                    <?php if (!empty($user['bio'])): ?>
-                        <p class="small text-muted fst-italic mt-2 mb-0"><?php echo htmlspecialchars($user['bio']); ?></p>
+                    <p class="text-muted small mb-0"><?php echo !empty($user['designation']) ? htmlspecialchars($user['designation']) : 'पंजीकृत सदस्य'; ?></p>
+                </div>
+
+                <hr class="text-secondary opacity-25">
+
+                <div class="small">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="text-muted"><i class="bi bi-person-badge me-2 text-primary"></i>यूजर ID</span>
+                        <span class="fw-bold text-dark">#<?php echo intval($user['id']); ?></span>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="text-muted"><i class="bi bi-telephone me-2 text-primary"></i>मोबाइल</span>
+                        <span class="fw-medium text-dark">+91 <?php echo htmlspecialchars($user['mobile']); ?></span>
+                    </div>
+                    <?php if (!empty($user['whatsapp'])): ?>
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="text-muted"><i class="bi bi-whatsapp me-2 text-success"></i>व्हाट्सएप</span>
+                            <span class="fw-medium text-dark">+91 <?php echo htmlspecialchars($user['whatsapp']); ?></span>
+                        </div>
+                    <?php endif; ?>
+                    <?php if (!empty($user['email'])): ?>
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="text-muted"><i class="bi bi-envelope me-2 text-primary"></i>ईमेल</span>
+                            <span class="fw-medium text-dark"><?php echo htmlspecialchars($user['email']); ?></span>
+                        </div>
                     <?php endif; ?>
                 </div>
 
-                <ul class="list-unstyled small text-secondary mb-3">
-                    <li class="d-flex justify-content-between py-2 border-bottom">
-                        <span><i class="bi bi-telephone text-primary me-2"></i>मोबाइल नंबर</span>
-                        <strong class="text-dark">+91 <?php echo htmlspecialchars($user['mobile']); ?></strong>
-                    </li>
-                    <?php if (!empty($user['whatsapp'])): ?>
-                    <li class="d-flex justify-content-between py-2 border-bottom">
-                        <span><i class="bi bi-whatsapp text-success me-2"></i>व्हाट्सएप नंबर</span>
-                        <strong class="text-dark">+91 <?php echo htmlspecialchars($user['whatsapp']); ?></strong>
-                    </li>
-                    <?php endif; ?>
-                    <li class="d-flex justify-content-between py-2 border-bottom">
-                        <span><i class="bi bi-envelope text-primary me-2"></i>ईमेल पता</span>
-                        <strong class="text-dark"><?php echo !empty($user['email']) ? htmlspecialchars($user['email']) : 'उपलब्ध नहीं'; ?></strong>
-                    </li>
-                    <li class="d-flex justify-content-between py-2 border-bottom">
-                        <span><i class="bi bi-geo-alt text-primary me-2"></i>सारण प्रखंड</span>
-                        <strong class="text-dark"><?php echo !empty($user['block_hindi']) ? htmlspecialchars($user['block_hindi']) : (!empty($user['block_name']) ? htmlspecialchars($user['block_name']) : 'सारण जिला'); ?></strong>
-                    </li>
-                    <?php if (!empty($user['pincode'])): ?>
-                    <li class="d-flex justify-content-between py-2 border-bottom">
-                        <span><i class="bi bi-pin-map text-primary me-2"></i>पिन कोड</span>
-                        <strong class="text-dark"><?php echo htmlspecialchars($user['pincode']); ?></strong>
-                    </li>
-                    <?php endif; ?>
-                    <li class="d-flex justify-content-between py-2">
-                        <span><i class="bi bi-calendar-event text-primary me-2"></i>पंजीकरण तिथि</span>
-                        <strong class="text-dark"><?php echo date('d M Y', strtotime($user['created_at'])); ?></strong>
-                    </li>
-                </ul>
+                <hr class="text-secondary opacity-25">
 
-                <button type="button" class="btn btn-outline-primary btn-sm rounded-pill w-100 fw-bold" data-bs-toggle="modal" data-bs-target="#editProfileModal">
-                    <i class="bi bi-pencil me-1"></i> प्रोफ़ाइल डेटा अपडेट करें
+                <button type="button" class="btn btn-light btn-sm w-100 rounded-pill fw-semibold text-secondary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                    <i class="bi bi-gear me-1"></i> खाता सेटिंग्स प्रबंधित करें
                 </button>
             </div>
 
             <!-- Quick Help Box -->
             <div class="card border-0 shadow-sm rounded-4 p-4 bg-light">
-                <h6 class="fw-bold text-dark mb-2"><i class="bi bi-headset me-2 text-warning"></i> सहायता चाहिए?</h6>
-                <p class="small text-muted mb-3">यदि आपको अपनी व्यावसायिक लिस्टिंग संपादित करने में कोई सहायता चाहिए, तो हमारी सहायता टीम से संपर्क करें।</p>
+                <h6 class="fw-bold text-dark mb-2"><i class="bi bi-headset me-2 text-warning"></i> बिलिंग सहायता</h6>
+                <p class="small text-muted mb-3">ऑनलाइन भुगतान या रसीद से संबंधित सहायता के लिए हमारी बिलिंग टीम से संपर्क करें।</p>
                 <a href="contact.php" class="btn btn-outline-dark btn-sm rounded-pill w-100 fw-bold">सहायता टीम से संपर्क करें</a>
             </div>
         </div>
 
-        <!-- Main Column: User's Listings -->
+        <!-- Main Column: User's Listings & Payment Logs -->
         <div class="col-lg-8">
-            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-                <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+                <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3 flex-wrap gap-2">
                     <div>
-                        <h4 class="fw-bold font-heading text-dark mb-0">मेरी प्रविष्टि (Listings)</h4>
-                        <small class="text-muted">आपके पंजीकृत मोबाइल नंबर (+91 <?php echo htmlspecialchars($user['mobile']); ?>) से जुड़ी निर्देशिका प्रविष्टियाँ</small>
+                        <h4 class="fw-bold font-heading text-dark mb-0"><?php echo $viewAll ? 'सारण डायरेक्टरी की सभी सूचियां' : 'मेरी सबमिट की गई सूचियां'; ?></h4>
+                        <small class="text-muted"><?php echo $viewAll ? 'सारण जिले में पंजीकृत सभी डायरेक्टरी सूचियां दिखाई जा रही हैं' : 'आपके मोबाइल (+91 ' . htmlspecialchars($user['mobile']) . ') से जुड़ी सूचियां'; ?></small>
                     </div>
-                    <span class="badge bg-primary rounded-pill px-3 py-1.5 fw-bold"><?php echo count($userListings); ?> प्रविष्टियाँ</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="btn-group btn-group-sm rounded-pill p-1 bg-light border">
+                            <a href="dashboard.php" class="btn rounded-pill px-3 fw-bold <?php echo !$viewAll ? 'btn-primary shadow-sm' : 'btn-light text-secondary'; ?>">
+                                मेरी सूचियां (<?php echo count($myListings); ?>)
+                            </a>
+                            <a href="dashboard.php?view=all" class="btn rounded-pill px-3 fw-bold <?php echo $viewAll ? 'btn-primary shadow-sm' : 'btn-light text-secondary'; ?>">
+                                सभी सूचियां (<?php echo count($allListings); ?>)
+                            </a>
+                        </div>
+                    </div>
                 </div>
 
                 <?php if (empty($userListings)): ?>
                     <div class="text-center py-5">
                         <div class="text-muted display-4 mb-3"><i class="bi bi-shop-window"></i></div>
-                        <h5 class="fw-bold text-dark mb-2">कोई लिस्टिंग नहीं मिली</h5>
-                        <p class="text-muted small mx-auto mb-4" style="max-width: 420px;">आपने अभी तक इस मोबाइल नंबर के तहत कोई व्यावसायिक या पेशेवर लिस्टिंग दर्ज नहीं की है।</p>
-                        <a href="add-listing.php" class="btn btn-warning text-dark fw-bold rounded-pill px-4">
-                            <i class="bi bi-plus-circle me-1"></i> मुफ़्त लिस्टिंग दर्ज करें
+                        <h5 class="fw-bold text-dark mb-2">कोई सूची नहीं मिली</h5>
+                        <p class="text-muted small mx-auto mb-4" style="max-width: 420px;">इस व्यू में कोई लिस्टिंग उपलब्ध नहीं है।</p>
+                        <a href="add-contact.php" class="btn btn-warning text-dark fw-bold rounded-pill px-4">
+                            <i class="bi bi-plus-circle me-1"></i> मुफ्त में व्यवसाय जोड़ें
                         </a>
                     </div>
                 <?php else: ?>
@@ -180,9 +212,9 @@ require_once __DIR__ . '/includes/header.php';
                             <thead class="table-light small text-uppercase">
                                 <tr>
                                     <th>नाम एवं श्रेणी</th>
-                                    <th>प्रखंड</th>
+                                    <th>प्ला का प्रकार</th>
                                     <th>स्थिति</th>
-                                    <th>कार्य</th>
+                                    <th>कार्रवाई</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -190,10 +222,20 @@ require_once __DIR__ . '/includes/header.php';
                                     <tr>
                                         <td>
                                             <div class="fw-bold text-dark mb-0"><?php echo htmlspecialchars($l['title']); ?></div>
-                                            <small class="text-muted"><i class="bi bi-tag me-1"></i><?php echo htmlspecialchars($l['category_name'] ?? 'General'); ?></small>
+                                            <small class="text-muted"><i class="bi bi-tag me-1"></i><?php echo htmlspecialchars($l['category_name'] ?? 'सामान्य'); ?></small>
                                         </td>
-                                        <td class="small text-dark">
-                                            <i class="bi bi-geo-alt me-1 text-muted"></i><?php echo htmlspecialchars($l['block_name'] ?? 'Saran'); ?>
+                                        <td>
+                                            <?php if (isset($l['plan_type']) && $l['plan_type'] === 'PLATINUM'): ?>
+                                                <span class="badge bg-warning text-dark fw-bold px-2.5 py-1 rounded-pill small shadow-xs">
+                                                    <i class="bi bi-crown-fill me-1 text-danger"></i> वीआईपी प्लैटिनम
+                                                </span>
+                                            <?php elseif (isset($l['plan_type']) && $l['plan_type'] === 'GOLD'): ?>
+                                                <span class="badge bg-primary text-white fw-bold px-2.5 py-1 rounded-pill small shadow-xs">
+                                                    <i class="bi bi-patch-check-fill me-1"></i> गोल्ड बिजनेस
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="badge bg-light text-secondary border px-2.5 py-1 rounded-pill small">बुनियादी मुफ्त</span>
+                                            <?php endif; ?>
                                         </td>
                                         <td>
                                             <?php if ($l['status'] === 'ACTIVE'): ?>
@@ -205,13 +247,16 @@ require_once __DIR__ . '/includes/header.php';
                                             <?php endif; ?>
                                         </td>
                                         <td>
-                                            <div class="d-flex gap-2">
-                                                <a href="<?php echo getListingUrl($l['slug']); ?>" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                                    देखें <i class="bi bi-box-arrow-up-right ms-1"></i>
+                                            <div class="d-flex gap-1.5 align-items-center">
+                                                <a href="<?php echo getListingUrl($l['slug']); ?>" target="_blank" class="btn btn-sm btn-outline-primary rounded-circle p-0 d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="देखें (View)">
+                                                    <i class="bi bi-eye-fill"></i>
                                                 </a>
-                                                <a href="edit-listing.php?id=<?php echo sanitizeInput($l['id']); ?>" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-                                                    अपडेट <i class="bi bi-pencil-square ms-1"></i>
+                                                <a href="edit-listing.php?id=<?php echo sanitizeInput($l['id']); ?>" class="btn btn-sm btn-outline-secondary rounded-circle p-0 d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="संपादित करें (Edit)">
+                                                    <i class="bi bi-pencil-square"></i>
                                                 </a>
+                                                <button type="button" class="btn btn-sm btn-warning text-dark rounded-circle p-0 d-inline-flex align-items-center justify-content-center shadow-xs" style="width: 32px; height: 32px;" title="मेंबरशिप प्लान अपग्रेड करें" onclick="openUpgradeModal('<?php echo sanitizeInput($l['id']); ?>', '<?php echo sanitizeInput(addslashes($l['title'])); ?>', '<?php echo sanitizeInput($l['plan_type'] ?? 'FREE'); ?>')">
+                                                    <i class="bi bi-rocket-takeoff-fill"></i>
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -221,8 +266,63 @@ require_once __DIR__ . '/includes/header.php';
                     </div>
                 <?php endif; ?>
             </div>
-        </div>
 
+            <!-- ONLINE PAYMENTS & TRANSACTION HISTORY TABLE -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                    <h5 class="fw-bold font-heading text-dark mb-0">
+                        <i class="bi bi-credit-card-2-front-fill text-primary me-2"></i>ऑनलाइन भुगतान इतिहास (Payments)
+                    </h5>
+                    <span class="badge bg-primary-subtle text-primary rounded-pill fw-semibold">कुल <?php echo count($userPayments); ?> भुगतान</span>
+                </div>
+
+                <?php if (empty($userPayments)): ?>
+                    <div class="text-center py-4 text-muted small">
+                        <i class="bi bi-receipt fs-3 d-block mb-1 opacity-50"></i>
+                        अभी तक कोई ऑनलाइन भुगतान दर्ज नहीं हुआ है।
+                    </div>
+                <?php else: ?>
+                    <div class="table-responsive">
+                        <table class="table align-middle border small mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ट्रांजैक्शन ID</th>
+                                    <th>लिस्टिंग / सेवा</th>
+                                    <th>प्ला</th>
+                                    <th>राशि</th>
+                                    <th>स्थिति</th>
+                                    <th>दिनांक</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($userPayments as $p): ?>
+                                    <tr>
+                                        <td class="font-monospace fw-bold text-dark"><?php echo sanitizeInput($p['transaction_id']); ?></td>
+                                        <td class="fw-medium text-dark"><?php echo sanitizeInput($p['listing_title'] ?? 'लिस्टिंग अपग्रेड'); ?></td>
+                                        <td>
+                                            <span class="badge <?php echo ($p['plan_type'] === 'PLATINUM') ? 'bg-warning text-dark' : 'bg-primary'; ?> rounded-pill">
+                                                <?php echo sanitizeInput($p['plan_type']); ?>
+                                            </span>
+                                        </td>
+                                        <td class="fw-bold text-dark">₹<?php echo number_format($p['amount'], 2); ?></td>
+                                        <td>
+                                            <?php if ($p['payment_status'] === 'SUCCESS'): ?>
+                                                <span class="badge bg-success-subtle text-success rounded-pill px-2.5"><i class="bi bi-check-circle me-1"></i>सफल</span>
+                                            <?php elseif ($p['payment_status'] === 'PENDING'): ?>
+                                                <span class="badge bg-warning-subtle text-dark rounded-pill px-2.5">लंबित</span>
+                                            <?php else: ?>
+                                                <span class="badge bg-danger-subtle text-danger rounded-pill px-2.5">विफल</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td class="text-muted small"><?php echo date('d M Y, h:i A', strtotime($p['created_at'])); ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -230,93 +330,237 @@ require_once __DIR__ . '/includes/header.php';
 <div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-            <div class="modal-header bg-dark text-white border-0 py-3 px-4">
-                <h5 class="modal-title fw-bold font-heading text-white" id="editProfileModalLabel">
-                    <i class="bi bi-person-gear text-warning me-2"></i> प्रोफ़ाइल एवं व्यवसाय विवरण अपडेट करें
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="bg-gradient-primary text-white p-4">
+                <div class="d-flex align-items-center justify-content-between">
+                    <h5 class="fw-bold font-heading mb-0 text-white"><i class="bi bi-person-lines-fill me-2"></i> प्रोफ़ाइल अपडेट करें</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
             </div>
-            <form action="" method="POST">
+            <form action="dashboard.php" method="POST">
                 <input type="hidden" name="action" value="update_profile">
-                <div class="modal-body p-4">
-                    <div class="row g-3 mb-3">
+                <div class="modal-body p-4 bg-light">
+                    <div class="row g-3">
                         <div class="col-md-6">
-                            <label for="full_name" class="form-label fw-bold small text-dark">पूरा नाम <span class="text-danger">*</span></label>
-                            <input type="text" name="full_name" id="full_name" class="form-control" required value="<?php echo htmlspecialchars($user['full_name']); ?>">
+                            <label class="form-label fw-semibold small text-dark mb-1">पूरा नाम</label>
+                            <input type="text" name="full_name" class="form-control rounded-3 py-2" value="<?php echo htmlspecialchars($user['full_name']); ?>" required>
                         </div>
                         <div class="col-md-6">
-                            <label for="mobile_readonly" class="form-label fw-bold small text-muted">पंजीकृत मोबाइल</label>
-                            <input type="text" id="mobile_readonly" class="form-control bg-light" readonly value="+91 <?php echo htmlspecialchars($user['mobile']); ?>">
-                        </div>
-                    </div>
-
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6">
-                            <label for="whatsapp" class="form-label fw-bold small text-dark">व्हाट्सएप नंबर</label>
-                            <input type="tel" name="whatsapp" id="whatsapp" class="form-control" placeholder="10-अंकों का व्हाट्सएप नंबर" maxlength="10" value="<?php echo htmlspecialchars($user['whatsapp'] ?? ''); ?>">
+                            <label class="form-label fw-semibold small text-dark mb-1">ईमेल पता</label>
+                            <input type="email" name="email" class="form-control rounded-3 py-2" value="<?php echo htmlspecialchars($user['email'] ?? ''); ?>">
                         </div>
                         <div class="col-md-6">
-                            <label for="email" class="form-label fw-bold small text-dark">ईमेल पता</label>
-                            <input type="email" name="email" id="email" class="form-control" placeholder="yourname@gmail.com" value="<?php echo htmlspecialchars($user['email'] ?? ''); ?>">
-                        </div>
-                    </div>
-
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6">
-                            <label for="business_name" class="form-label fw-bold small text-dark">व्यवसाय / दुकान का नाम</label>
-                            <input type="text" name="business_name" id="business_name" class="form-control" placeholder="उदा. ऑफरप्लांट टेक्नोलॉजीज" value="<?php echo htmlspecialchars($user['business_name'] ?? ''); ?>">
+                            <label class="form-label fw-semibold small text-dark mb-1">व्हाट्सएप नंबर</label>
+                            <input type="text" name="whatsapp" class="form-control rounded-3 py-2" value="<?php echo htmlspecialchars($user['whatsapp'] ?? ''); ?>" maxlength="10">
                         </div>
                         <div class="col-md-6">
-                            <label for="designation" class="form-label fw-bold small text-dark">पेशा / पदनाम</label>
-                            <input type="text" name="designation" id="designation" class="form-control" placeholder="उदा. व्यवसायी / डॉक्टर / अधिवक्ता" value="<?php echo htmlspecialchars($user['designation'] ?? ''); ?>">
+                            <label class="form-label fw-semibold small text-dark mb-1">व्यवसाय / फर्म का नाम</label>
+                            <input type="text" name="business_name" class="form-control rounded-3 py-2" value="<?php echo htmlspecialchars($user['business_name'] ?? ''); ?>">
                         </div>
-                    </div>
-
-                    <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label for="block_id" class="form-label fw-bold small text-dark">सारण प्रखंड</label>
-                            <select name="block_id" id="block_id" class="form-select">
+                            <label class="form-label fw-semibold small text-dark mb-1">पद / व्यवसाय</label>
+                            <input type="text" name="designation" class="form-control rounded-3 py-2" value="<?php echo htmlspecialchars($user['designation'] ?? ''); ?>">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-dark mb-1">प्रखंड</label>
+                            <select name="block_id" class="form-select rounded-3 py-2">
                                 <option value="">-- प्रखंड चुनें --</option>
                                 <?php foreach ($blocks as $b): ?>
-                                    <option value="<?php echo $b['id']; ?>" <?php echo ($user['block_id'] == $b['id']) ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($b['hindi_name']); ?> (<?php echo htmlspecialchars($b['block_name']); ?>)
+                                    <option value="<?php echo $b['id']; ?>" <?php echo (isset($user['block_id']) && $user['block_id'] == $b['id']) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars(!empty($b['hindi_name']) ? $b['hindi_name'] : $b['block_name']); ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="col-md-6">
-                            <label for="pincode" class="form-label fw-bold small text-dark">पिन कोड</label>
-                            <input type="text" name="pincode" id="pincode" class="form-control" placeholder="उदा. 841301" maxlength="6" value="<?php echo htmlspecialchars($user['pincode'] ?? ''); ?>">
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold small text-dark mb-1">पता</label>
+                            <input type="text" name="address" class="form-control rounded-3 py-2" value="<?php echo htmlspecialchars($user['address'] ?? ''); ?>">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small text-dark mb-1">पिनकोड</label>
+                            <input type="text" name="pincode" class="form-control rounded-3 py-2" value="<?php echo htmlspecialchars($user['pincode'] ?? ''); ?>" maxlength="6">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small text-dark mb-1">परिचय / विवरण</label>
+                            <textarea name="bio" class="form-control rounded-3" rows="2"><?php echo htmlspecialchars($user['bio'] ?? ''); ?></textarea>
+                        </div>
+                        <div class="col-12 border-top pt-3">
+                            <label class="form-label fw-semibold small text-dark mb-1">पासवर्ड बदलें <span class="text-muted fw-normal">(वर्तमान पासवर्ड रखने के लिए खाली छोड़ें)</span></label>
+                            <input type="password" name="new_password" class="form-control rounded-3 py-2" placeholder="नया पासवर्ड दर्ज करें (न्यूनतम 6 अक्षर)">
                         </div>
                     </div>
-
-                    <div class="mb-3">
-                        <label for="address" class="form-label fw-bold small text-dark">पता / स्थान</label>
-                        <textarea name="address" id="address" class="form-control" rows="2" placeholder="गाँव / शहर, लैंडमार्क..."><?php echo htmlspecialchars($user['address'] ?? ''); ?></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="bio" class="form-label fw-bold small text-dark">परिचय / बायोग्राफी</label>
-                        <textarea name="bio" id="bio" class="form-control" rows="2" placeholder="अपने व्यवसाय या पेशे का संक्षिप्त विवरण..."><?php echo htmlspecialchars($user['bio'] ?? ''); ?></textarea>
-                    </div>
-
-                    <hr class="my-3">
-
-                    <div class="mb-2">
-                        <label for="new_password" class="form-label fw-bold small text-dark">पासवर्ड बदलें <span class="text-muted font-normal">(वर्तमान रखने हेतु खाली छोड़ें)</span></label>
-                        <input type="password" name="new_password" id="new_password" class="form-control" placeholder="नया पासवर्ड (कम से कम 6 अक्षर)">
-                    </div>
                 </div>
-
-                <div class="modal-footer bg-light border-0 py-3 px-4">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">रद्द करें</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
-                        <i class="bi bi-save me-1"></i> परिवर्तन सहेजें
-                    </button>
+                <div class="modal-footer bg-white p-3 border-top">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">रद्द करें</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">बदलाव सहेजें</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
+<!-- Upgrade Membership Plan Modal -->
+<div class="modal fade" id="upgradePlanModal" tabindex="-1" aria-labelledby="upgradePlanModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="bg-primary text-white p-4">
+                <div class="d-flex align-items-center justify-content-between">
+                    <h5 class="fw-bold font-heading mb-0 text-white"><i class="bi bi-credit-card-fill me-2"></i> ऑनलाइन मेंबरशिप भुगतान</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="small text-white-50 mt-1" id="upgradeModalListingTitle">यूजर ID #<?php echo intval($user['id']); ?> से जुड़ा सुरक्षित ऑनलाइन भुगतान</div>
+            </div>
+            <form action="dashboard.php<?php echo $viewAll ? '?view=all' : ''; ?>" method="POST" id="upgradeForm">
+                <input type="hidden" name="action" value="upgrade_plan">
+                <input type="hidden" name="listing_id" id="upgrade_listing_id" value="">
+                
+                <div class="modal-body p-4 bg-light">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="card h-100 border rounded-4 p-3 cursor-pointer bg-white">
+                                <input type="radio" name="plan_type" value="FREE" id="plan_radio_free" class="form-check-input mb-2">
+                                <div class="fw-bold text-dark fs-6">🟢 बुनियादी मुफ्त</div>
+                                <div class="fs-5 fw-bold text-primary mb-2">₹0 / वर्ष</div>
+                                <span class="small text-muted">सामान्य खोज रैंक एवं बुनियादी जानकारी।</span>
+                            </label>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="card h-100 border border-primary rounded-4 p-3 cursor-pointer bg-primary-subtle border-2">
+                                <input type="radio" name="plan_type" value="GOLD" id="plan_radio_gold" class="form-check-input mb-2">
+                                <div class="badge bg-primary text-white fw-bold w-auto me-auto mb-1">अनुशंसित</div>
+                                <div class="fw-bold text-primary fs-6">🔵 गोल्ड बिजनेस</div>
+                                <div class="fs-5 fw-bold text-primary mb-2">₹499 / वर्ष</div>
+                                <span class="small text-dark">शीर्ष प्राथमिकता रैंक, हरा वेरीफाइड बैज, 3 फ़ोटो तक एवं व्हाट्सएप बटन।</span>
+                            </label>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="card h-100 border border-warning rounded-4 p-3 cursor-pointer bg-warning-subtle border-2">
+                                <input type="radio" name="plan_type" value="PLATINUM" id="plan_radio_platinum" class="form-check-input mb-2">
+                                <div class="badge bg-warning text-dark fw-bold w-auto me-auto mb-1">सर्वोत्तम स्थान</div>
+                                <div class="fw-bold text-dark fs-6">👑 वीआईपी प्लैटिनम</div>
+                                <div class="fs-5 fw-bold text-dark mb-2">₹1,499 / वर्ष</div>
+                                <span class="small text-dark">शीर्ष फीचर्ड स्थान, गोल्ड वीआईपी वेरीफाइड बैज, 6 फ़ोटो तक एवं डायरेक्ट लिंक।</span>
+                            </label>
+                        </div>
+
+                    </div>
+
+                    <div class="p-3 bg-white rounded-3 border d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-shield-check text-success fs-4"></i>
+                            <span class="small text-secondary">रेजरपे सुरक्षित भुगतान गेटवे • त्वरित सक्रियण • यूजर ID #<?php echo intval($user['id']); ?> में रसीद लॉग्ड</span>
+                        </div>
+                        <span class="badge bg-light text-dark border">Razorpay UPI / कार्ड्स</span>
+                    </div>
+                </div>
+                <div class="modal-footer bg-white p-3 border-top">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">रद्द करें</button>
+                    <button type="submit" id="upgradePayBtn" class="btn btn-primary rounded-pill px-4 fw-bold"><i class="bi bi-lock-fill me-1"></i> रेजरपे से भुगतान करें</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openUpgradeModal(id, title, plan) {
+    document.getElementById('upgrade_listing_id').value = id;
+    document.getElementById('upgradeModalListingTitle').innerText = 'ऑनलाइन भुगतान चेकआउट: ' + title;
+    
+    document.getElementById('plan_radio_free').checked = (plan === 'FREE');
+    document.getElementById('plan_radio_gold').checked = (plan === 'GOLD');
+    document.getElementById('plan_radio_platinum').checked = (plan === 'PLATINUM');
+    
+    const modal = new bootstrap.Modal(document.getElementById('upgradePlanModal'));
+    modal.show();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const upgradeForm = document.getElementById('upgradeForm');
+    if (upgradeForm) {
+        upgradeForm.addEventListener('submit', function(e) {
+            const selectedPlan = document.querySelector('input[name="plan_type"]:checked').value;
+            const listingId = document.getElementById('upgrade_listing_id').value;
+
+            if (selectedPlan === 'FREE') {
+                return true;
+            }
+
+            e.preventDefault();
+            const btn = document.getElementById('upgradePayBtn');
+            const originalBtnText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-arrow-repeat spin me-1"></i> रेजरपे खुल रहा है...';
+
+            const formData = new FormData();
+            formData.append('action', 'create_order');
+            formData.append('listing_id', listingId);
+            formData.append('plan_type', selectedPlan);
+
+            fetch('api/process_payment_api.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = originalBtnText;
+
+                if (data.status === 'success') {
+                    const options = {
+                        "key": data.key,
+                        "amount": data.amount,
+                        "currency": data.currency,
+                        "name": "Saran Index",
+                        "description": "मेंबरशिप अपग्रेड - " + selectedPlan + " प्लान",
+                        "image": "assets/img/logo.png",
+                        "order_id": data.order_id,
+                        "prefill": {
+                            "name": data.user.name,
+                            "contact": data.user.mobile,
+                            "email": data.user.email
+                        },
+                        "theme": {
+                            "color": "#1e3a8a"
+                        },
+                        "handler": function (response) {
+                            const verifyData = new FormData();
+                            verifyData.append('action', 'verify_payment');
+                            verifyData.append('transaction_id', data.transaction_id);
+                            verifyData.append('razorpay_payment_id', response.razorpay_payment_id || '');
+                            verifyData.append('razorpay_order_id', response.razorpay_order_id || data.order_id);
+                            verifyData.append('razorpay_signature', response.razorpay_signature || '');
+
+                            fetch('api/process_payment_api.php', {
+                                method: 'POST',
+                                body: verifyData
+                            })
+                            .then(res => res.json())
+                            .then(vData => {
+                                if (vData.status === 'success') {
+                                    alert('रेजरपे भुगतान सफल रहा! आपका ' + selectedPlan + ' प्लान सक्रिय कर दिया गया है।');
+                                    window.location.reload();
+                                } else {
+                                    alert('रेजरपे सत्यापन त्रुटि: ' + vData.message);
+                                }
+                            });
+                        }
+                    };
+                    const rzp = new Razorpay(options);
+                    rzp.open();
+                } else {
+                    alert('रेजरपे ऑर्डर निर्माण में त्रुटि: ' + data.message);
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = originalBtnText;
+                console.error('Razorpay Error:', err);
+                alert('रेजरपे भुगतान शुरू करते समय त्रुटि हुई।');
+            });
+        });
+    }
+});
+</script>
+
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
+

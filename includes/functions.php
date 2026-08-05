@@ -221,7 +221,8 @@ function getListings($search = '', $category_slug = '', $block_slug = '', $limit
                 $params['blk_slug'] = $block_slug;
             }
 
-            $sql .= " ORDER BY l.is_featured DESC, l.is_verified DESC, l.star_rating DESC LIMIT $limit OFFSET $offset";
+            $sql .= " ORDER BY (CASE WHEN l.plan_type = 'PLATINUM' THEN 1 WHEN l.plan_type = 'GOLD' THEN 2 ELSE 3 END) ASC, l.is_featured DESC, l.is_verified DESC, l.star_rating DESC LIMIT $limit OFFSET $offset";
+
             $stmt = $db->prepare($sql);
             $stmt->execute($params);
             $results = $stmt->fetchAll();
@@ -1506,6 +1507,198 @@ function verifyMobileOTP($mobile, $inputOtp) {
 
     return ['success' => true, 'message' => 'Mobile number verified successfully!'];
 }
+
+function generateCategoryParagraph($category, $subcategories, $isHindi = false) {
+    if (empty($category) || empty($subcategories)) return '';
+
+    $catName = $isHindi ? (!empty($category['hindi_name']) ? $category['hindi_name'] : $category['name']) : $category['name'];
+
+    $profNames = [];
+    $bizNames = [];
+    $allKeywords = [];
+
+    foreach ($subcategories as $sc) {
+        $sName = $isHindi ? (!empty($sc['hindi_name']) ? $sc['hindi_name'] : $sc['name']) : $sc['name'];
+        if (isset($sc['type']) && $sc['type'] === 'BUSINESS') {
+            $bizNames[] = $sName;
+        } else {
+            $profNames[] = $sName;
+        }
+
+        if (!empty($sc['keywords'])) {
+            $kwList = explode(',', $sc['keywords']);
+            foreach ($kwList as $kw) {
+                $trimmed = trim($kw);
+                if (!empty($trimmed) && !in_array(strtolower($trimmed), array_map('strtolower', $allKeywords))) {
+                    $allKeywords[] = $trimmed;
+                }
+            }
+        }
+    }
+
+    if (!$isHindi) {
+        $paragraph = "Welcome to the <strong>" . sanitizeInput($catName) . "</strong> directory on Saran Index, your trusted digital guide for Saran District (Chapra). ";
+        
+        if (!empty($profNames)) {
+            $profStr = implode(', ', array_map('sanitizeInput', array_slice($profNames, 0, 6)));
+            if (count($profNames) > 6) $profStr .= ' and more';
+            $paragraph .= "Here, you can easily find and connect with local professionals, skilled personnel, and experts such as <strong>" . $profStr . "</strong>. ";
+        }
+
+        if (!empty($bizNames)) {
+            $bizStr = implode(', ', array_map('sanitizeInput', array_slice($bizNames, 0, 6)));
+            if (count($bizNames) > 6) $bizStr .= ' and more';
+            $paragraph .= "Our verified database also features leading businesses, stores, and service centers including <strong>" . $bizStr . "</strong>. ";
+        }
+
+        if (!empty($allKeywords)) {
+            $kwStr = implode(', ', array_map('sanitizeInput', array_slice($allKeywords, 0, 10)));
+            $paragraph .= "<br><br><strong>Key Search Keywords & Services Covered:</strong> <span class='text-dark fw-medium'>" . $kwStr . "</span>. ";
+        }
+
+        $paragraph .= "<br>Whether you are located in Chapra town or across any of the 20 blocks of Saran District, explore verified contacts, addresses, phone numbers, and WhatsApp details for all your <strong>" . sanitizeInput($catName) . "</strong> needs.";
+    } else {
+        $paragraph = "सारण इंडेक्स की <strong>" . sanitizeInput($catName) . "</strong> निर्देशिका में आपका स्वागत है। यह सारण जिले (छपरा) की व्यापक एवं डिजिटल मार्गदर्शिका है। ";
+
+        if (!empty($profNames)) {
+            $profStr = implode(', ', array_map('sanitizeInput', array_slice($profNames, 0, 6)));
+            if (count($profNames) > 6) $profStr .= ' इत्यादि';
+            $paragraph .= "यहाँ आप स्थानीय कुशल कार्यबल, विशेषज्ञों एवं पेशेवरों जैसे <strong>" . $profStr . "</strong> से सीधे संपर्क स्थापित कर सकते हैं। ";
+        }
+
+        if (!empty($bizNames)) {
+            $bizStr = implode(', ', array_map('sanitizeInput', array_slice($bizNames, 0, 6)));
+            if (count($bizNames) > 6) $bizStr .= ' इत्यादि';
+            $paragraph .= "इसके अतिरिक्त, हमारे सत्यापित डेटाबेस में <strong>" . $bizStr . "</strong> जैसे प्रमुख व्यावसायिक प्रतिष्ठान एवं संस्थान सूचीबद्ध हैं। ";
+        }
+
+        if (!empty($allKeywords)) {
+            $kwStr = implode(', ', array_map('sanitizeInput', array_slice($allKeywords, 0, 10)));
+            $paragraph .= "<br><br><strong>प्रमुख खोज शब्द एवं सेवाएं (Keywords):</strong> <span class='text-dark fw-medium'>" . $kwStr . "</span>। ";
+        }
+
+        $paragraph .= "<br>छपरा शहर से लेकर सारण जिले के सभी 20 प्रखंडों तक, <strong>" . sanitizeInput($catName) . "</strong> से संबंधित सभी आवश्यक संपर्क नंबर, पते और व्हाट्सएप जानकारी यहाँ आसानी से प्राप्त करें।";
+    }
+
+    return $paragraph;
+}
+
+function getCategoryMetaKeywords($category, $subcategories) {
+    if (empty($category)) return '';
+    $keywords = [$category['name'], $category['hindi_name'], 'Saran Index', 'Chapra Directory', 'Saran District'];
+    if (!empty($subcategories)) {
+        foreach ($subcategories as $sc) {
+            $keywords[] = $sc['name'];
+            if (!empty($sc['hindi_name'])) $keywords[] = $sc['hindi_name'];
+            if (!empty($sc['keywords'])) {
+                $kwList = explode(',', $sc['keywords']);
+                foreach ($kwList as $k) {
+                    $t = trim($k);
+                    if (!empty($t)) $keywords[] = $t;
+                }
+            }
+        }
+    }
+    return implode(', ', array_unique($keywords));
+}
+
+function getAllListings() {
+    $db = getDB();
+    if (!$db) return [];
+    try {
+        $stmt = $db->query("SELECT l.*, c.name as category_name, b.name as block_name FROM listings l LEFT JOIN categories c ON l.category_id = c.id LEFT JOIN blocks b ON l.block_id = b.id ORDER BY l.id DESC");
+        return $stmt->fetchAll();
+    } catch (PDOException $e) {
+        return [];
+    }
+}
+
+function createOnlinePayment($userId, $listingId, $planType, $amount, $paymentGateway = 'ONLINE') {
+    $db = getDB();
+    if (!$db || empty($userId)) return null;
+
+    $txnId = 'TXN_' . time() . '_' . rand(1000, 9999);
+    try {
+        $stmt = $db->prepare("INSERT INTO payments (user_id, listing_id, plan_type, amount, payment_gateway, transaction_id, payment_status) VALUES (:uid, :lid, :plan, :amt, :gw, :txnid, 'PENDING')");
+        $stmt->execute([
+            'uid' => intval($userId),
+            'lid' => !empty($listingId) ? intval($listingId) : null,
+            'plan' => $planType,
+            'amt' => floatval($amount),
+            'gw' => $paymentGateway,
+            'txnid' => $txnId
+        ]);
+        $paymentId = $db->lastInsertId();
+        return [
+            'id' => $paymentId,
+            'transaction_id' => $txnId,
+            'amount' => $amount,
+            'plan_type' => $planType
+        ];
+    } catch (PDOException $e) {
+        error_log("createOnlinePayment error: " . $e->getMessage());
+        return null;
+    }
+}
+
+function completeOnlinePayment($transactionId, $paymentIdStr = '', $status = 'SUCCESS', $response = '') {
+    $db = getDB();
+    if (!$db || empty($transactionId)) return false;
+
+    try {
+        $stmt = $db->prepare("SELECT * FROM payments WHERE transaction_id = :txnid LIMIT 1");
+        $stmt->execute(['txnid' => $transactionId]);
+        $payment = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$payment) return false;
+
+        $upStmt = $db->prepare("UPDATE payments SET payment_id = :pid, payment_status = :st, payment_response = :resp WHERE id = :id");
+        $upStmt->execute([
+            'pid' => $paymentIdStr,
+            'st' => $status,
+            'resp' => is_array($response) ? json_encode($response) : $response,
+            'id' => $payment['id']
+        ]);
+
+        if ($status === 'SUCCESS' && !empty($payment['listing_id'])) {
+            $planType = $payment['plan_type'];
+            $isFeatured = ($planType === 'PLATINUM') ? 'YES' : 'NO';
+            $isVerified = ($planType === 'PLATINUM' || $planType === 'GOLD') ? 'YES' : 'NO';
+            $expiresAt = date('Y-m-d H:i:s', strtotime('+1 year'));
+
+            $upListing = $db->prepare("UPDATE listings SET plan_type = :plan, plan_expires_at = :exp, is_featured = :feat, is_verified = :ver WHERE id = :id");
+            $upListing->execute([
+                'plan' => $planType,
+                'exp' => $expiresAt,
+                'feat' => $isFeatured,
+                'ver' => $isVerified,
+                'id' => $payment['listing_id']
+            ]);
+        }
+
+        return true;
+    } catch (PDOException $e) {
+        error_log("completeOnlinePayment error: " . $e->getMessage());
+        return false;
+    }
+}
+
+function getUserPayments($userId) {
+    $db = getDB();
+    if (!$db || empty($userId)) return [];
+
+    try {
+        $stmt = $db->prepare("SELECT p.*, l.title as listing_title FROM payments p LEFT JOIN listings l ON p.listing_id = l.id WHERE p.user_id = :uid ORDER BY p.id DESC");
+        $stmt->execute(['uid' => intval($userId)]);
+        return $stmt->fetchAll();
+    } catch (PDOException $e) {
+        error_log("getUserPayments error: " . $e->getMessage());
+        return [];
+    }
+}
+
+
+
 
 
 

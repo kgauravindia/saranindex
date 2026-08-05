@@ -149,9 +149,20 @@ $listings = getListings('', '', '', 6, 0);
                                         </span>
                                     <?php endif; ?>
                                 </div>
-                                <?php if ($item['is_verified'] === 'YES'): ?>
-                                    <span class="verified-badge"><i class="bi bi-patch-check-fill"></i> Verified</span>
-                                <?php endif; ?>
+                                <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                                    <?php if (isset($item['plan_type']) && $item['plan_type'] === 'PLATINUM'): ?>
+                                        <span class="badge bg-warning text-dark fw-bold px-2.5 py-1 rounded-pill small shadow-xs">
+                                            <i class="bi bi-crown-fill me-1 text-danger"></i> VIP Platinum
+                                        </span>
+                                    <?php elseif (isset($item['plan_type']) && $item['plan_type'] === 'GOLD'): ?>
+                                        <span class="badge bg-primary text-white fw-bold px-2.5 py-1 rounded-pill small shadow-xs">
+                                            <i class="bi bi-patch-check-fill me-1"></i> Gold Business
+                                        </span>
+                                    <?php elseif ($item['is_verified'] === 'YES'): ?>
+                                        <span class="verified-badge"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                                    <?php endif; ?>
+                                </div>
+
                             </div>
 
                             <h4 class="fw-bold text-dark mb-1 font-heading fs-5">

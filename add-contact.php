@@ -1,43 +1,48 @@
 <?php
 require_once __DIR__ . '/includes/functions.php';
 
-if (!isUserLoggedIn()) {
-    header("Location: login.php?redirect=" . urlencode($_SERVER['REQUEST_URI']));
-    exit;
+// Check if user is logged in
+$currentUser = null;
+if (function_exists('isUserLoggedIn') && isUserLoggedIn()) {
+    $currentUser = getLoggedInUser();
 }
 
-$currentUser = getLoggedInUser();
-
-$page_title = "Add Free Listing – Saran Index";
-require_once __DIR__ . '/includes/header.php';
-
-$blocks = getBlocks();
 $categories = getCategories();
+$blocks = getBlocks();
+
 $success_msg = false;
-$error_msg = false;
+$error_msg = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $title = isset($_POST['title']) ? sanitizeInput($_POST['title']) : '';
-    $hindi_title = isset($_POST['hindi_title']) ? sanitizeInput($_POST['hindi_title']) : '';
-    $category_id = isset($_POST['category_id']) ? intval($_POST['category_id']) : 0;
+    $title = sanitizeInput($_POST['title'] ?? '');
+    $hindi_title = sanitizeInput($_POST['hindi_title'] ?? '');
+    $category_id = intval($_POST['category_id'] ?? 0);
     $subcategory_id = !empty($_POST['subcategory_id']) ? intval($_POST['subcategory_id']) : null;
-    $block_id = isset($_POST['block_id']) ? intval($_POST['block_id']) : 0;
-    $mauja_code = isset($_POST['mauja_code']) ? sanitizeInput($_POST['mauja_code']) : (isset($_POST['census_village_code']) ? sanitizeInput($_POST['census_village_code']) : '');
-    $contact_person = isset($_POST['contact_person']) ? sanitizeInput($_POST['contact_person']) : '';
-    $mobile = isset($_POST['mobile']) ? sanitizeInput($_POST['mobile']) : '';
-    $whatsapp = isset($_POST['whatsapp']) ? sanitizeInput($_POST['whatsapp']) : '';
-    $email = isset($_POST['email']) ? sanitizeInput($_POST['email']) : '';
-    $address = isset($_POST['address']) ? sanitizeInput($_POST['address']) : '';
-    $pincode = isset($_POST['pincode']) ? sanitizeInput($_POST['pincode']) : '';
-    $services = isset($_POST['services']) ? sanitizeInput($_POST['services']) : '';
-    $description = isset($_POST['description']) ? sanitizeInput($_POST['description']) : '';
+    $block_id = !empty($_POST['block_id']) ? intval($_POST['block_id']) : null;
+    $mauja_code = sanitizeInput($_POST['mauja_code'] ?? '');
+    $contact_person = sanitizeInput($_POST['contact_person'] ?? '');
+    $mobile = sanitizeInput($_POST['mobile'] ?? '');
+    $whatsapp = sanitizeInput($_POST['whatsapp'] ?? '');
+    $email = sanitizeInput($_POST['email'] ?? '');
+    $address = sanitizeInput($_POST['address'] ?? '');
+    $pincode = sanitizeInput($_POST['pincode'] ?? '');
+    $services = sanitizeInput($_POST['services'] ?? '');
+    $description = sanitizeInput($_POST['description'] ?? '');
+    $plan_type = isset($_POST['plan_type']) && in_array($_POST['plan_type'], ['FREE', 'GOLD', 'PLATINUM']) ? $_POST['plan_type'] : 'FREE';
 
-    if (!empty($title) && !empty($mobile) && $category_id > 0 && $block_id > 0) {
+    if (empty($title) || empty($category_id) || empty($mobile)) {
+        $error_msg = "Please fill in all mandatory fields (Title, Category, and Mobile Number).";
+    } else {
         $db = getDB();
         if ($db) {
             try {
                 $base_slug = slugify($title);
-                $slug = $base_slug . '-' . rand(100, 999);
+                $slug = $base_slug;
+                $stmtCheck = $db->prepare("SELECT id FROM listings WHERE slug = :slug LIMIT 1");
+                $stmtCheck->execute(['slug' => $slug]);
+                if ($stmtCheck->fetch()) {
+                    $slug = $base_slug . '-' . rand(100, 999);
+                }
                 
                 // Fetch Mauja details if selected
                 $village_id_val = 0;
@@ -62,7 +67,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
 
-                $stmt = $db->prepare("INSERT INTO listings (user_id, category_id, subcategory_id, block_id, village_id, title, hindi_title, slug, contact_person, mobile, whatsapp, email, address, pincode, services, description, is_verified, status) VALUES (:uid, :cat, :sub, :blk, :vid, :title, :htitle, :slug, :cp, :mob, :wa, :email, :addr, :pin, :srv, :desc, 'NO', 'ACTIVE')");
+                $is_featured_val = ($plan_type === 'PLATINUM') ? 'YES' : 'NO';
+                $is_verified_val = ($plan_type === 'PLATINUM' || $plan_type === 'GOLD') ? 'YES' : 'NO';
+                $plan_expires_val = ($plan_type !== 'FREE') ? date('Y-m-d H:i:s', strtotime('+1 year')) : null;
+
+                $stmt = $db->prepare("INSERT INTO listings (user_id, category_id, subcategory_id, block_id, village_id, title, hindi_title, slug, contact_person, mobile, whatsapp, email, address, pincode, services, description, plan_type, plan_expires_at, is_featured, is_verified, status) VALUES (:uid, :cat, :sub, :blk, :vid, :title, :htitle, :slug, :cp, :mob, :wa, :email, :addr, :pin, :srv, :desc, :plan, :plan_exp, :feat, :ver, 'ACTIVE')");
                 $stmt->execute([
                     'uid' => $currentUser['id'] ?? null,
                     'cat' => $category_id,
@@ -79,7 +88,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'addr' => $address,
                     'pin' => $pincode,
                     'srv' => $services,
-                    'desc' => $description
+                    'desc' => $description,
+                    'plan' => $plan_type,
+                    'plan_exp' => $plan_expires_val,
+                    'feat' => $is_featured_val,
+                    'ver' => $is_verified_val
                 ]);
                 $success_msg = true;
             } catch (PDOException $e) {
@@ -89,14 +102,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $error_msg = "Database connection failed. Please try again.";
         }
-    } else {
-        $error_msg = "Please fill in all required fields marked with * (Title, Mobile, Category, and Block)";
     }
 }
+
+$page_title = "Add Listing Free – Submit Business in Saran District | Saran Index";
+$meta_description = "List your business, clinic, shop, school, or service on Saran Index. Connect with citizens across Chapra and all 20 blocks of Saran District.";
+
+require_once __DIR__ . '/includes/header.php';
 ?>
 
-<!-- Hero Header -->
-<div class="bg-gradient-primary text-white py-4 py-md-5 position-relative overflow-hidden">
+<!-- Header Hero Banner -->
+<div class="bg-primary text-white py-4 py-md-5 position-relative overflow-hidden" style="background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1d4ed8 100%) !important;">
     <div class="position-absolute top-0 start-0 w-100 h-100" style="background: radial-gradient(circle at top left, rgba(255,255,255,0.12) 0%, transparent 60%); pointer-events: none;"></div>
     <div class="container position-relative z-1 text-center">
         <nav aria-label="breadcrumb" class="mb-3">
@@ -109,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <div class="d-flex justify-content-center gap-2 mb-3 flex-wrap">
             <span class="badge bg-warning text-dark fw-bold px-3 py-1.5 rounded-pill fs-7 shadow-sm">
-                <i class="bi bi-star-fill me-1"></i> 100% Free Registration
+                <i class="bi bi-star-fill me-1"></i> Select Your Preferred Plan
             </span>
             <span class="badge px-3 py-1.5 rounded-pill fs-7 text-white" style="background: rgba(255,255,255,0.2); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.3);">
                 <i class="bi bi-geo-alt-fill me-1"></i> 20 Blocks & 1,764 Villages
@@ -120,8 +136,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             List Your Business or Entity on Saran Index
         </h1>
         <p class="text-white-50 fs-6 mx-auto mb-0" style="max-width: 680px;">
-            Reach citizens across Chapra and all 20 blocks of Saran District. Connect your shop, clinic, chamber, school, or service instantly.
+            Reach citizens across Chapra and all 20 blocks of Saran District. Connect your shop, clinic, school, or service instantly.
         </p>
+
     </div>
 </div>
 
@@ -158,37 +175,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 <!-- Card Header Banner -->
                 <div class="bg-white p-4 p-md-4.5 border-bottom">
-                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="rounded-3 bg-primary bg-opacity-10 text-primary p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                                <i class="bi bi-file-earmark-plus-fill fs-4"></i>
-                            </div>
-                            <div>
-                                <h4 class="fw-bold font-heading text-dark mb-0 fs-5">Business & Service Entry Form</h4>
-                                <p class="text-muted small mb-0">Fill in the details below to publish your entity on Saran Index</p>
-                            </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-3 bg-primary-subtle text-primary p-3 d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
+                            <i class="bi bi-journal-plus fs-3"></i>
                         </div>
-                        <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-1.5 rounded-pill fs-7">
-                            <i class="bi bi-shield-check me-1"></i> Free Entry
-                        </span>
+                        <div>
+                            <h4 class="fw-bold font-heading text-dark mb-0">Business Directory Registration</h4>
+                            <p class="text-muted small mb-0">Fill in the official details of your business or service in Saran District.</p>
+                        </div>
                     </div>
                 </div>
 
-                <div class="card-body p-4 p-md-5 bg-white">
-                    <form action="" method="POST" id="addListingForm">
-                        
-                        <!-- SECTION 1: ENTITY & CATEGORY -->
+                <div class="card-body p-4 p-md-4.5 bg-white">
+                    <form action="add-contact.php" method="POST" id="addListingForm">
+
+                        <!-- SECTION 1: BASIC INFORMATION -->
                         <div class="mb-4 pb-2">
                             <div class="d-flex align-items-center gap-2 mb-3">
-                                <span class="badge rounded-circle bg-primary text-white p-2 d-inline-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">1</span>
-                                <h6 class="fw-bold font-heading text-dark mb-0 fs-6">Entity & Category Details</h6>
+                                <span class="badge bg-primary text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">1</span>
+                                <h5 class="fw-bold font-heading text-dark mb-0">Basic Details</h5>
                             </div>
 
                             <div class="row g-3">
-                                <!-- Entity Name English -->
+                                <!-- Title / Entity Name -->
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold fs-7 text-dark mb-1">
-                                        Entity / Business Name (English) <span class="text-danger">*</span>
+                                        Entity / Business Name <span class="text-danger">*</span>
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light border-secondary-subtle text-muted"><i class="bi bi-building"></i></span>
@@ -196,7 +208,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </div>
                                 </div>
 
-                                <!-- Entity Name Hindi -->
+                                <!-- Hindi Title -->
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold fs-7 text-dark mb-1">
                                         Entity Name in Hindi <span class="text-muted fw-normal">(Optional)</span>
@@ -239,109 +251,100 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <!-- SECTION 2: LOCATION & CENSUS VILLAGE -->
                         <div class="mb-4 pb-2">
                             <div class="d-flex align-items-center gap-2 mb-3">
-                                <span class="badge rounded-circle bg-danger text-white p-2 d-inline-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">2</span>
-                                <h6 class="fw-bold font-heading text-dark mb-0 fs-6">Location & Village Information</h6>
+                                <span class="badge bg-primary text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">2</span>
+                                <h5 class="fw-bold font-heading text-dark mb-0">Location & Village Address</h5>
                             </div>
 
                             <div class="row g-3">
-                                <!-- Saran Block -->
+                                <!-- Block -->
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold fs-7 text-dark mb-1">
-                                        Select Block <span class="text-danger">*</span>
+                                        CD Block <span class="text-muted fw-normal">(Saran District)</span>
                                     </label>
-                                    <select name="block_id" id="block_select" class="form-select border-secondary-subtle rounded-3 py-2.5" required>
-                                        <option value="">-- Choose Block --</option>
+                                    <select name="block_id" id="block_select" class="form-select border-secondary-subtle rounded-3 py-2.5">
+                                        <option value="">-- Select Block --</option>
                                         <?php foreach ($blocks as $blk): ?>
-                                            <option value="<?php echo sanitizeInput($blk['id']); ?>" data-block-name="<?php echo sanitizeInput($blk['block_name']); ?>">
+                                            <option value="<?php echo sanitizeInput($blk['id']); ?>">
                                                 <?php echo sanitizeInput($blk['block_name']); ?>
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
 
-                                <!-- Revenue Mauja Selection -->
+                                <!-- Mauja / Census Village -->
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold fs-7 text-dark mb-1">
-                                        Select Revenue Mauja (Name & Code) <span class="text-muted fw-normal">(Optional)</span>
+                                        Mauja / Census Village <span class="text-muted fw-normal">(Searchable)</span>
                                     </label>
                                     <select name="mauja_code" id="village_select" class="form-select border-secondary-subtle rounded-3 py-2.5">
-                                        <option value="">Choose Block First</option>
+                                        <option value="">Select Block First</option>
                                     </select>
                                 </div>
 
                                 <!-- Full Address -->
                                 <div class="col-md-8">
                                     <label class="form-label fw-semibold fs-7 text-dark mb-1">
-                                        Full Address <span class="text-danger">*</span>
+                                        Street Address / Landmark
                                     </label>
-                                    <textarea name="address" id="address_input" class="form-control border-secondary-subtle rounded-3" rows="2.5" placeholder="Building, Street, Landmark, Panchayat / Ward (e.g. Near Thana Chowk, Main Road)" required></textarea>
+                                    <input type="text" name="address" class="form-control border-secondary-subtle rounded-3 py-2.5" placeholder="e.g. Near Sadar Hospital, Station Road, Chapra">
                                 </div>
 
-                                <!-- PIN Code -->
+                                <!-- Pincode -->
                                 <div class="col-md-4">
                                     <label class="form-label fw-semibold fs-7 text-dark mb-1">
-                                        PIN Code <span class="text-muted fw-normal">(Optional)</span>
+                                        Pincode
                                     </label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light border-secondary-subtle text-muted"><i class="bi bi-geo"></i></span>
-                                        <input type="text" name="pincode" class="form-control border-secondary-subtle rounded-end-3 py-2.5" placeholder="e.g. 841301" maxlength="6">
-                                    </div>
+                                    <input type="text" name="pincode" class="form-control border-secondary-subtle rounded-3 py-2.5" placeholder="e.g. 841301" maxlength="6">
                                 </div>
                             </div>
                         </div>
 
                         <hr class="my-4 text-secondary-subtle opacity-25">
 
-                        <!-- SECTION 3: CONTACT INFORMATION -->
+                        <!-- SECTION 3: CONTACT & COMMUNICATION -->
                         <div class="mb-4 pb-2">
                             <div class="d-flex align-items-center gap-2 mb-3">
-                                <span class="badge rounded-circle bg-success text-white p-2 d-inline-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">3</span>
-                                <h6 class="fw-bold font-heading text-dark mb-0 fs-6">Contact & Representative Details</h6>
+                                <span class="badge bg-primary text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">3</span>
+                                <h5 class="fw-bold font-heading text-dark mb-0">Contact & Communication</h5>
                             </div>
 
                             <div class="row g-3">
                                 <!-- Contact Person -->
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold fs-7 text-dark mb-1">
-                                        Contact Person Name
+                                        Contact Person / Owner Name
                                     </label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light border-secondary-subtle text-muted"><i class="bi bi-person"></i></span>
-                                        <input type="text" name="contact_person" class="form-control border-secondary-subtle rounded-end-3 py-2.5" placeholder="Owner, Principal, or Manager Name">
-                                    </div>
+                                    <input type="text" name="contact_person" class="form-control border-secondary-subtle rounded-3 py-2.5" placeholder="e.g. Dr. A. K. Singh, Advocate Sharma">
                                 </div>
 
                                 <!-- Mobile Number -->
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold fs-7 text-dark mb-1">
-                                        Mobile Number <span class="text-danger">*</span>
+                                        Calling Mobile Number <span class="text-danger">*</span>
                                     </label>
                                     <div class="input-group">
-                                        <span class="input-group-text bg-light border-secondary-subtle text-primary"><i class="bi bi-phone-fill"></i></span>
-                                        <input type="tel" name="mobile" class="form-control border-secondary-subtle rounded-end-3 py-2.5" placeholder="10-digit Mobile Number" required maxlength="10">
+                                        <span class="input-group-text bg-light border-secondary-subtle text-muted">+91</span>
+                                        <input type="tel" name="mobile" class="form-control border-secondary-subtle rounded-end-3 py-2.5" placeholder="10-digit mobile number" required maxlength="10">
                                     </div>
                                 </div>
 
                                 <!-- WhatsApp Number -->
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold fs-7 text-dark mb-1">
-                                        WhatsApp Number <span class="text-muted fw-normal">(Optional)</span>
+                                        WhatsApp Business Number <span class="text-muted fw-normal">(Optional)</span>
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light border-secondary-subtle text-success"><i class="bi bi-whatsapp"></i></span>
-                                        <input type="tel" name="whatsapp" class="form-control border-secondary-subtle rounded-end-3 py-2.5" placeholder="10-digit WhatsApp Number" maxlength="10">
+                                        <input type="tel" name="whatsapp" class="form-control border-secondary-subtle rounded-end-3 py-2.5" placeholder="10-digit WhatsApp number" maxlength="10">
                                     </div>
                                 </div>
 
                                 <!-- Email -->
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold fs-7 text-dark mb-1">
-                                        Email Address <span class="text-muted fw-normal">(Optional)</span>
+                                        Official Email Address <span class="text-muted fw-normal">(Optional)</span>
                                     </label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light border-secondary-subtle text-muted"><i class="bi bi-envelope"></i></span>
-                                        <input type="email" name="email" class="form-control border-secondary-subtle rounded-end-3 py-2.5" placeholder="contact@example.com">
-                                    </div>
+                                    <input type="email" name="email" class="form-control border-secondary-subtle rounded-3 py-2.5" placeholder="e.g. contact@business.com">
                                 </div>
                             </div>
                         </div>
@@ -351,12 +354,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <!-- SECTION 4: SERVICES & DESCRIPTION -->
                         <div class="mb-4 pb-2">
                             <div class="d-flex align-items-center gap-2 mb-3">
-                                <span class="badge rounded-circle bg-warning text-dark p-2 d-inline-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">4</span>
-                                <h6 class="fw-bold font-heading text-dark mb-0 fs-6">Services & Facilities Overview</h6>
+                                <span class="badge bg-primary text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">4</span>
+                                <h5 class="fw-bold font-heading text-dark mb-0">Services & Overview</h5>
                             </div>
 
                             <div class="row g-3">
-                                <!-- Services & Facilities -->
+                                <!-- Services -->
                                 <div class="col-md-12">
                                     <label class="form-label fw-semibold fs-7 text-dark mb-1">
                                         Key Services / Facilities Offered
@@ -374,6 +377,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                         </div>
 
+                        <hr class="my-4 text-secondary-subtle opacity-25">
+
+                        <!-- SECTION 5: MEMBERSHIP TIER SELECTION -->
+                        <div class="mb-4 pb-2">
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <span class="badge bg-warning text-dark rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">5</span>
+                                <h5 class="fw-bold font-heading text-dark mb-0">Select Membership Plan</h5>
+                            </div>
+
+                            <div class="row g-3">
+                                <!-- FREE PLAN -->
+                                <div class="col-md-4">
+                                    <label class="card h-100 border rounded-4 p-3 cursor-pointer shadow-xs position-relative hover-border-primary">
+                                        <input type="radio" name="plan_type" value="FREE" class="form-check-input position-absolute top-0 end-0 m-3" checked>
+                                        <div class="fw-bold text-dark fs-6 mb-1">🟢 Basic Free</div>
+                                        <div class="display-7 fw-bolder text-primary mb-2">₹0 <small class="fs-7 text-muted fw-normal">/ forever</small></div>
+                                        <ul class="list-unstyled small text-secondary mb-0" style="line-height: 1.6;">
+                                            <li><i class="bi bi-check2 text-success me-1"></i> Standard Search Rank</li>
+                                            <li><i class="bi bi-check2 text-success me-1"></i> Phone Call Button</li>
+                                            <li><i class="bi bi-check2 text-success me-1"></i> Basic Address Info</li>
+                                        </ul>
+                                    </label>
+                                </div>
+
+                                <!-- GOLD BUSINESS PLAN -->
+                                <div class="col-md-4">
+                                    <label class="card h-100 border border-primary rounded-4 p-3 cursor-pointer shadow-sm position-relative bg-primary-subtle border-2">
+                                        <input type="radio" name="plan_type" value="GOLD" class="form-check-input position-absolute top-0 end-0 m-3">
+                                        <div class="badge bg-primary text-white fw-bold w-auto me-auto mb-1">Recommended</div>
+                                        <div class="fw-bold text-primary fs-6 mb-1">🔵 Gold Business</div>
+                                        <div class="display-7 fw-bolder text-primary mb-2">₹499 <small class="fs-7 text-muted fw-normal">/ year</small></div>
+                                        <ul class="list-unstyled small text-dark mb-0" style="line-height: 1.6;">
+                                            <li><i class="bi bi-check-circle-fill text-primary me-1"></i> <strong>Top Priority Search Rank</strong></li>
+                                            <li><i class="bi bi-check-circle-fill text-primary me-1"></i> <strong>Green Verified Badge</strong></li>
+                                            <li><i class="bi bi-check-circle-fill text-primary me-1"></i> Direct WhatsApp Button</li>
+                                            <li><i class="bi bi-check-circle-fill text-primary me-1"></i> Up to 3 Business Photos</li>
+                                        </ul>
+                                    </label>
+                                </div>
+
+                                <!-- PLATINUM VIP PLAN -->
+                                <div class="col-md-4">
+                                    <label class="card h-100 border border-warning rounded-4 p-3 cursor-pointer shadow-sm position-relative bg-warning-subtle border-2">
+                                        <input type="radio" name="plan_type" value="PLATINUM" class="form-check-input position-absolute top-0 end-0 m-3">
+                                        <div class="badge bg-warning text-dark fw-bold w-auto me-auto mb-1">Best Visibility</div>
+                                        <div class="fw-bold text-dark fs-6 mb-1">👑 VIP Platinum</div>
+                                        <div class="display-7 fw-bolder text-dark mb-2">₹1,499 <small class="fs-7 text-muted fw-normal">/ year</small></div>
+                                        <ul class="list-unstyled small text-dark mb-0" style="line-height: 1.6;">
+                                            <li><i class="bi bi-crown-fill text-warning me-1"></i> <strong>Top Featured Spot</strong></li>
+                                            <li><i class="bi bi-crown-fill text-warning me-1"></i> <strong>Gold VIP Verified Badge</strong></li>
+                                            <li><i class="bi bi-crown-fill text-warning me-1"></i> Call + WhatsApp + Booking</li>
+                                            <li><i class="bi bi-crown-fill text-warning me-1"></i> Up to 6 Business Photos</li>
+                                        </ul>
+                                    </label>
+                                </div>
+
+                            </div>
+                        </div>
+
                         <!-- Info Banner & Submit Button -->
                         <div class="p-3 bg-light rounded-3 mb-4 border border-secondary-subtle text-center">
                             <div class="d-flex align-items-center justify-content-center gap-2 text-muted small">
@@ -383,7 +445,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow-sm fs-6 d-flex align-items-center justify-content-center gap-2 transition-all">
-                            <span>Submit Free Listing</span>
+                            <span>Register Directory Listing</span>
                             <i class="bi bi-rocket-takeoff-fill"></i>
                         </button>
 
@@ -399,6 +461,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 .form-control:focus, .form-select:focus {
     border-color: var(--primary-light, #3b82f6) !important;
     box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.15) !important;
+}
+.cursor-pointer {
+    cursor: pointer;
 }
 </style>
 
@@ -418,21 +483,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            fetch(`${BASE_URL}api/subcategories_api.php?category_id=${catId}`)
-                .then(response => response.json())
+            fetch('api/subcategories_api.php?category_id=' + encodeURIComponent(catId))
+                .then(res => res.json())
                 .then(data => {
-                    subSelect.innerHTML = '<option value="">Choose Subcategory (Optional)</option>';
-                    if (data && data.length > 0) {
-                        data.forEach(sub => {
-                            const opt = document.createElement('option');
-                            opt.value = sub.id;
-                            opt.textContent = sub.name;
-                            subSelect.appendChild(opt);
+                    if (data.status === 'success' && data.subcategories.length > 0) {
+                        let html = '<option value="">-- Choose Subcategory --</option>';
+                        data.subcategories.forEach(sub => {
+                            let displayName = sub.name;
+                            if (sub.hindi_name) displayName += ' (' + sub.hindi_name + ')';
+                            html += `<option value="${sub.id}">${displayName}</option>`;
                         });
+                        subSelect.innerHTML = html;
+                    } else {
+                        subSelect.innerHTML = '<option value="">No Subcategories Available</option>';
                     }
                 })
                 .catch(() => {
-                    subSelect.innerHTML = '<option value="">All Subcategories</option>';
+                    subSelect.innerHTML = '<option value="">Error Loading Subcategories</option>';
                 });
         });
     }
@@ -440,29 +507,29 @@ document.addEventListener('DOMContentLoaded', function() {
     if (blockSelect && villageSelect) {
         blockSelect.addEventListener('change', function() {
             const blockId = this.value;
-            villageSelect.innerHTML = '<option value="">Loading Revenue Maujas...</option>';
+            villageSelect.innerHTML = '<option value="">Loading Villages / Mauja...</option>';
             if (!blockId) {
-                villageSelect.innerHTML = '<option value="">Choose Block First</option>';
+                villageSelect.innerHTML = '<option value="">Select Block First</option>';
                 return;
             }
 
-            fetch(`${BASE_URL}api/villages_api.php?block_id=${blockId}`)
-                .then(response => response.json())
+            fetch('api/villages_api.php?block_id=' + encodeURIComponent(blockId))
+                .then(res => res.json())
                 .then(data => {
-                    villageSelect.innerHTML = '<option value="">-- Select Revenue Mauja (Optional) --</option>';
-                    if (data && data.length > 0) {
-                        data.forEach(v => {
-                            const opt = document.createElement('option');
-                            opt.value = v.code || v.mauja_code;
-                            opt.textContent = v.name || v.display_name;
-                            villageSelect.appendChild(opt);
+                    if (data.status === 'success' && data.villages.length > 0) {
+                        let html = '<option value="">-- Choose Mauja / Village --</option>';
+                        data.villages.forEach(v => {
+                            let displayName = v.name;
+                            if (v.mauja_code) displayName += ' (Code: ' + v.mauja_code + ')';
+                            html += `<option value="${v.mauja_code}">${displayName}</option>`;
                         });
+                        villageSelect.innerHTML = html;
                     } else {
-                        villageSelect.innerHTML = '<option value="">No Maujas found for this block</option>';
+                        villageSelect.innerHTML = '<option value="">No Villages Found</option>';
                     }
                 })
                 .catch(() => {
-                    villageSelect.innerHTML = '<option value="">Select Revenue Mauja (Optional)</option>';
+                    villageSelect.innerHTML = '<option value="">Error Loading Villages</option>';
                 });
         });
     }

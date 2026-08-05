@@ -12,7 +12,8 @@ $meta_description = $meta_description ?? 'Saran Index is the digital directory o
     <base href="<?php echo BASE_URL; ?>">
     <title><?php echo sanitizeInput($page_title); ?></title>
     <meta name="description" content="<?php echo sanitizeInput($meta_description); ?>">
-    <meta name="keywords" content="Saran Index, Chapra Directory, Saran Bihar Directory, Chapra Advocates, Chapra Doctors, Chapra Hospitals, Saran Blocks, Chapra News">
+    <meta name="keywords" content="<?php echo sanitizeInput($meta_keywords ?? 'Saran Index, Chapra Directory, Saran Bihar Directory, Chapra Advocates, Chapra Doctors, Chapra Hospitals, Saran Blocks, Chapra News'); ?>">
+
     
     <!-- Favicon & App Icons -->
     <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -33,9 +34,14 @@ $meta_description = $meta_description ?? 'Saran Index is the digital directory o
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     
     <!-- Custom Design System CSS -->
-    <link href="assets/css/style.css" rel="stylesheet">
+    <link href="<?php echo BASE_URL; ?>assets/css/style.css?v=<?php echo time(); ?>" rel="stylesheet">
+    
+    <!-- Razorpay Online Payment Checkout SDK -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script>const BASE_URL = "<?php echo BASE_URL; ?>";</script>
 </head>
+
+
 <body>
 
 <!-- Top Notification Bar -->
@@ -76,6 +82,10 @@ $meta_description = $meta_description ?? 'Saran Index is the digital directory o
                 <li class="nav-item">
                     <a class="nav-link text-dark px-3" href="village"><i class="bi bi-houses me-1"></i>Villages</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link text-dark px-3" href="pricing.php"><i class="bi bi-star me-1 text-warning"></i>Pricing Plans</a>
+                </li>
+
             </ul>
 
             <div class="d-flex align-items-center gap-2">

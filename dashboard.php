@@ -1,27 +1,23 @@
 <?php
-
 require_once __DIR__ . '/includes/functions.php';
 
+// Auth Guard: Require Login
 if (!isUserLoggedIn()) {
-    header("Location: login.php");
+    header('Location: login.php?redirect=dashboard.php');
     exit;
 }
 
 $user = getLoggedInUser();
 if (!$user) {
     logoutPublicUser();
-    header("Location: login.php");
-    exit;
-}
-
-if (empty($user['mobile_status']) || strtoupper($user['mobile_status']) !== 'VERIFIED') {
-    header("Location: verify-mobile.php");
+    header('Location: login.php');
     exit;
 }
 
 $msg = '';
 $msg_type = '';
 
+// Handle Profile Update POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_profile') {
     $fullName = $_POST['full_name'] ?? '';
     $email = $_POST['email'] ?? '';
@@ -45,11 +41,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
-$userListings = getUserListings($user['mobile']);
+// Handle Plan Upgrade & Online Payment POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'upgrade_plan') {
+    $listingId = intval($_POST['listing_id'] ?? 0);
+    $newPlan = isset($_POST['plan_type']) && in_array($_POST['plan_type'], ['FREE', 'GOLD', 'PLATINUM']) ? $_POST['plan_type'] : 'FREE';
+
+    if ($listingId > 0) {
+        $db = getDB();
+        if ($db) {
+            try {
+                if ($newPlan === 'FREE') {
+                    $stmtU = $db->prepare("UPDATE listings SET plan_type = 'FREE', plan_expires_at = NULL, is_featured = 'NO', is_verified = 'NO' WHERE id = :id");
+                    $stmtU->execute(['id' => $listingId]);
+                    $msg = "Membership plan set to FREE successfully!";
+                    $msg_type = 'success';
+                } else {
+                    $amount = ($newPlan === 'GOLD') ? 499.00 : 1499.00;
+                    $payment = createOnlinePayment($user['id'], $listingId, $newPlan, $amount, 'RAZORPAY_UPI');
+                    if ($payment) {
+                        $payId = 'PAY_ONLINE_' . time() . '_' . rand(100, 999);
+                        completeOnlinePayment($payment['transaction_id'], $payId, 'SUCCESS', 'Online Payment Verification Successful');
+                        $msg = "Online Payment of ₹" . number_format($amount, 0) . " recorded (Txn: " . $payment['transaction_id'] . "). " . $newPlan . " membership activated!";
+                        $msg_type = 'success';
+                    } else {
+                        $msg = "Online payment processing failed. Please try again.";
+                        $msg_type = 'danger';
+                    }
+                }
+            } catch (PDOException $e) {
+                $msg = "Failed to process plan upgrade: " . $e->getMessage();
+                $msg_type = 'danger';
+            }
+        }
+    }
+}
+
+$viewAll = isset($_GET['view']) && $_GET['view'] === 'all';
+$myListings = getUserListings($user['mobile']);
+$allListings = getAllListings();
+$userListings = $viewAll ? $allListings : $myListings;
+$userPayments = getUserPayments($user['id']);
 $blocks = getBlocks();
 
 $page_title = "My Account Dashboard – Saran Index";
-$meta_description = "User account dashboard on Saran Index. Manage your listings, profile, and business directory submissions.";
+$meta_description = "User account dashboard on Saran Index. Manage your listings, profile, online payments, and business directory submissions.";
 
 require_once __DIR__ . '/includes/header.php';
 ?>
@@ -58,120 +93,116 @@ require_once __DIR__ . '/includes/header.php';
     <div class="container">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
             <div>
-                <span class="badge bg-success-subtle text-success fw-bold px-3 py-1 rounded-pill small mb-1">
-                    <i class="bi bi-shield-check me-1"></i> Active Member Account
-                </span>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1 small text-muted">
+                        <li class="breadcrumb-item"><a href="index.php" class="text-decoration-none">Home</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+                    </ol>
+                </nav>
                 <h2 class="fw-bold font-heading text-dark mb-0">Welcome, <?php echo htmlspecialchars($user['full_name']); ?>!</h2>
-                <small class="text-muted"><i class="bi bi-telephone me-1"></i>+91 <?php echo htmlspecialchars($user['mobile']); ?> <?php echo !empty($user['email']) ? '• <i class="bi bi-envelope me-1"></i>' . htmlspecialchars($user['email']) : ''; ?></small>
+                <small class="text-muted"><i class="bi bi-phone me-1"></i>+91 <?php echo htmlspecialchars($user['mobile']); ?> | User ID: #<?php echo intval($user['id']); ?></small>
             </div>
-
             <div class="d-flex gap-2">
-                <button type="button" class="btn btn-primary rounded-pill fw-bold px-3" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#editProfileModal">
                     <i class="bi bi-pencil-square me-1"></i> Edit Profile
                 </button>
-                <a href="add-listing.php" class="btn btn-warning text-dark fw-bold rounded-pill shadow-sm px-4">
-                    <i class="bi bi-plus-circle-fill me-1"></i> Add Business Free
-                </a>
-                <a href="logout.php" class="btn btn-outline-danger rounded-pill fw-semibold px-3">
-                    <i class="bi bi-box-arrow-right me-1"></i> Logout
+                <a href="add-contact.php" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold text-dark shadow-xs">
+                    <i class="bi bi-plus-circle me-1"></i> Add New Listing
                 </a>
             </div>
         </div>
     </div>
 </div>
 
-<div class="container py-5">
-    <?php if (!empty($msg)): ?>
-        <div class="alert alert-<?php echo $msg_type; ?> alert-dismissible fade show rounded-3 small py-2.5 mb-4" role="alert">
-            <i class="bi bi-info-circle-fill me-1"></i> <?php echo $msg; ?>
-            <button type="button" class="btn-close py-2.5" data-bs-dismiss="alert"></button>
+<div class="container py-4">
+    <?php if ($msg): ?>
+        <div class="alert alert-<?php echo $msg_type; ?> alert-dismissible fade show rounded-3 p-3 shadow-sm mb-4 small" role="alert">
+            <i class="bi bi-info-circle-fill me-2 fs-6"></i><?php echo htmlspecialchars($msg); ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     <?php endif; ?>
 
     <div class="row g-4">
-        
-        <!-- Sidebar Profile Card -->
+        <!-- Sidebar: User Profile Card & Quick Stats -->
         <div class="col-lg-4">
-            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
-                <div class="text-center pb-3 border-bottom mb-3">
-                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-bold fs-2 mb-3" style="width: 72px; height: 72px;">
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+                <div class="text-center mb-3">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-bold fs-3 mb-2 shadow-sm" style="width: 72px; height: 72px;">
                         <?php echo strtoupper(substr($user['full_name'], 0, 1)); ?>
                     </div>
-                    <h5 class="fw-bold text-dark font-heading mb-1"><?php echo htmlspecialchars($user['full_name']); ?></h5>
-                    <?php if (!empty($user['designation'])): ?>
-                        <div class="text-muted small mb-1 fw-semibold"><i class="bi bi-briefcase me-1"></i><?php echo htmlspecialchars($user['designation']); ?></div>
-                    <?php endif; ?>
+                    <h5 class="fw-bold text-dark mb-1 font-heading"><?php echo htmlspecialchars($user['full_name']); ?></h5>
                     <?php if (!empty($user['business_name'])): ?>
-                        <div class="badge bg-warning-subtle text-dark border px-3 py-1 rounded-pill small mb-1"><i class="bi bi-building me-1"></i><?php echo htmlspecialchars($user['business_name']); ?></div>
-                    <?php else: ?>
-                        <span class="badge bg-light text-secondary border px-3 py-1 rounded-pill small">Saran Directory User</span>
+                        <div class="badge bg-primary-subtle text-primary fw-semibold mb-2"><?php echo htmlspecialchars($user['business_name']); ?></div>
                     <?php endif; ?>
-                    <?php if (!empty($user['bio'])): ?>
-                        <p class="small text-muted fst-italic mt-2 mb-0"><?php echo htmlspecialchars($user['bio']); ?></p>
+                    <p class="text-muted small mb-0"><?php echo !empty($user['designation']) ? htmlspecialchars($user['designation']) : 'Registered Member'; ?></p>
+                </div>
+
+                <hr class="text-secondary opacity-25">
+
+                <div class="small">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="text-muted"><i class="bi bi-person-badge me-2 text-primary"></i>User ID</span>
+                        <span class="fw-bold text-dark">#<?php echo intval($user['id']); ?></span>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="text-muted"><i class="bi bi-telephone me-2 text-primary"></i>Mobile</span>
+                        <span class="fw-medium text-dark">+91 <?php echo htmlspecialchars($user['mobile']); ?></span>
+                    </div>
+                    <?php if (!empty($user['whatsapp'])): ?>
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="text-muted"><i class="bi bi-whatsapp me-2 text-success"></i>WhatsApp</span>
+                            <span class="fw-medium text-dark">+91 <?php echo htmlspecialchars($user['whatsapp']); ?></span>
+                        </div>
+                    <?php endif; ?>
+                    <?php if (!empty($user['email'])): ?>
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="text-muted"><i class="bi bi-envelope me-2 text-primary"></i>Email</span>
+                            <span class="fw-medium text-dark"><?php echo htmlspecialchars($user['email']); ?></span>
+                        </div>
                     <?php endif; ?>
                 </div>
 
-                <ul class="list-unstyled small text-secondary mb-3">
-                    <li class="d-flex justify-content-between py-2 border-bottom">
-                        <span><i class="bi bi-telephone text-primary me-2"></i>Mobile Number</span>
-                        <strong class="text-dark">+91 <?php echo htmlspecialchars($user['mobile']); ?></strong>
-                    </li>
-                    <?php if (!empty($user['whatsapp'])): ?>
-                    <li class="d-flex justify-content-between py-2 border-bottom">
-                        <span><i class="bi bi-whatsapp text-success me-2"></i>WhatsApp</span>
-                        <strong class="text-dark">+91 <?php echo htmlspecialchars($user['whatsapp']); ?></strong>
-                    </li>
-                    <?php endif; ?>
-                    <li class="d-flex justify-content-between py-2 border-bottom">
-                        <span><i class="bi bi-envelope text-primary me-2"></i>Email Address</span>
-                        <strong class="text-dark"><?php echo !empty($user['email']) ? htmlspecialchars($user['email']) : 'Not Provided'; ?></strong>
-                    </li>
-                    <li class="d-flex justify-content-between py-2 border-bottom">
-                        <span><i class="bi bi-geo-alt text-primary me-2"></i>Saran Block</span>
-                        <strong class="text-dark"><?php echo !empty($user['block_name']) ? htmlspecialchars($user['block_name']) : 'Saran District'; ?></strong>
-                    </li>
-                    <?php if (!empty($user['pincode'])): ?>
-                    <li class="d-flex justify-content-between py-2 border-bottom">
-                        <span><i class="bi bi-pin-map text-primary me-2"></i>PIN Code</span>
-                        <strong class="text-dark"><?php echo htmlspecialchars($user['pincode']); ?></strong>
-                    </li>
-                    <?php endif; ?>
-                    <li class="d-flex justify-content-between py-2">
-                        <span><i class="bi bi-calendar-event text-primary me-2"></i>Member Since</span>
-                        <strong class="text-dark"><?php echo date('d M Y', strtotime($user['created_at'])); ?></strong>
-                    </li>
-                </ul>
+                <hr class="text-secondary opacity-25">
 
-                <button type="button" class="btn btn-outline-primary btn-sm rounded-pill w-100 fw-bold" data-bs-toggle="modal" data-bs-target="#editProfileModal">
-                    <i class="bi bi-pencil me-1"></i> Update Profile Data
+                <button type="button" class="btn btn-light btn-sm w-100 rounded-pill fw-semibold text-secondary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                    <i class="bi bi-gear me-1"></i> Manage Account Settings
                 </button>
             </div>
 
-            <!-- Quick Help Box -->
+            <!-- Quick Support Box -->
             <div class="card border-0 shadow-sm rounded-4 p-4 bg-light">
-                <h6 class="fw-bold text-dark mb-2"><i class="bi bi-headset me-2 text-warning"></i> Need Support?</h6>
-                <p class="small text-muted mb-3">If you need help editing your business listing or adding custom categories, feel free to contact our support team.</p>
+                <h6 class="fw-bold text-dark mb-2"><i class="bi bi-headset me-2 text-warning"></i> Online Billing Support</h6>
+                <p class="small text-muted mb-3">Questions about your membership invoice or online transactions? Contact our billing desk.</p>
                 <a href="contact.php" class="btn btn-outline-dark btn-sm rounded-pill w-100 fw-bold">Contact Support</a>
             </div>
         </div>
 
-        <!-- Main Column: User's Listings -->
+        <!-- Main Column: User's Listings & Payment Logs -->
         <div class="col-lg-8">
-            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-                <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+                <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3 flex-wrap gap-2">
                     <div>
-                        <h4 class="fw-bold font-heading text-dark mb-0">My Submitted Listings</h4>
-                        <small class="text-muted">Directory listings associated with your registered mobile number (+91 <?php echo htmlspecialchars($user['mobile']); ?>)</small>
+                        <h4 class="fw-bold font-heading text-dark mb-0"><?php echo $viewAll ? 'All Saran Directory Listings' : 'My Submitted Listings'; ?></h4>
+                        <small class="text-muted"><?php echo $viewAll ? 'Showing all registered directory listings in Saran' : 'Directory listings associated with your registered mobile (+91 ' . htmlspecialchars($user['mobile']) . ')'; ?></small>
                     </div>
-                    <span class="badge bg-primary rounded-pill px-3 py-1.5 fw-bold"><?php echo count($userListings); ?> Listed</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="btn-group btn-group-sm rounded-pill p-1 bg-light border">
+                            <a href="dashboard.php" class="btn rounded-pill px-3 fw-bold <?php echo !$viewAll ? 'btn-primary shadow-sm' : 'btn-light text-secondary'; ?>">
+                                My Listings (<?php echo count($myListings); ?>)
+                            </a>
+                            <a href="dashboard.php?view=all" class="btn rounded-pill px-3 fw-bold <?php echo $viewAll ? 'btn-primary shadow-sm' : 'btn-light text-secondary'; ?>">
+                                All Listings (<?php echo count($allListings); ?>)
+                            </a>
+                        </div>
+                    </div>
                 </div>
 
                 <?php if (empty($userListings)): ?>
                     <div class="text-center py-5">
                         <div class="text-muted display-4 mb-3"><i class="bi bi-shop-window"></i></div>
                         <h5 class="fw-bold text-dark mb-2">No Listings Found</h5>
-                        <p class="text-muted small mx-auto mb-4" style="max-width: 420px;">You have not submitted any business or professional listings under this mobile number yet.</p>
-                        <a href="add-listing.php" class="btn btn-warning text-dark fw-bold rounded-pill px-4">
+                        <p class="text-muted small mx-auto mb-4" style="max-width: 420px;">No directory listings are available in this view.</p>
+                        <a href="add-contact.php" class="btn btn-warning text-dark fw-bold rounded-pill px-4">
                             <i class="bi bi-plus-circle me-1"></i> Submit Business Free
                         </a>
                     </div>
@@ -181,7 +212,7 @@ require_once __DIR__ . '/includes/header.php';
                             <thead class="table-light small text-uppercase">
                                 <tr>
                                     <th>Title & Category</th>
-                                    <th>Block</th>
+                                    <th>Plan Tier</th>
                                     <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
@@ -193,8 +224,18 @@ require_once __DIR__ . '/includes/header.php';
                                             <div class="fw-bold text-dark mb-0"><?php echo htmlspecialchars($l['title']); ?></div>
                                             <small class="text-muted"><i class="bi bi-tag me-1"></i><?php echo htmlspecialchars($l['category_name'] ?? 'General'); ?></small>
                                         </td>
-                                        <td class="small text-dark">
-                                            <i class="bi bi-geo-alt me-1 text-muted"></i><?php echo htmlspecialchars($l['block_name'] ?? 'Saran'); ?>
+                                        <td>
+                                            <?php if (isset($l['plan_type']) && $l['plan_type'] === 'PLATINUM'): ?>
+                                                <span class="badge bg-warning text-dark fw-bold px-2.5 py-1 rounded-pill small shadow-xs">
+                                                    <i class="bi bi-crown-fill me-1 text-danger"></i> VIP Platinum
+                                                </span>
+                                            <?php elseif (isset($l['plan_type']) && $l['plan_type'] === 'GOLD'): ?>
+                                                <span class="badge bg-primary text-white fw-bold px-2.5 py-1 rounded-pill small shadow-xs">
+                                                    <i class="bi bi-patch-check-fill me-1"></i> Gold Business
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="badge bg-light text-secondary border px-2.5 py-1 rounded-pill small">Basic Free</span>
+                                            <?php endif; ?>
                                         </td>
                                         <td>
                                             <?php if ($l['status'] === 'ACTIVE'): ?>
@@ -206,13 +247,16 @@ require_once __DIR__ . '/includes/header.php';
                                             <?php endif; ?>
                                         </td>
                                         <td>
-                                            <div class="d-flex gap-2">
-                                                <a href="<?php echo getListingUrl($l['slug']); ?>" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                                    View <i class="bi bi-box-arrow-up-right ms-1"></i>
+                                            <div class="d-flex gap-1.5 align-items-center">
+                                                <a href="<?php echo getListingUrl($l['slug']); ?>" target="_blank" class="btn btn-sm btn-outline-primary rounded-circle p-0 d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="View Listing">
+                                                    <i class="bi bi-eye-fill"></i>
                                                 </a>
-                                                <a href="edit-listing.php?id=<?php echo sanitizeInput($l['id']); ?>" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-                                                    Edit <i class="bi bi-pencil-square ms-1"></i>
+                                                <a href="edit-listing.php?id=<?php echo sanitizeInput($l['id']); ?>" class="btn btn-sm btn-outline-secondary rounded-circle p-0 d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="Edit Listing">
+                                                    <i class="bi bi-pencil-square"></i>
                                                 </a>
+                                                <button type="button" class="btn btn-sm btn-warning text-dark rounded-circle p-0 d-inline-flex align-items-center justify-content-center shadow-xs" style="width: 32px; height: 32px;" title="Upgrade Membership Plan" onclick="openUpgradeModal('<?php echo sanitizeInput($l['id']); ?>', '<?php echo sanitizeInput(addslashes($l['title'])); ?>', '<?php echo sanitizeInput($l['plan_type'] ?? 'FREE'); ?>')">
+                                                    <i class="bi bi-rocket-takeoff-fill"></i>
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -222,8 +266,63 @@ require_once __DIR__ . '/includes/header.php';
                     </div>
                 <?php endif; ?>
             </div>
-        </div>
 
+            <!-- ONLINE PAYMENTS & TRANSACTION HISTORY TABLE -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                    <h5 class="fw-bold font-heading text-dark mb-0">
+                        <i class="bi bi-credit-card-2-front-fill text-primary me-2"></i>My Online Payment History
+                    </h5>
+                    <span class="badge bg-primary-subtle text-primary rounded-pill fw-semibold"><?php echo count($userPayments); ?> Payments</span>
+                </div>
+
+                <?php if (empty($userPayments)): ?>
+                    <div class="text-center py-4 text-muted small">
+                        <i class="bi bi-receipt fs-3 d-block mb-1 opacity-50"></i>
+                        No online payment transactions recorded yet.
+                    </div>
+                <?php else: ?>
+                    <div class="table-responsive">
+                        <table class="table align-middle border small mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Transaction ID</th>
+                                    <th>Listing / Service</th>
+                                    <th>Plan</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($userPayments as $p): ?>
+                                    <tr>
+                                        <td class="font-monospace fw-bold text-dark"><?php echo sanitizeInput($p['transaction_id']); ?></td>
+                                        <td class="fw-medium text-dark"><?php echo sanitizeInput($p['listing_title'] ?? 'Listing Upgrade'); ?></td>
+                                        <td>
+                                            <span class="badge <?php echo ($p['plan_type'] === 'PLATINUM') ? 'bg-warning text-dark' : 'bg-primary'; ?> rounded-pill">
+                                                <?php echo sanitizeInput($p['plan_type']); ?>
+                                            </span>
+                                        </td>
+                                        <td class="fw-bold text-dark">₹<?php echo number_format($p['amount'], 2); ?></td>
+                                        <td>
+                                            <?php if ($p['payment_status'] === 'SUCCESS'): ?>
+                                                <span class="badge bg-success-subtle text-success rounded-pill px-2.5"><i class="bi bi-check-circle me-1"></i>SUCCESS</span>
+                                            <?php elseif ($p['payment_status'] === 'PENDING'): ?>
+                                                <span class="badge bg-warning-subtle text-dark rounded-pill px-2.5">PENDING</span>
+                                            <?php else: ?>
+                                                <span class="badge bg-danger-subtle text-danger rounded-pill px-2.5">FAILED</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td class="text-muted small"><?php echo date('d M Y, h:i A', strtotime($p['created_at'])); ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -231,93 +330,237 @@ require_once __DIR__ . '/includes/header.php';
 <div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-            <div class="modal-header bg-dark text-white border-0 py-3 px-4">
-                <h5 class="modal-title fw-bold font-heading text-white" id="editProfileModalLabel">
-                    <i class="bi bi-person-gear text-warning me-2"></i> Update User Profile & Business Details
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="bg-gradient-primary text-white p-4">
+                <div class="d-flex align-items-center justify-content-between">
+                    <h5 class="fw-bold font-heading mb-0 text-white"><i class="bi bi-person-lines-fill me-2"></i> Edit Account Profile</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
             </div>
-            <form action="" method="POST">
+            <form action="dashboard.php" method="POST">
                 <input type="hidden" name="action" value="update_profile">
-                <div class="modal-body p-4">
-                    <div class="row g-3 mb-3">
+                <div class="modal-body p-4 bg-light">
+                    <div class="row g-3">
                         <div class="col-md-6">
-                            <label for="full_name" class="form-label fw-bold small text-dark">Full Name <span class="text-danger">*</span></label>
-                            <input type="text" name="full_name" id="full_name" class="form-control" required value="<?php echo htmlspecialchars($user['full_name']); ?>">
+                            <label class="form-label fw-semibold small text-dark mb-1">Full Name</label>
+                            <input type="text" name="full_name" class="form-control rounded-3 py-2" value="<?php echo htmlspecialchars($user['full_name']); ?>" required>
                         </div>
                         <div class="col-md-6">
-                            <label for="mobile_readonly" class="form-label fw-bold small text-muted">Registered Mobile</label>
-                            <input type="text" id="mobile_readonly" class="form-control bg-light" readonly value="+91 <?php echo htmlspecialchars($user['mobile']); ?>">
-                        </div>
-                    </div>
-
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6">
-                            <label for="whatsapp" class="form-label fw-bold small text-dark">WhatsApp Number</label>
-                            <input type="tel" name="whatsapp" id="whatsapp" class="form-control" placeholder="10-digit WhatsApp" maxlength="10" value="<?php echo htmlspecialchars($user['whatsapp'] ?? ''); ?>">
+                            <label class="form-label fw-semibold small text-dark mb-1">Email Address</label>
+                            <input type="email" name="email" class="form-control rounded-3 py-2" value="<?php echo htmlspecialchars($user['email'] ?? ''); ?>">
                         </div>
                         <div class="col-md-6">
-                            <label for="email" class="form-label fw-bold small text-dark">Email Address</label>
-                            <input type="email" name="email" id="email" class="form-control" placeholder="yourname@gmail.com" value="<?php echo htmlspecialchars($user['email'] ?? ''); ?>">
-                        </div>
-                    </div>
-
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6">
-                            <label for="business_name" class="form-label fw-bold small text-dark">Business / Shop Name</label>
-                            <input type="text" name="business_name" id="business_name" class="form-control" placeholder="e.g. OfferPlant Technologies" value="<?php echo htmlspecialchars($user['business_name'] ?? ''); ?>">
+                            <label class="form-label fw-semibold small text-dark mb-1">WhatsApp Mobile</label>
+                            <input type="text" name="whatsapp" class="form-control rounded-3 py-2" value="<?php echo htmlspecialchars($user['whatsapp'] ?? ''); ?>" maxlength="10">
                         </div>
                         <div class="col-md-6">
-                            <label for="designation" class="form-label fw-bold small text-dark">Profession / Designation</label>
-                            <input type="text" name="designation" id="designation" class="form-control" placeholder="e.g. Business Owner / Doctor / Advocate" value="<?php echo htmlspecialchars($user['designation'] ?? ''); ?>">
+                            <label class="form-label fw-semibold small text-dark mb-1">Business / Firm Name</label>
+                            <input type="text" name="business_name" class="form-control rounded-3 py-2" value="<?php echo htmlspecialchars($user['business_name'] ?? ''); ?>">
                         </div>
-                    </div>
-
-                    <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label for="block_id" class="form-label fw-bold small text-dark">Saran Block</label>
-                            <select name="block_id" id="block_id" class="form-select">
+                            <label class="form-label fw-semibold small text-dark mb-1">Designation / Profession</label>
+                            <input type="text" name="designation" class="form-control rounded-3 py-2" value="<?php echo htmlspecialchars($user['designation'] ?? ''); ?>">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-dark mb-1">Block Location</label>
+                            <select name="block_id" class="form-select rounded-3 py-2">
                                 <option value="">-- Select Block --</option>
                                 <?php foreach ($blocks as $b): ?>
-                                    <option value="<?php echo $b['id']; ?>" <?php echo ($user['block_id'] == $b['id']) ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($b['block_name']); ?> (<?php echo htmlspecialchars($b['hindi_name']); ?>)
+                                    <option value="<?php echo $b['id']; ?>" <?php echo (isset($user['block_id']) && $user['block_id'] == $b['id']) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($b['block_name']); ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="col-md-6">
-                            <label for="pincode" class="form-label fw-bold small text-dark">PIN Code</label>
-                            <input type="text" name="pincode" id="pincode" class="form-control" placeholder="e.g. 841301" maxlength="6" value="<?php echo htmlspecialchars($user['pincode'] ?? ''); ?>">
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold small text-dark mb-1">Address</label>
+                            <input type="text" name="address" class="form-control rounded-3 py-2" value="<?php echo htmlspecialchars($user['address'] ?? ''); ?>">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small text-dark mb-1">Pincode</label>
+                            <input type="text" name="pincode" class="form-control rounded-3 py-2" value="<?php echo htmlspecialchars($user['pincode'] ?? ''); ?>" maxlength="6">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small text-dark mb-1">About / Bio</label>
+                            <textarea name="bio" class="form-control rounded-3" rows="2"><?php echo htmlspecialchars($user['bio'] ?? ''); ?></textarea>
+                        </div>
+                        <div class="col-12 border-top pt-3">
+                            <label class="form-label fw-semibold small text-dark mb-1">Change Password <span class="text-muted fw-normal">(Leave blank to keep current)</span></label>
+                            <input type="password" name="new_password" class="form-control rounded-3 py-2" placeholder="Enter new password (min. 6 characters)">
                         </div>
                     </div>
-
-                    <div class="mb-3">
-                        <label for="address" class="form-label fw-bold small text-dark">Address / Location</label>
-                        <textarea name="address" id="address" class="form-control" rows="2" placeholder="Village / Town, Landmark..."><?php echo htmlspecialchars($user['address'] ?? ''); ?></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="bio" class="form-label fw-bold small text-dark">About / Profile Bio</label>
-                        <textarea name="bio" id="bio" class="form-control" rows="2" placeholder="Brief description of your business or profession..."><?php echo htmlspecialchars($user['bio'] ?? ''); ?></textarea>
-                    </div>
-
-                    <hr class="my-3">
-
-                    <div class="mb-2">
-                        <label for="new_password" class="form-label fw-bold small text-dark">Change Password <span class="text-muted font-normal">(Leave blank to keep current)</span></label>
-                        <input type="password" name="new_password" id="new_password" class="form-control" placeholder="Enter new password (min 6 chars)">
-                    </div>
                 </div>
-
-                <div class="modal-footer bg-light border-0 py-3 px-4">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
-                        <i class="bi bi-save me-1"></i> Save Changes
-                    </button>
+                <div class="modal-footer bg-white p-3 border-top">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">Save Changes</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
+<!-- Upgrade Membership Plan & Online Payment Modal -->
+<div class="modal fade" id="upgradePlanModal" tabindex="-1" aria-labelledby="upgradePlanModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="bg-primary text-white p-4">
+                <div class="d-flex align-items-center justify-content-between">
+                    <h5 class="fw-bold font-heading mb-0 text-white"><i class="bi bi-credit-card-fill me-2"></i> Online Membership Plan Checkout</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="small text-white-50 mt-1" id="upgradeModalListingTitle">Secure online transaction tied to User ID #<?php echo intval($user['id']); ?></div>
+            </div>
+            <form action="dashboard.php<?php echo $viewAll ? '?view=all' : ''; ?>" method="POST" id="upgradeForm">
+                <input type="hidden" name="action" value="upgrade_plan">
+                <input type="hidden" name="listing_id" id="upgrade_listing_id" value="">
+                
+                <div class="modal-body p-4 bg-light">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="card h-100 border rounded-4 p-3 cursor-pointer bg-white">
+                                <input type="radio" name="plan_type" value="FREE" id="plan_radio_free" class="form-check-input mb-2">
+                                <div class="fw-bold text-dark fs-6">🟢 Basic Free</div>
+                                <div class="fs-5 fw-bold text-primary mb-2">₹0 / year</div>
+                                <span class="small text-muted">Standard search rank & basic info.</span>
+                            </label>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="card h-100 border border-primary rounded-4 p-3 cursor-pointer bg-primary-subtle border-2">
+                                <input type="radio" name="plan_type" value="GOLD" id="plan_radio_gold" class="form-check-input mb-2">
+                                <div class="badge bg-primary text-white fw-bold w-auto me-auto mb-1">Recommended</div>
+                                <div class="fw-bold text-primary fs-6">🔵 Gold Business</div>
+                                <div class="fs-5 fw-bold text-primary mb-2">₹499 / year</div>
+                                <span class="small text-dark">Top priority rank, Green Verified Badge, Up to 3 photos & WhatsApp button.</span>
+                            </label>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="card h-100 border border-warning rounded-4 p-3 cursor-pointer bg-warning-subtle border-2">
+                                <input type="radio" name="plan_type" value="PLATINUM" id="plan_radio_platinum" class="form-check-input mb-2">
+                                <div class="badge bg-warning text-dark fw-bold w-auto me-auto mb-1">Best Spot</div>
+                                <div class="fw-bold text-dark fs-6">👑 VIP Platinum</div>
+                                <div class="fs-5 fw-bold text-dark mb-2">₹1,499 / year</div>
+                                <span class="small text-dark">Top Featured Spot, Gold VIP Verified Badge, Up to 6 photos & direct lead links.</span>
+                            </label>
+                        </div>
+
+                    </div>
+
+                    <div class="p-3 bg-white rounded-3 border d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-shield-check text-success fs-4"></i>
+                            <span class="small text-secondary">Secured Razorpay Gateway • Instant Activation • Receipt Logged to User ID #<?php echo intval($user['id']); ?></span>
+                        </div>
+                        <span class="badge bg-light text-dark border">Razorpay UPI / Cards</span>
+                    </div>
+                </div>
+                <div class="modal-footer bg-white p-3 border-top">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="upgradePayBtn" class="btn btn-primary rounded-pill px-4 fw-bold"><i class="bi bi-lock-fill me-1"></i> Pay via Razorpay</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openUpgradeModal(id, title, plan) {
+    document.getElementById('upgrade_listing_id').value = id;
+    document.getElementById('upgradeModalListingTitle').innerText = 'Online payment checkout for: ' + title;
+    
+    document.getElementById('plan_radio_free').checked = (plan === 'FREE');
+    document.getElementById('plan_radio_gold').checked = (plan === 'GOLD');
+    document.getElementById('plan_radio_platinum').checked = (plan === 'PLATINUM');
+    
+    const modal = new bootstrap.Modal(document.getElementById('upgradePlanModal'));
+    modal.show();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const upgradeForm = document.getElementById('upgradeForm');
+    if (upgradeForm) {
+        upgradeForm.addEventListener('submit', function(e) {
+            const selectedPlan = document.querySelector('input[name="plan_type"]:checked').value;
+            const listingId = document.getElementById('upgrade_listing_id').value;
+
+            if (selectedPlan === 'FREE') {
+                return true;
+            }
+
+            e.preventDefault();
+            const btn = document.getElementById('upgradePayBtn');
+            const originalBtnText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-arrow-repeat spin me-1"></i> Opening Razorpay...';
+
+            const formData = new FormData();
+            formData.append('action', 'create_order');
+            formData.append('listing_id', listingId);
+            formData.append('plan_type', selectedPlan);
+
+            fetch('api/process_payment_api.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = originalBtnText;
+
+                if (data.status === 'success') {
+                    const options = {
+                        "key": data.key,
+                        "amount": data.amount,
+                        "currency": data.currency,
+                        "name": "Saran Index",
+                        "description": "Membership Upgrade - " + selectedPlan + " Plan",
+                        "image": "assets/img/logo.png",
+                        "order_id": data.order_id,
+                        "prefill": {
+                            "name": data.user.name,
+                            "contact": data.user.mobile,
+                            "email": data.user.email
+                        },
+                        "theme": {
+                            "color": "#1e3a8a"
+                        },
+                        "handler": function (response) {
+                            const verifyData = new FormData();
+                            verifyData.append('action', 'verify_payment');
+                            verifyData.append('transaction_id', data.transaction_id);
+                            verifyData.append('razorpay_payment_id', response.razorpay_payment_id || '');
+                            verifyData.append('razorpay_order_id', response.razorpay_order_id || data.order_id);
+                            verifyData.append('razorpay_signature', response.razorpay_signature || '');
+
+                            fetch('api/process_payment_api.php', {
+                                method: 'POST',
+                                body: verifyData
+                            })
+                            .then(res => res.json())
+                            .then(vData => {
+                                if (vData.status === 'success') {
+                                    alert('Razorpay Payment Successful! Your ' + selectedPlan + ' plan has been activated.');
+                                    window.location.reload();
+                                } else {
+                                    alert('Razorpay verification error: ' + vData.message);
+                                }
+                            });
+                        }
+                    };
+                    const rzp = new Razorpay(options);
+                    rzp.open();
+                } else {
+                    alert('Razorpay order creation failed: ' + data.message);
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = originalBtnText;
+                console.error('Razorpay Error:', err);
+                alert('An error occurred initializing Razorpay payment.');
+            });
+        });
+    }
+});
+</script>
+
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
+

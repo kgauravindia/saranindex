@@ -166,9 +166,20 @@ $listings = getListings('', '', '', 6, 0);
                                         </span>
                                     <?php endif; ?>
                                 </div>
-                                <?php if ($item['is_verified'] === 'YES'): ?>
-                                    <span class="verified-badge"><i class="bi bi-patch-check-fill"></i> सत्यापित</span>
-                                <?php endif; ?>
+                                <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                                    <?php if (isset($item['plan_type']) && $item['plan_type'] === 'PLATINUM'): ?>
+                                        <span class="badge bg-warning text-dark fw-bold px-2.5 py-1 rounded-pill small shadow-xs">
+                                            <i class="bi bi-crown-fill me-1 text-danger"></i> वीआईपी प्लैटिनम
+                                        </span>
+                                    <?php elseif (isset($item['plan_type']) && $item['plan_type'] === 'GOLD'): ?>
+                                        <span class="badge bg-primary text-white fw-bold px-2.5 py-1 rounded-pill small shadow-xs">
+                                            <i class="bi bi-patch-check-fill me-1"></i> गोल्ड बिजनेस
+                                        </span>
+                                    <?php elseif ($item['is_verified'] === 'YES'): ?>
+                                        <span class="verified-badge"><i class="bi bi-patch-check-fill"></i> सत्यापित</span>
+                                    <?php endif; ?>
+                                </div>
+
                             </div>
 
                             <h4 class="fw-bold text-dark mb-1 font-heading fs-5">
@@ -220,7 +231,8 @@ $listings = getListings('', '', '', 6, 0);
                     <span class="badge bg-warning text-dark fw-bold px-3 py-1 rounded-pill mb-3">व्यापारियों एवं पेशेवरों के लिए</span>
                     <h2 class="fw-bold font-heading text-white display-6 mb-3">सारण जिले भर में अपना व्यवसाय बढ़ाएं</h2>
                     <p class="text-white-50 lead mb-0" style="font-size: 1.1rem;">
-                        अपनी दुकान, क्लिनिक, स्कूल या वकील चैंबर को <strong>सारण इंडेक्स</strong> पर निःशुल्क पंजीकृत करें। छपरा, मढ़ौरा, सोनपुर और सभी 20 प्रखंडों के हजारों ग्राहकों तक पहुंचें।
+                        अपनी दुकान, क्लिनिक या स्कूल को <strong>सारण इंडेक्स</strong> पर निःशुल्क पंजीकृत करें। छपरा, मढ़ौरा, सोनपुर और सभी 20 प्रखंडों के हजारों ग्राहकों तक पहुंचें।
+
                     </p>
                 </div>
                 <div class="col-lg-4 text-lg-end">
