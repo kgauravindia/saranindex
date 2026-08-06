@@ -205,7 +205,7 @@ require_once __DIR__ . '/includes/header.php';
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light border-secondary-subtle text-muted"><i class="bi bi-building"></i></span>
-                                        <input type="text" name="title" class="form-control border-secondary-subtle rounded-end-3 py-2.5" placeholder="उदा: Rajendra College, Chapra Diagnostics" required>
+                                        <input type="text" name="title" class="form-control border-secondary-subtle rounded-end-3 py-2.5" required>
                                     </div>
                                 </div>
 
@@ -216,7 +216,7 @@ require_once __DIR__ . '/includes/header.php';
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light border-secondary-subtle text-muted"><i class="bi bi-translate"></i></span>
-                                        <input type="text" name="hindi_title" class="form-control border-secondary-subtle rounded-end-3 py-2.5" placeholder="उदा: राजेंद्र कॉलेज, छपरा डायग्नोस्टिक्स">
+                                        <input type="text" name="hindi_title" class="form-control border-secondary-subtle rounded-end-3 py-2.5">
                                     </div>
                                 </div>
 
@@ -291,7 +291,7 @@ require_once __DIR__ . '/includes/header.php';
                                     <label class="form-label fw-semibold fs-7 text-dark mb-1">
                                         स्थानीय पता / लैंडमार्क
                                     </label>
-                                    <input type="text" name="address" class="form-control border-secondary-subtle rounded-3 py-2.5" placeholder="उदा: सदर अस्पताल के पास, स्टेशन रोड, छपरा">
+                                    <input type="text" name="address" class="form-control border-secondary-subtle rounded-3 py-2.5">
                                 </div>
 
                                 <!-- Pincode -->
@@ -299,7 +299,7 @@ require_once __DIR__ . '/includes/header.php';
                                     <label class="form-label fw-semibold fs-7 text-dark mb-1">
                                         पिनकोड
                                     </label>
-                                    <input type="text" name="pincode" class="form-control border-secondary-subtle rounded-3 py-2.5" placeholder="उदा: 841301" maxlength="6">
+                                    <input type="text" name="pincode" class="form-control border-secondary-subtle rounded-3 py-2.5" maxlength="6">
                                 </div>
                             </div>
                         </div>
@@ -319,7 +319,7 @@ require_once __DIR__ . '/includes/header.php';
                                     <label class="form-label fw-semibold fs-7 text-dark mb-1">
                                         संपर्क व्यक्ति / प्रोपराइटर नाम
                                     </label>
-                                    <input type="text" name="contact_person" class="form-control border-secondary-subtle rounded-3 py-2.5" placeholder="उदा: डॉ. ए. के. सिंह, एडवोकेट शर्मा">
+                                    <input type="text" name="contact_person" class="form-control border-secondary-subtle rounded-3 py-2.5">
                                 </div>
 
                                 <!-- Mobile -->
@@ -329,7 +329,7 @@ require_once __DIR__ . '/includes/header.php';
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light border-secondary-subtle text-muted">+91</span>
-                                        <input type="tel" name="mobile" class="form-control border-secondary-subtle rounded-end-3 py-2.5" placeholder="10-अंकों का मोबाइल नंबर" required maxlength="10">
+                                        <input type="tel" name="mobile" class="form-control border-secondary-subtle rounded-end-3 py-2.5" required maxlength="10">
                                     </div>
                                 </div>
 
@@ -340,7 +340,7 @@ require_once __DIR__ . '/includes/header.php';
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light border-secondary-subtle text-success"><i class="bi bi-whatsapp"></i></span>
-                                        <input type="tel" name="whatsapp" class="form-control border-secondary-subtle rounded-end-3 py-2.5" placeholder="10-अंकों का व्हाट्सएप नंबर" maxlength="10">
+                                        <input type="tel" name="whatsapp" class="form-control border-secondary-subtle rounded-end-3 py-2.5" maxlength="10">
                                     </div>
                                 </div>
 
@@ -349,7 +349,7 @@ require_once __DIR__ . '/includes/header.php';
                                     <label class="form-label fw-semibold fs-7 text-dark mb-1">
                                         ईमेल पता <span class="text-muted fw-normal">(ऐच्छिक)</span>
                                     </label>
-                                    <input type="email" name="email" class="form-control border-secondary-subtle rounded-3 py-2.5" placeholder="उदा: contact@business.com">
+                                    <input type="email" name="email" class="form-control border-secondary-subtle rounded-3 py-2.5">
                                 </div>
                             </div>
                         </div>
@@ -369,7 +369,7 @@ require_once __DIR__ . '/includes/header.php';
                                     <label class="form-label fw-semibold fs-7 text-dark mb-1">
                                         प्रमुख सेवाएं / सुविधाएं
                                     </label>
-                                    <input type="text" name="services" class="form-control border-secondary-subtle rounded-3 py-2.5" placeholder="उदा: ओपीडी, आईसीयू, 24x7 एम्बुलेंस, कानूनी परामर्श, नामांकन शुरू (कॉमा से अलग करें)">
+                                    <input type="text" name="services" class="form-control border-secondary-subtle rounded-3 py-2.5">
                                 </div>
 
                                 <!-- Description -->
@@ -377,7 +377,7 @@ require_once __DIR__ . '/includes/header.php';
                                     <label class="form-label fw-semibold fs-7 text-dark mb-1">
                                         विवरण एवं समय
                                     </label>
-                                    <textarea name="description" class="form-control border-secondary-subtle rounded-3" rows="3" placeholder="अपनी संस्था, विशेषताओं, खुलने के समय या मुख्य आकर्षणों का संक्षिप्त विवरण लिखें..."></textarea>
+                                    <textarea name="description" class="form-control border-secondary-subtle rounded-3" rows="3"></textarea>
                                 </div>
                             </div>
                         </div>

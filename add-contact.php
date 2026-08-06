@@ -204,7 +204,7 @@ require_once __DIR__ . '/includes/header.php';
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light border-secondary-subtle text-muted"><i class="bi bi-building"></i></span>
-                                        <input type="text" name="title" class="form-control border-secondary-subtle rounded-end-3 py-2.5" placeholder="e.g. Rajendra College, Chapra Diagnostics" required>
+                                        <input type="text" name="title" class="form-control border-secondary-subtle rounded-end-3 py-2.5" required>
                                     </div>
                                 </div>
 
@@ -215,7 +215,7 @@ require_once __DIR__ . '/includes/header.php';
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light border-secondary-subtle text-muted"><i class="bi bi-translate"></i></span>
-                                        <input type="text" name="hindi_title" class="form-control border-secondary-subtle rounded-end-3 py-2.5" placeholder="e.g. राजेंद्र कॉलेज, छपरा डायग्नोस्टिक्स">
+                                        <input type="text" name="hindi_title" class="form-control border-secondary-subtle rounded-end-3 py-2.5">
                                     </div>
                                 </div>
 
@@ -286,7 +286,7 @@ require_once __DIR__ . '/includes/header.php';
                                     <label class="form-label fw-semibold fs-7 text-dark mb-1">
                                         Street Address / Landmark
                                     </label>
-                                    <input type="text" name="address" class="form-control border-secondary-subtle rounded-3 py-2.5" placeholder="e.g. Near Sadar Hospital, Station Road, Chapra">
+                                    <input type="text" name="address" class="form-control border-secondary-subtle rounded-3 py-2.5">
                                 </div>
 
                                 <!-- Pincode -->
@@ -294,7 +294,7 @@ require_once __DIR__ . '/includes/header.php';
                                     <label class="form-label fw-semibold fs-7 text-dark mb-1">
                                         Pincode
                                     </label>
-                                    <input type="text" name="pincode" class="form-control border-secondary-subtle rounded-3 py-2.5" placeholder="e.g. 841301" maxlength="6">
+                                    <input type="text" name="pincode" class="form-control border-secondary-subtle rounded-3 py-2.5" maxlength="6">
                                 </div>
                             </div>
                         </div>
@@ -314,7 +314,7 @@ require_once __DIR__ . '/includes/header.php';
                                     <label class="form-label fw-semibold fs-7 text-dark mb-1">
                                         Contact Person / Owner Name
                                     </label>
-                                    <input type="text" name="contact_person" class="form-control border-secondary-subtle rounded-3 py-2.5" placeholder="e.g. Dr. A. K. Singh, Advocate Sharma">
+                                    <input type="text" name="contact_person" class="form-control border-secondary-subtle rounded-3 py-2.5">
                                 </div>
 
                                 <!-- Mobile Number -->
@@ -324,7 +324,7 @@ require_once __DIR__ . '/includes/header.php';
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light border-secondary-subtle text-muted">+91</span>
-                                        <input type="tel" name="mobile" class="form-control border-secondary-subtle rounded-end-3 py-2.5" placeholder="10-digit mobile number" required maxlength="10">
+                                        <input type="tel" name="mobile" class="form-control border-secondary-subtle rounded-end-3 py-2.5" required maxlength="10">
                                     </div>
                                 </div>
 
@@ -335,7 +335,7 @@ require_once __DIR__ . '/includes/header.php';
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light border-secondary-subtle text-success"><i class="bi bi-whatsapp"></i></span>
-                                        <input type="tel" name="whatsapp" class="form-control border-secondary-subtle rounded-end-3 py-2.5" placeholder="10-digit WhatsApp number" maxlength="10">
+                                        <input type="tel" name="whatsapp" class="form-control border-secondary-subtle rounded-end-3 py-2.5" maxlength="10">
                                     </div>
                                 </div>
 
@@ -344,7 +344,7 @@ require_once __DIR__ . '/includes/header.php';
                                     <label class="form-label fw-semibold fs-7 text-dark mb-1">
                                         Official Email Address <span class="text-muted fw-normal">(Optional)</span>
                                     </label>
-                                    <input type="email" name="email" class="form-control border-secondary-subtle rounded-3 py-2.5" placeholder="e.g. contact@business.com">
+                                    <input type="email" name="email" class="form-control border-secondary-subtle rounded-3 py-2.5">
                                 </div>
                             </div>
                         </div>
@@ -364,7 +364,7 @@ require_once __DIR__ . '/includes/header.php';
                                     <label class="form-label fw-semibold fs-7 text-dark mb-1">
                                         Key Services / Facilities Offered
                                     </label>
-                                    <input type="text" name="services" class="form-control border-secondary-subtle rounded-3 py-2.5" placeholder="e.g. OPD, ICU, 24x7 Ambulance, Legal Consultation, Admissions Open (comma separated)">
+                                    <input type="text" name="services" class="form-control border-secondary-subtle rounded-3 py-2.5">
                                 </div>
 
                                 <!-- Description -->
@@ -372,7 +372,7 @@ require_once __DIR__ . '/includes/header.php';
                                     <label class="form-label fw-semibold fs-7 text-dark mb-1">
                                         About & Working Hours
                                     </label>
-                                    <textarea name="description" class="form-control border-secondary-subtle rounded-3" rows="3" placeholder="Enter brief overview, specialization, business timings, or key highlights..."></textarea>
+                                    <textarea name="description" class="form-control border-secondary-subtle rounded-3" rows="3"></textarea>
                                 </div>
                             </div>
                         </div>

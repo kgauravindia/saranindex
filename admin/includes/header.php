@@ -197,6 +197,36 @@ $admin_name = $_SESSION['admin_full_name'] ?? 'Administrator';
                 </a>
             </li>
             <li class="nav-item">
+                <a class="nav-link <?php echo $current_page === 'bulk_upload.php' ? 'active' : ''; ?>" href="bulk_upload.php">
+                    <i class="bi bi-cloud-upload-fill"></i> Bulk Upload CSV
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <?php echo ($current_page === 'users.php' || $current_page === 'users_bulk_upload.php') ? 'active' : ''; ?>" href="users.php">
+                    <i class="bi bi-people-fill"></i> Manage Users
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <?php echo $current_page === 'payments.php' ? 'active' : ''; ?>" href="payments.php">
+                    <i class="bi bi-credit-card-fill"></i> Payments & Revenue
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <?php echo $current_page === 'claims.php' ? 'active' : ''; ?>" href="claims.php">
+                    <i class="bi bi-shield-lock-fill"></i> Business Claims
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <?php echo $current_page === 'admins.php' ? 'active' : ''; ?>" href="admins.php">
+                    <i class="bi bi-person-badge-fill"></i> Admin Accounts
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <?php echo $current_page === 'verification_settings.php' ? 'active' : ''; ?>" href="verification_settings.php">
+                    <i class="bi bi-shield-check"></i> OTP & Verification
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link <?php echo $current_page === 'categories.php' ? 'active' : ''; ?>" href="categories.php">
                     <i class="bi bi-grid-fill"></i> Categories
                 </a>

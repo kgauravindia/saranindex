@@ -19,24 +19,51 @@ $msg_type = '';
 
 // Handle Profile Update POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_profile') {
-    $fullName = $_POST['full_name'] ?? '';
-    $email = $_POST['email'] ?? '';
-    $whatsapp = $_POST['whatsapp'] ?? '';
-    $businessName = $_POST['business_name'] ?? '';
-    $designation = $_POST['designation'] ?? '';
-    $blockId = $_POST['block_id'] ?? null;
-    $address = $_POST['address'] ?? '';
-    $pincode = $_POST['pincode'] ?? '';
-    $bio = $_POST['bio'] ?? '';
-    $newPassword = $_POST['new_password'] ?? '';
+    $post_data = [
+        'full_name' => $_POST['full_name'] ?? '',
+        'username_handle' => $_POST['username_handle'] ?? '',
+        'email' => $_POST['email'] ?? '',
+        'whatsapp' => $_POST['whatsapp'] ?? '',
+        'business_name' => $_POST['business_name'] ?? '',
+        'designation' => $_POST['designation'] ?? '',
+        'profession_category' => $_POST['profession_category'] ?? '',
+        'category_id' => $_POST['category_id'] ?? null,
+        'subcategory_id' => $_POST['subcategory_id'] ?? null,
+        'specialization' => $_POST['specialization'] ?? '',
+        'education' => $_POST['education'] ?? '',
+        'experience_years' => $_POST['experience_years'] ?? '',
+        'office_hours' => $_POST['office_hours'] ?? '',
+        'block_id' => $_POST['block_id'] ?? null,
+        'address' => $_POST['address'] ?? '',
+        'pincode' => $_POST['pincode'] ?? '',
+        'bio' => $_POST['bio'] ?? '',
+        'about' => $_POST['about'] ?? '',
+        'profile_visibility' => $_POST['profile_visibility'] ?? 'PUBLIC',
+        'mobile_visibility' => $_POST['mobile_visibility'] ?? 'PUBLIC',
+        'email_visibility' => $_POST['email_visibility'] ?? 'PUBLIC',
+        'address_visibility' => $_POST['address_visibility'] ?? 'PUBLIC'
+    ];
 
-    $res = updateUserProfile($user['id'], $fullName, $email, $blockId, $address, $newPassword, $whatsapp, $businessName, $designation, $pincode, null, null, $bio);
-    if ($res['success']) {
-        $msg = $res['message'];
+    if (!empty($_FILES['profile_image_file']['tmp_name'])) {
+        $uploaded = uploadUserProfilePhoto($_FILES['profile_image_file'], $user['id']);
+        if ($uploaded) {
+            $post_data['profile_image'] = $uploaded;
+        }
+    }
+
+    if (updateProfessionalUserProfile($user['id'], $post_data)) {
+        if (!empty($_POST['new_password']) && strlen($_POST['new_password']) >= 6) {
+            $passHash = password_hash($_POST['new_password'], PASSWORD_DEFAULT);
+            $db = getDB();
+            if ($db) {
+                $db->prepare("UPDATE users SET password_hash = :p WHERE id = :id")->execute(['p' => $passHash, 'id' => $user['id']]);
+            }
+        }
+        $msg = "Professional profile updated successfully!";
         $msg_type = 'success';
         $user = getLoggedInUser(); // Refresh user data
     } else {
-        $msg = $res['message'];
+        $msg = "Failed to update profile details.";
         $msg_type = 'danger';
     }
 }
@@ -82,6 +109,7 @@ $allListings = getAllListings();
 $userListings = $viewAll ? $allListings : $myListings;
 $userPayments = getUserPayments($user['id']);
 $blocks = getBlocks();
+$all_categories = getCategoriesList();
 
 $page_title = "My Account Dashboard – Saran Index";
 $meta_description = "User account dashboard on Saran Index. Manage your listings, profile, online payments, and business directory submissions.";
@@ -292,6 +320,7 @@ require_once __DIR__ . '/includes/header.php';
                                     <th>Amount</th>
                                     <th>Status</th>
                                     <th>Date</th>
+                                    <th class="text-end">Invoice / Receipt</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -315,6 +344,11 @@ require_once __DIR__ . '/includes/header.php';
                                             <?php endif; ?>
                                         </td>
                                         <td class="text-muted small"><?php echo date('d M Y, h:i A', strtotime($p['created_at'])); ?></td>
+                                        <td>
+                                            <a href="generate_receipt.php?id=<?php echo $p['id']; ?>" target="_blank" class="btn btn-sm btn-outline-secondary py-0.5 px-2 small" title="View & Print Tax Invoice / Receipt">
+                                                <i class="bi bi-file-earmark-text me-1"></i>Receipt
+                                            </a>
+                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>
@@ -336,52 +370,132 @@ require_once __DIR__ . '/includes/header.php';
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
             </div>
-            <form action="dashboard.php" method="POST">
+            <form action="dashboard.php" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="update_profile">
                 <div class="modal-body p-4 bg-light">
-                    <div class="row g-3">
+                    
+                    <!-- Section 1: Basic Info & Profile Photo -->
+                    <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-person-badge text-primary me-2"></i>1. Personal Info & Public Handle</h6>
+                    <div class="row g-3 mb-4">
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold small text-dark mb-1">Full Name</label>
-                            <input type="text" name="full_name" class="form-control rounded-3 py-2" value="<?php echo htmlspecialchars($user['full_name']); ?>" required>
+                            <label class="form-label fw-semibold small text-dark mb-1">Full Name <span class="text-danger">*</span></label>
+                            <input type="text" name="full_name" class="form-control rounded-3 py-2" value="<?php echo sanitizeInput($user['full_name']); ?>" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold small text-dark mb-1">Email Address</label>
-                            <input type="email" name="email" class="form-control rounded-3 py-2" value="<?php echo htmlspecialchars($user['email'] ?? ''); ?>">
+                            <label class="form-label fw-semibold small text-dark mb-1">Custom Profile Handle (@username)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white fw-bold">@</span>
+                                <input type="text" name="username_handle" class="form-control rounded-end py-2" value="<?php echo sanitizeInput(ltrim($user['username_handle'] ?? '', '@')); ?>" placeholder="e.g. KumarGaurav">
+                            </div>
+                            <div class="form-text small">Your public URL: <code>saranindex.com/@<?php echo sanitizeInput(ltrim($user['username_handle'] ?? 'username', '@')); ?></code></div>
                         </div>
+
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold small text-dark mb-1">WhatsApp Mobile</label>
-                            <input type="text" name="whatsapp" class="form-control rounded-3 py-2" value="<?php echo htmlspecialchars($user['whatsapp'] ?? ''); ?>" maxlength="10">
+                            <label class="form-label fw-semibold small text-dark mb-1">Profile Photo / Avatar Upload</label>
+                            <input type="file" name="profile_image_file" class="form-control rounded-3 py-2" accept="image/*">
+                            <?php if (!empty($user['profile_image'])): ?>
+                                <div class="mt-1 small text-success"><i class="bi bi-check-circle me-1"></i>Current photo uploaded</div>
+                            <?php endif; ?>
                         </div>
+
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold small text-dark mb-1">Business / Firm Name</label>
-                            <input type="text" name="business_name" class="form-control rounded-3 py-2" value="<?php echo htmlspecialchars($user['business_name'] ?? ''); ?>">
+                            <label class="form-label fw-semibold small text-dark mb-1">Profile Visibility</label>
+                            <select name="profile_visibility" class="form-select rounded-3 py-2">
+                                <option value="PUBLIC" <?php echo ($user['profile_visibility'] ?? 'PUBLIC') === 'PUBLIC' ? 'selected' : ''; ?>>🟢 PUBLIC (Visible in Directory & Search)</option>
+                                <option value="PRIVATE" <?php echo ($user['profile_visibility'] ?? '') === 'PRIVATE' ? 'selected' : ''; ?>>🔴 PRIVATE (Hidden from Public)</option>
+                            </select>
                         </div>
+                    </div>
+
+                    <!-- Section 2: Professional Fields -->
+                    <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-briefcase text-primary me-2"></i>2. Professional Qualifications & Practice</h6>
+                    <div class="row g-3 mb-4">
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold small text-dark mb-1">Designation / Profession</label>
-                            <input type="text" name="designation" class="form-control rounded-3 py-2" value="<?php echo htmlspecialchars($user['designation'] ?? ''); ?>">
+                            <label class="form-label fw-semibold small text-dark mb-1">Designation / Profession Title</label>
+                            <input type="text" name="designation" class="form-control rounded-3 py-2" value="<?php echo sanitizeInput($user['designation'] ?? ''); ?>" placeholder="e.g. Senior Advocate, Medical Specialist, Civil Engineer">
                         </div>
+
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold small text-dark mb-1">Block Location</label>
-                            <select name="block_id" class="form-select rounded-3 py-2">
-                                <option value="">-- Select Block --</option>
-                                <?php foreach ($blocks as $b): ?>
-                                    <option value="<?php echo $b['id']; ?>" <?php echo (isset($user['block_id']) && $user['block_id'] == $b['id']) ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($b['block_name']); ?>
+                            <label class="form-label fw-semibold small text-dark mb-1">Business / Firm / Hospital Name</label>
+                            <input type="text" name="business_name" class="form-control rounded-3 py-2" value="<?php echo sanitizeInput($user['business_name'] ?? ''); ?>" placeholder="e.g. Saran Law Chambers, City Hospital">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-dark mb-1">Profession Main Category</label>
+                            <select name="category_id" id="user_category_id" class="form-select rounded-3 py-2" onchange="loadUserSubcategories(this.value)">
+                                <option value="">-- Select Main Category --</option>
+                                <?php foreach ($all_categories as $cat): ?>
+                                    <option value="<?php echo $cat['id']; ?>" <?php echo (isset($user['category_id']) && $user['category_id'] == $cat['id']) ? 'selected' : ''; ?>>
+                                        <?php echo sanitizeInput($cat['name']); ?> <?php echo !empty($cat['hindi_name']) ? '('.sanitizeInput($cat['hindi_name']).')' : ''; ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="col-md-8">
-                            <label class="form-label fw-semibold small text-dark mb-1">Address</label>
-                            <input type="text" name="address" class="form-control rounded-3 py-2" value="<?php echo htmlspecialchars($user['address'] ?? ''); ?>">
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-dark mb-1">Sub-Category</label>
+                            <select name="subcategory_id" id="user_subcategory_id" class="form-select rounded-3 py-2">
+                                <option value="">-- Select Sub-Category --</option>
+                                <?php if (!empty($user['subcategory_id'])): ?>
+                                    <option value="<?php echo $user['subcategory_id']; ?>" selected><?php echo sanitizeInput($user['subcategory_name'] ?? 'Current Sub-Category'); ?></option>
+                                <?php endif; ?>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-dark mb-1">Specialization & Expertise</label>
+                            <input type="text" name="specialization" class="form-control rounded-3 py-2" value="<?php echo sanitizeInput($user['specialization'] ?? ''); ?>" placeholder="e.g. Criminal Defense, Cardiology, Income Tax">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-dark mb-1">Educational Degree / Qualification</label>
+                            <input type="text" name="education" class="form-control rounded-3 py-2" value="<?php echo sanitizeInput($user['education'] ?? ''); ?>" placeholder="e.g. LL.B (JPU Chapra), MBBS, M.Tech, CA">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold small text-dark mb-1">Years of Experience</label>
+                            <input type="text" name="experience_years" class="form-control rounded-3 py-2" value="<?php echo sanitizeInput($user['experience_years'] ?? ''); ?>" placeholder="e.g. 10 Years">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold small text-dark mb-1">Office / Chamber Timings</label>
+                            <input type="text" name="office_hours" class="form-control rounded-3 py-2" value="<?php echo sanitizeInput($user['office_hours'] ?? ''); ?>" placeholder="e.g. 9 AM - 7 PM">
+                        </div>
+                    </div>
+
+                    <!-- Section 3: Contact & Location -->
+                    <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-geo-alt text-primary me-2"></i>3. Contact & Office Location</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-dark mb-1">Email Address</label>
+                            <input type="email" name="email" class="form-control rounded-3 py-2" value="<?php echo sanitizeInput($user['email'] ?? ''); ?>">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-dark mb-1">WhatsApp Number</label>
+                            <input type="text" name="whatsapp" class="form-control rounded-3 py-2" value="<?php echo sanitizeInput($user['whatsapp'] ?? ''); ?>" maxlength="10">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-dark mb-1">Block Location (Saran District)</label>
+                            <select name="block_id" class="form-select rounded-3 py-2">
+                                <option value="">-- Select Block --</option>
+                                <?php foreach ($blocks as $b): ?>
+                                    <option value="<?php echo $b['id']; ?>" <?php echo (isset($user['block_id']) && $user['block_id'] == $b['id']) ? 'selected' : ''; ?>>
+                                        <?php echo sanitizeInput($b['block_name']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-dark mb-1">Office / Street Address</label>
+                            <input type="text" name="address" class="form-control rounded-3 py-2" value="<?php echo sanitizeInput($user['address'] ?? ''); ?>" placeholder="e.g. Court Campus, Chapra">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold small text-dark mb-1">Pincode</label>
-                            <input type="text" name="pincode" class="form-control rounded-3 py-2" value="<?php echo htmlspecialchars($user['pincode'] ?? ''); ?>" maxlength="6">
+                            <input type="text" name="pincode" class="form-control rounded-3 py-2" value="<?php echo sanitizeInput($user['pincode'] ?? ''); ?>" maxlength="6">
                         </div>
                         <div class="col-12">
-                            <label class="form-label fw-semibold small text-dark mb-1">About / Bio</label>
-                            <textarea name="bio" class="form-control rounded-3" rows="2"><?php echo htmlspecialchars($user['bio'] ?? ''); ?></textarea>
+                            <label class="form-label fw-semibold small text-dark mb-1">About & Professional Bio</label>
+                            <textarea name="about" class="form-control rounded-3" rows="3" placeholder="Describe your professional background, achievements, court/clinic locations, and services..."><?php echo sanitizeInput($user['about'] ?: ($user['bio'] ?? '')); ?></textarea>
                         </div>
                         <div class="col-12 border-top pt-3">
                             <label class="form-label fw-semibold small text-dark mb-1">Change Password <span class="text-muted fw-normal">(Leave blank to keep current)</span></label>
@@ -391,7 +505,7 @@ require_once __DIR__ . '/includes/header.php';
                 </div>
                 <div class="modal-footer bg-white p-3 border-top">
                     <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">Save Changes</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold"><i class="bi bi-check-lg me-1"></i> Save Professional Profile</button>
                 </div>
             </form>
         </div>
@@ -558,6 +672,45 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('An error occurred initializing Razorpay payment.');
             });
         });
+    }
+});
+
+function loadUserSubcategories(catId, selectedSubId = null) {
+    const subSelect = document.getElementById('user_subcategory_id');
+    if (!subSelect) return;
+    subSelect.innerHTML = '<option value="">-- Loading Sub-Categories... --</option>';
+    if (!catId) {
+        subSelect.innerHTML = '<option value="">-- Select Sub-Category --</option>';
+        return;
+    }
+
+    fetch('api/subcategories_api.php?category_id=' + encodeURIComponent(catId))
+        .then(response => response.json())
+        .then(data => {
+            subSelect.innerHTML = '<option value="">-- Select Sub-Category --</option>';
+            if (data && data.subcategories && Array.isArray(data.subcategories)) {
+                data.subcategories.forEach(sub => {
+                    const opt = document.createElement('option');
+                    opt.value = sub.id;
+                    opt.textContent = sub.name + (sub.hindi_name ? ' (' + sub.hindi_name + ')' : '');
+                    if (selectedSubId && sub.id == selectedSubId) {
+                        opt.selected = true;
+                    }
+                    subSelect.appendChild(opt);
+                });
+            }
+        })
+        .catch(err => {
+            console.error('Failed to load subcategories:', err);
+            subSelect.innerHTML = '<option value="">-- Select Sub-Category --</option>';
+        });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const catSelect = document.getElementById('user_category_id');
+    if (catSelect && catSelect.value) {
+        const currentSubId = "<?php echo $user['subcategory_id'] ?? ''; ?>";
+        loadUserSubcategories(catSelect.value, currentSubId);
     }
 });
 </script>

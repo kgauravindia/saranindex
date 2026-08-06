@@ -35,6 +35,7 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
 }
 
 $stats = getAdminStats();
+$pending_claims_count = count(getClaimsList('PENDING'));
 $recentListings = getAllAdminListings(null, null);
 // Limit to top 8 recent listings for dashboard summary
 $recentListings = array_slice($recentListings, 0, 8);
@@ -56,6 +57,9 @@ $recentListings = array_slice($recentListings, 0, 8);
             <p class="mb-0 text-white-50 small">Saran District Digital Directory Command Center. Manage listings, verifications, and user requests.</p>
         </div>
         <div class="d-flex gap-2">
+            <a href="bulk_upload.php" class="btn btn-warning text-dark fw-bold btn-sm px-3 shadow-sm">
+                <i class="bi bi-cloud-upload me-1"></i> Bulk Upload CSV
+            </a>
             <a href="listing_edit.php" class="btn btn-light text-primary fw-bold btn-sm px-3 shadow-sm">
                 <i class="bi bi-plus-circle me-1"></i> Add Listing
             </a>
@@ -96,6 +100,23 @@ $recentListings = array_slice($recentListings, 0, 8);
                 </div>
             </div>
         </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <a href="claims.php?status=PENDING" class="text-decoration-none">
+            <div class="stat-card p-3 border border-warning">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">Pending Claims</div>
+                        <h3 class="fw-bold text-warning my-1"><?php echo number_format($pending_claims_count); ?></h3>
+                        <small class="text-warning fw-medium"><i class="bi bi-shield-lock me-1"></i>Business claims waiting</small>
+                    </div>
+                    <div class="stat-icon bg-warning text-dark">
+                        <i class="bi bi-shield-lock-fill"></i>
+                    </div>
+                </div>
+            </div>
+        </a>
     </div>
 
     <div class="col-12 col-sm-6 col-xl-3">

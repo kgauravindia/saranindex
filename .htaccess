@@ -29,6 +29,8 @@
     RewriteRule ^categories/?$ categories.php [L,QSA]
     
     # Listing & Person Profiles
+    RewriteRule ^@([a-zA-Z0-9_-]+)/?$ user_profile.php?handle=$1 [L,QSA]
+    RewriteRule ^u/([a-zA-Z0-9_-]+)/?$ user_profile.php?handle=$1 [L,QSA]
     RewriteRule ^listing/([a-zA-Z0-9_-]+)/?$ profile.php?slug=$1 [L,QSA]
     RewriteRule ^person/([a-zA-Z0-9_-]+)/?$ person.php?slug=$1 [L,QSA]
     

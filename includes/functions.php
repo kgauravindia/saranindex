@@ -5,7 +5,10 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once __DIR__ . '/../config/db.php';
 
 function sanitizeInput($data) {
-    return htmlspecialchars(trim($data), ENT_QUOTES, 'UTF-8');
+    if ($data === null) {
+        return '';
+    }
+    return htmlspecialchars(trim((string)$data), ENT_QUOTES, 'UTF-8');
 }
 
 function slugify($text) {
@@ -237,7 +240,7 @@ function getListingBySlug($slug) {
     $db = getDB();
     if ($db) {
         try {
-            $stmt = $db->prepare("SELECT l.*, c.name as category_name, b.name as block_name FROM listings l LEFT JOIN categories c ON l.category_id = c.id LEFT JOIN blocks b ON l.block_id = b.id WHERE l.slug = :slug LIMIT 1");
+            $stmt = $db->prepare("SELECT l.*, c.name as category_name, b.name as block_name, u.full_name as owner_name, u.name as owner_short_name, u.username_handle as owner_handle, u.profile_image as owner_image, u.designation as owner_designation, u.profile_visibility as owner_visibility FROM listings l LEFT JOIN categories c ON l.category_id = c.id LEFT JOIN blocks b ON l.block_id = b.id LEFT JOIN users u ON l.user_id = u.id WHERE l.slug = :slug LIMIT 1");
             $stmt->execute(['slug' => $slug]);
             $res = $stmt->fetch();
             if ($res) return $res;
@@ -278,20 +281,224 @@ function getReviewsByListingId($listing_id) {
     return [];
 }
 
-function addReview($listing_id, $reviewer_name, $rating, $comment) {
+function ensureReviewsTable() {
+    $db = getDB();
+    if (!$db) return;
+    try {
+        $cols = $db->query("SHOW COLUMNS FROM `reviews`")->fetchAll(PDO::FETCH_COLUMN);
+        if (!in_array('user_id', $cols)) {
+            $db->exec("ALTER TABLE `reviews` ADD COLUMN `user_id` INT DEFAULT NULL");
+        }
+        backfillReviewsUserId();
+    } catch (PDOException $e) {}
+}
+
+function backfillReviewsUserId() {
+    $db = getDB();
+    if (!$db) return;
+    try {
+        $db->exec("UPDATE reviews r JOIN users u ON (r.reviewer_mobile IS NOT NULL AND r.reviewer_mobile != '' AND r.reviewer_mobile = u.mobile) SET r.user_id = u.id WHERE r.user_id IS NULL");
+        $db->exec("UPDATE reviews r JOIN users u ON (r.reviewer_name IS NOT NULL AND r.reviewer_name != '' AND (LOWER(r.reviewer_name) = LOWER(u.full_name) OR LOWER(r.reviewer_name) = LOWER(u.name))) SET r.user_id = u.id WHERE r.user_id IS NULL");
+    } catch (PDOException $e) {}
+}
+
+function hasUserReviewedListing($userId, $listingId, $userMobile = '', $userName = '') {
+    ensureReviewsTable();
+    $db = getDB();
+    if (!$db || empty($listingId)) return null;
+
+    try {
+        $stmt = $db->prepare("SELECT * FROM reviews WHERE listing_id = :lid AND ((user_id IS NOT NULL AND user_id = :uid) OR (reviewer_mobile IS NOT NULL AND reviewer_mobile = :mob AND reviewer_mobile != '') OR (reviewer_name = :rname AND reviewer_name != '')) ORDER BY id DESC LIMIT 1");
+        $stmt->execute([
+            'lid' => intval($listingId),
+            'uid' => !empty($userId) ? intval($userId) : -1,
+            'mob' => !empty($userMobile) ? $userMobile : 'NO_MOB_MATCH',
+            'rname' => !empty($userName) ? $userName : 'NO_NAME_MATCH'
+        ]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("hasUserReviewedListing error: " . $e->getMessage());
+        return null;
+    }
+}
+
+function addReview($listing_id, $reviewer_name, $rating, $comment, $user_id = null, $user_mobile = null) {
+    ensureReviewsTable();
     $db = getDB();
     if ($db) {
+        // Auto-lookup user_id if null
+        if (empty($user_id)) {
+            if (session_status() === PHP_SESSION_NONE) session_start();
+            if (!empty($_SESSION['user_id'])) {
+                $user_id = intval($_SESSION['user_id']);
+            } elseif (!empty($user_mobile)) {
+                $uStmt = $db->prepare("SELECT id FROM users WHERE mobile = :mob LIMIT 1");
+                $uStmt->execute(['mob' => $user_mobile]);
+                $user_id = $uStmt->fetchColumn() ?: null;
+            } elseif (!empty($reviewer_name)) {
+                $uStmt = $db->prepare("SELECT id FROM users WHERE full_name = :rname LIMIT 1");
+                $uStmt->execute(['rname' => $reviewer_name]);
+                $user_id = $uStmt->fetchColumn() ?: null;
+            }
+        }
+
         try {
-            $stmt = $db->prepare("INSERT INTO reviews (listing_id, reviewer_name, rating, comment, status) VALUES (:lid, :rname, :rating, :comment, 'APPROVED')");
+            $stmt = $db->prepare("INSERT INTO reviews (listing_id, user_id, reviewer_name, reviewer_mobile, rating, comment, status) VALUES (:lid, :uid, :rname, :rmob, :rating, :comment, 'APPROVED')");
             return $stmt->execute([
-                'lid' => $listing_id,
+                'lid' => intval($listing_id),
+                'uid' => !empty($user_id) ? intval($user_id) : null,
                 'rname' => $reviewer_name,
-                'rating' => $rating,
+                'rmob' => $user_mobile,
+                'rating' => intval($rating),
                 'comment' => $comment
             ]);
-        } catch (PDOException $e) {}
+        } catch (PDOException $e) {
+            error_log("addReview error: " . $e->getMessage());
+        }
     }
     return false;
+}
+
+// --- CLAIM BUSINESS HELPER FUNCTIONS ---
+
+function ensureClaimsTable() {
+    $db = getDB();
+    if (!$db) return;
+    try {
+        $db->exec("CREATE TABLE IF NOT EXISTS `claims` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `listing_id` INT NOT NULL,
+            `user_id` INT DEFAULT NULL,
+            `claimant_name` VARCHAR(100) NOT NULL,
+            `claimant_mobile` VARCHAR(20) NOT NULL,
+            `role_title` VARCHAR(100) DEFAULT 'Owner / Manager',
+            `verification_proof` TEXT,
+            `status` ENUM('PENDING','APPROVED','REJECTED') DEFAULT 'PENDING',
+            `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (`listing_id`) REFERENCES `listings`(`id`) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    } catch (PDOException $e) {
+        error_log("ensureClaimsTable error: " . $e->getMessage());
+    }
+}
+
+function submitBusinessClaim($listingId, $userId, $name, $mobile, $role, $proof) {
+    ensureClaimsTable();
+    $db = getDB();
+    if (!$db) return false;
+    try {
+        $stmt = $db->prepare("INSERT INTO claims (listing_id, user_id, claimant_name, claimant_mobile, role_title, verification_proof, status) VALUES (:lid, :uid, :cname, :cmob, :role, :proof, 'PENDING')");
+        return $stmt->execute([
+            'lid' => intval($listingId),
+            'uid' => !empty($userId) ? intval($userId) : null,
+            'cname' => sanitizeInput($name),
+            'cmob' => sanitizeInput($mobile),
+            'role' => sanitizeInput($role),
+            'proof' => sanitizeInput($proof)
+        ]);
+    } catch (PDOException $e) {
+        error_log("submitBusinessClaim error: " . $e->getMessage());
+        return false;
+    }
+}
+
+function hasUserClaimedListing($listingId, $userId = null, $mobile = null) {
+    ensureClaimsTable();
+    $db = getDB();
+    if (!$db) return null;
+    try {
+        $stmt = $db->prepare("SELECT * FROM claims WHERE listing_id = :lid AND ((user_id IS NOT NULL AND user_id = :uid) OR (claimant_mobile IS NOT NULL AND claimant_mobile = :mob AND claimant_mobile != '')) ORDER BY id DESC LIMIT 1");
+        $stmt->execute([
+            'lid' => intval($listingId),
+            'uid' => !empty($userId) ? intval($userId) : -1,
+            'mob' => !empty($mobile) ? $mobile : 'NO_MOB_MATCH'
+        ]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        return null;
+    }
+}
+
+function getClaimsList($status = '') {
+    ensureClaimsTable();
+    $db = getDB();
+    if (!$db) return [];
+    try {
+        $sql = "SELECT c.*, l.title as listing_title, l.slug as listing_slug, l.mobile as listing_mobile, cat.name as category_name FROM claims c LEFT JOIN listings l ON c.listing_id = l.id LEFT JOIN categories cat ON l.category_id = cat.id";
+        if (!empty($status)) {
+            $sql .= " WHERE c.status = :status";
+        }
+        $sql .= " ORDER BY c.id DESC";
+        $stmt = $db->prepare($sql);
+        if (!empty($status)) {
+            $stmt->execute(['status' => $status]);
+        } else {
+            $stmt->execute();
+        }
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        return [];
+    }
+}
+
+function approveClaim($claimId) {
+    ensureClaimsTable();
+    $db = getDB();
+    if (!$db) return false;
+    try {
+        $stmt = $db->prepare("SELECT * FROM claims WHERE id = :id LIMIT 1");
+        $stmt->execute(['id' => intval($claimId)]);
+        $claim = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$claim) return false;
+
+        $db->beginTransaction();
+        $stmtApp = $db->prepare("UPDATE claims SET status = 'APPROVED' WHERE id = :id");
+        $stmtApp->execute(['id' => intval($claimId)]);
+
+        if (!empty($claim['user_id'])) {
+            $stmtL = $db->prepare("UPDATE listings SET user_id = :uid, is_verified = 'YES' WHERE id = :lid");
+            $stmtL->execute(['uid' => $claim['user_id'], 'lid' => $claim['listing_id']]);
+        } else {
+            $stmtL = $db->prepare("UPDATE listings SET is_verified = 'YES' WHERE id = :lid");
+            $stmtL->execute(['lid' => $claim['listing_id']]);
+        }
+        $db->commit();
+        return true;
+    } catch (PDOException $e) {
+        if ($db->inTransaction()) $db->rollBack();
+        error_log("approveClaim error: " . $e->getMessage());
+        return false;
+    }
+}
+
+function rejectClaim($claimId) {
+    ensureClaimsTable();
+    $db = getDB();
+    if (!$db) return false;
+    try {
+        $stmt = $db->prepare("UPDATE claims SET status = 'REJECTED' WHERE id = :id");
+        return $stmt->execute(['id' => intval($claimId)]);
+    } catch (PDOException $e) {
+        return false;
+    }
+}
+
+function updateReview($reviewId, $rating, $comment) {
+    ensureReviewsTable();
+    $db = getDB();
+    if (!$db || empty($reviewId)) return false;
+
+    try {
+        $stmt = $db->prepare("UPDATE reviews SET rating = :rating, comment = :comment WHERE id = :id");
+        return $stmt->execute([
+            'rating' => intval($rating),
+            'comment' => sanitizeInput($comment),
+            'id' => intval($reviewId)
+        ]);
+    } catch (PDOException $e) {
+        error_log("updateReview error: " . $e->getMessage());
+        return false;
+    }
 }
 
 // --- ADMIN HELPER FUNCTIONS ---
@@ -306,16 +513,56 @@ function ensureAdminsTableExists() {
             `password_hash` VARCHAR(255) NOT NULL,
             `full_name` VARCHAR(100) NOT NULL,
             `email` VARCHAR(100),
-            `role` ENUM('SUPER_ADMIN','MODERATOR') DEFAULT 'SUPER_ADMIN',
+            `mobile` VARCHAR(20) DEFAULT NULL,
+            `role` VARCHAR(50) DEFAULT 'SUPER_ADMIN',
+            `scope_type` VARCHAR(20) DEFAULT 'DISTRICT',
+            `state` VARCHAR(100) DEFAULT 'Bihar',
+            `district` VARCHAR(100) DEFAULT 'Saran',
+            `block_id` INT DEFAULT NULL,
+            `designation` VARCHAR(150) DEFAULT NULL,
+            `address` TEXT DEFAULT NULL,
+            `about` TEXT DEFAULT NULL,
             `last_login` DATETIME NULL,
             `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
-        // Check if admin exists
+        // Safely alter role column to VARCHAR(50) and add missing columns
+        try {
+            $db->exec("ALTER TABLE `admins` MODIFY COLUMN `role` VARCHAR(50) DEFAULT 'SUPER_ADMIN'");
+        } catch (PDOException $ex) {}
+
+        $existingCols = [];
+        $colStmt = $db->query("SHOW COLUMNS FROM `admins`");
+        if ($colStmt) {
+            while ($c = $colStmt->fetch(PDO::FETCH_ASSOC)) {
+                $existingCols[] = $c['Field'];
+            }
+        }
+
+        $neededCols = [
+            'mobile' => "VARCHAR(20) DEFAULT NULL",
+            'scope_type' => "VARCHAR(20) DEFAULT 'DISTRICT'",
+            'state' => "VARCHAR(100) DEFAULT 'Bihar'",
+            'district' => "VARCHAR(100) DEFAULT 'Saran'",
+            'block_id' => "INT DEFAULT NULL",
+            'designation' => "VARCHAR(150) DEFAULT NULL",
+            'address' => "TEXT DEFAULT NULL",
+            'about' => "TEXT DEFAULT NULL"
+        ];
+
+        foreach ($neededCols as $col => $typeDef) {
+            if (!in_array($col, $existingCols)) {
+                try {
+                    $db->exec("ALTER TABLE `admins` ADD COLUMN `{$col}` {$typeDef}");
+                } catch (PDOException $ex) {}
+            }
+        }
+
+        // Check if initial admin exists
         $stmt = $db->query("SELECT COUNT(*) FROM `admins`");
         if ($stmt->fetchColumn() == 0) {
             $passHash = password_hash('admin123', PASSWORD_DEFAULT);
-            $stmt = $db->prepare("INSERT INTO `admins` (username, password_hash, full_name, email, role) VALUES ('admin', :hash, 'SaranIndex Administrator', 'admin@saranindex.com', 'SUPER_ADMIN')");
+            $stmt = $db->prepare("INSERT INTO `admins` (username, password_hash, full_name, email, role, scope_type, designation, about) VALUES ('admin', :hash, 'SaranIndex Administrator', 'admin@saranindex.com', 'SUPER_ADMIN', 'DISTRICT', 'Super Administrator', 'Chief system administrator for Saran District Directory.')");
             $stmt->execute(['hash' => $passHash]);
         }
         return true;
@@ -463,9 +710,38 @@ function saveListing($data, $id = null) {
 
     $slug = !empty($data['slug']) ? slugify($data['slug']) : slugify($data['title']);
 
+    $params = [
+        'entity_type' => $data['entity_type'] ?? 'BUSINESS',
+        'category_id' => intval($data['category_id'] ?? 1),
+        'subcategory_id' => !empty($data['subcategory_id']) ? intval($data['subcategory_id']) : null,
+        'block_id' => !empty($data['block_id']) ? intval($data['block_id']) : null,
+        'panchayat_id' => !empty($data['panchayat_id']) ? intval($data['panchayat_id']) : null,
+        'village_id' => !empty($data['village_id']) ? intval($data['village_id']) : null,
+        'title' => $data['title'] ?? '',
+        'hindi_title' => $data['hindi_title'] ?? '',
+        'slug' => $slug,
+        'contact_person' => $data['contact_person'] ?? '',
+        'mobile' => $data['mobile'] ?? '',
+        'whatsapp' => $data['whatsapp'] ?? '',
+        'email' => $data['email'] ?? '',
+        'website' => $data['website'] ?? '',
+        'address' => $data['address'] ?? '',
+        'pincode' => $data['pincode'] ?? '841301',
+        'map_link' => $data['map_link'] ?? '',
+        'business_hours' => $data['business_hours'] ?? '9:00 AM - 8:00 PM',
+        'services' => $data['services'] ?? '',
+        'description' => $data['description'] ?? '',
+        'cover_image' => $data['cover_image'] ?? '',
+        'is_verified' => $data['is_verified'] ?? 'NO',
+        'is_featured' => $data['is_featured'] ?? 'NO',
+        'status' => $data['status'] ?? 'ACTIVE',
+        'plan_type' => $data['plan_type'] ?? 'FREE',
+        'plan_expires_at' => !empty($data['plan_expires_at']) ? $data['plan_expires_at'] : null
+    ];
+
     try {
         if ($id) {
-            $stmt = $db->prepare("UPDATE listings SET 
+            $sql = "UPDATE listings SET 
                 entity_type = :entity_type,
                 category_id = :category_id,
                 subcategory_id = :subcategory_id,
@@ -482,27 +758,34 @@ function saveListing($data, $id = null) {
                 website = :website,
                 address = :address,
                 pincode = :pincode,
+                map_link = :map_link,
+                business_hours = :business_hours,
                 services = :services,
                 description = :description,
+                cover_image = :cover_image,
                 is_verified = :is_verified,
                 is_featured = :is_featured,
-                status = :status
-                WHERE id = :id");
-            $data['id'] = $id;
-            $data['slug'] = $slug;
-            return $stmt->execute($data);
+                status = :status,
+                plan_type = :plan_type,
+                plan_expires_at = :plan_expires_at
+                WHERE id = :id";
+            $params['id'] = intval($id);
+            $stmt = $db->prepare($sql);
+            return $stmt->execute($params);
         } else {
-            $stmt = $db->prepare("INSERT INTO listings (
+            $sql = "INSERT INTO listings (
                 entity_type, category_id, subcategory_id, block_id, panchayat_id, village_id,
                 title, hindi_title, slug, contact_person, mobile, whatsapp, email, website,
-                address, pincode, services, description, is_verified, is_featured, status
+                address, pincode, map_link, business_hours, services, description, cover_image,
+                is_verified, is_featured, status, plan_type, plan_expires_at
             ) VALUES (
                 :entity_type, :category_id, :subcategory_id, :block_id, :panchayat_id, :village_id,
                 :title, :hindi_title, :slug, :contact_person, :mobile, :whatsapp, :email, :website,
-                :address, :pincode, :services, :description, :is_verified, :is_featured, :status
-            )");
-            $data['slug'] = $slug;
-            return $stmt->execute($data);
+                :address, :pincode, :map_link, :business_hours, :services, :description, :cover_image,
+                :is_verified, :is_featured, :status, :plan_type, :plan_expires_at
+            )";
+            $stmt = $db->prepare($sql);
+            return $stmt->execute($params);
         }
     } catch (PDOException $e) {
         error_log("Error saving listing: " . $e->getMessage());
@@ -575,34 +858,60 @@ function deleteSubcategory($id) {
     return false;
 }
 
-function getAllAdminReviews() {
+function getAllAdminReviews($status = '') {
+    ensureReviewsTable();
     $db = getDB();
-    if ($db) {
-        try {
-            $stmt = $db->query("SELECT r.*, l.title as listing_title FROM reviews r LEFT JOIN listings l ON r.listing_id = l.id ORDER BY r.created_at DESC");
-            return $stmt->fetchAll();
-        } catch (PDOException $e) {}
+    if (!$db) return [];
+    try {
+        $sql = "SELECT r.*, l.title as listing_title, l.slug as listing_slug, u.full_name as user_full_name, u.mobile as user_registered_mobile FROM reviews r LEFT JOIN listings l ON r.listing_id = l.id LEFT JOIN users u ON r.user_id = u.id";
+        if (!empty($status)) {
+            $sql .= " WHERE r.status = :status";
+        }
+        $sql .= " ORDER BY r.id DESC";
+        $stmt = $db->prepare($sql);
+        if (!empty($status)) {
+            $stmt->execute(['status' => $status]);
+        } else {
+            $stmt->execute();
+        }
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("getAllAdminReviews error: " . $e->getMessage());
+        return [];
     }
-    return [];
 }
 
 function deleteReview($id) {
+    ensureReviewsTable();
     $db = getDB();
     if ($db) {
         try {
             $stmt = $db->prepare("DELETE FROM reviews WHERE id = :id");
-            return $stmt->execute(['id' => $id]);
+            return $stmt->execute(['id' => intval($id)]);
         } catch (PDOException $e) {}
     }
     return false;
 }
 
 function approveReview($id) {
+    ensureReviewsTable();
     $db = getDB();
     if ($db) {
         try {
             $stmt = $db->prepare("UPDATE reviews SET status = 'APPROVED' WHERE id = :id");
-            return $stmt->execute(['id' => $id]);
+            return $stmt->execute(['id' => intval($id)]);
+        } catch (PDOException $e) {}
+    }
+    return false;
+}
+
+function rejectReview($id) {
+    ensureReviewsTable();
+    $db = getDB();
+    if ($db) {
+        try {
+            $stmt = $db->prepare("UPDATE reviews SET status = 'REJECTED' WHERE id = :id");
+            return $stmt->execute(['id' => intval($id)]);
         } catch (PDOException $e) {}
     }
     return false;
@@ -1151,7 +1460,15 @@ function ensureUsersTable() {
             'twitter' => "VARCHAR(255) DEFAULT NULL",
             'facebook' => "VARCHAR(255) DEFAULT NULL",
             'instagram' => "VARCHAR(255) DEFAULT NULL",
-            'google_maps_link' => "TEXT DEFAULT NULL"
+            'google_maps_link' => "TEXT DEFAULT NULL",
+            'username_handle' => "VARCHAR(50) DEFAULT NULL",
+            'profession_category' => "VARCHAR(100) DEFAULT NULL",
+            'specialization' => "VARCHAR(255) DEFAULT NULL",
+            'experience_years' => "VARCHAR(50) DEFAULT NULL",
+            'office_hours' => "VARCHAR(150) DEFAULT NULL",
+            'profile_visibility' => "VARCHAR(20) DEFAULT 'PUBLIC'",
+            'category_id' => "INT DEFAULT NULL",
+            'subcategory_id' => "INT DEFAULT NULL"
         ];
 
         foreach ($newColumns as $col => $def) {
@@ -1385,6 +1702,10 @@ function getUserListings($mobileOrUserId) {
 }
 
 function updateUserProfile($userId, $fullName, $email = '', $blockId = null, $address = '', $newPassword = '', $whatsapp = '', $businessName = '', $designation = '', $pincode = '', $panchayatId = null, $villageId = null, $bio = '') {
+    if (is_array($fullName)) {
+        return updateProfessionalUserProfile($userId, $fullName);
+    }
+
     $db = getDB();
     if (!$db) {
         return ['success' => false, 'message' => 'Database connection error.'];
@@ -1694,6 +2015,543 @@ function getUserPayments($userId) {
         return $stmt->fetchAll();
     } catch (PDOException $e) {
         error_log("getUserPayments error: " . $e->getMessage());
+        return [];
+    }
+}
+
+function getAllAdminUsers($status = null, $search = null) {
+    $db = getDB();
+    if ($db) {
+        try {
+            $sql = "SELECT u.*, b.name as block_name FROM users u LEFT JOIN blocks b ON u.block_id = b.id WHERE 1=1";
+            $params = [];
+
+            if ($status) {
+                $sql .= " AND u.status = :status";
+                $params['status'] = $status;
+            }
+
+            if ($search) {
+                $sql .= " AND (u.full_name LIKE :search OR u.mobile LIKE :search OR u.email LIKE :search OR u.business_name LIKE :search)";
+                $params['search'] = '%' . $search . '%';
+            }
+
+            $sql .= " ORDER BY u.id DESC";
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll();
+        } catch (PDOException $e) {
+            error_log("getAllAdminUsers error: " . $e->getMessage());
+        }
+    }
+    return [];
+}
+
+function updateUserStatus($id, $status) {
+    $db = getDB();
+    if ($db) {
+        try {
+            $stmt = $db->prepare("UPDATE users SET status = :status WHERE id = :id");
+            return $stmt->execute(['status' => $status, 'id' => intval($id)]);
+        } catch (PDOException $e) {
+            error_log("updateUserStatus error: " . $e->getMessage());
+        }
+    }
+    return false;
+}
+
+function deleteUser($id) {
+    $db = getDB();
+    if ($db) {
+        try {
+            $stmt = $db->prepare("DELETE FROM users WHERE id = :id");
+            return $stmt->execute(['id' => intval($id)]);
+        } catch (PDOException $e) {
+            error_log("deleteUser error: " . $e->getMessage());
+        }
+    }
+    return false;
+}
+
+function getAllAdmins() {
+    ensureAdminsTableExists();
+    $db = getDB();
+    if ($db) {
+        try {
+            $stmt = $db->query("SELECT a.*, b.name as block_name, b.hindi_name as block_hindi_name 
+                                FROM admins a 
+                                LEFT JOIN blocks b ON a.block_id = b.id 
+                                ORDER BY a.id ASC");
+            return $stmt->fetchAll();
+        } catch (PDOException $e) {
+            error_log("getAllAdmins error: " . $e->getMessage());
+        }
+    }
+    return [];
+}
+
+function saveAdminAccount($data) {
+    ensureAdminsTableExists();
+    $db = getDB();
+    if (!$db) return false;
+
+    // Handle legacy calls with array vs positional args
+    if (!is_array($data)) {
+        $args = func_get_args();
+        $data = [
+            'username' => $args[0] ?? '',
+            'password' => $args[1] ?? '',
+            'full_name' => $args[2] ?? '',
+            'email' => $args[3] ?? '',
+            'role' => $args[4] ?? 'SUPER_ADMIN'
+        ];
+    }
+
+    $username = trim($data['username'] ?? '');
+    $password = trim($data['password'] ?? '');
+    $full_name = trim($data['full_name'] ?? '');
+    $email = trim($data['email'] ?? '');
+    $mobile = trim($data['mobile'] ?? '');
+    $role = sanitizeInput($data['role'] ?? 'SUB_ADMIN');
+    $scope_type = sanitizeInput($data['scope_type'] ?? 'DISTRICT');
+    $state = !empty($data['state']) ? sanitizeInput($data['state']) : 'Bihar';
+    $district = !empty($data['district']) ? sanitizeInput($data['district']) : 'Saran';
+    $block_id = (!empty($data['block_id']) && is_numeric($data['block_id'])) ? intval($data['block_id']) : null;
+    $designation = sanitizeInput($data['designation'] ?? '');
+    $address = sanitizeInput($data['address'] ?? '');
+    $about = sanitizeInput($data['about'] ?? '');
+
+    try {
+        $hash = password_hash($password, PASSWORD_DEFAULT);
+        $stmt = $db->prepare("INSERT INTO admins (
+            username, password_hash, full_name, email, mobile, role, scope_type, 
+            state, district, block_id, designation, address, about
+        ) VALUES (
+            :u, :h, :fn, :em, :mob, :r, :stype, 
+            :st, :dst, :blk, :desig, :addr, :abt
+        )");
+
+        return $stmt->execute([
+            'u' => $username,
+            'h' => $hash,
+            'fn' => $full_name,
+            'em' => $email ?: null,
+            'mob' => $mobile ?: null,
+            'r' => $role,
+            'stype' => $scope_type,
+            'st' => $state,
+            'dst' => $district,
+            'blk' => $block_id,
+            'desig' => $designation ?: null,
+            'addr' => $address ?: null,
+            'abt' => $about ?: null
+        ]);
+    } catch (PDOException $e) {
+        error_log("saveAdminAccount error: " . $e->getMessage());
+        return false;
+    }
+}
+
+function deleteAdminAccount($id) {
+    ensureAdminsTableExists();
+    $db = getDB();
+    if ($db) {
+        try {
+            $stmt = $db->prepare("DELETE FROM admins WHERE id = :id");
+            return $stmt->execute(['id' => intval($id)]);
+        } catch (PDOException $e) {
+            error_log("deleteAdminAccount error: " . $e->getMessage());
+        }
+    }
+    return false;
+}
+
+function toggleUserMobileVerification($id) {
+    $db = getDB();
+    if ($db) {
+        try {
+            $stmt = $db->prepare("UPDATE users SET mobile_status = IF(mobile_status = 'VERIFIED', 'UNVERIFIED', 'VERIFIED') WHERE id = :id");
+            return $stmt->execute(['id' => intval($id)]);
+        } catch (PDOException $e) {
+            error_log("toggleUserMobileVerification error: " . $e->getMessage());
+        }
+    }
+    return false;
+}
+
+function toggleUserEmailVerification($id) {
+    $db = getDB();
+    if ($db) {
+        try {
+            $stmt = $db->prepare("UPDATE users SET email_status = IF(email_status = 'VERIFIED', 'UNVERIFIED', 'VERIFIED') WHERE id = :id");
+            return $stmt->execute(['id' => intval($id)]);
+        } catch (PDOException $e) {
+            error_log("toggleUserEmailVerification error: " . $e->getMessage());
+        }
+    }
+    return false;
+}
+
+function getUserById($id) {
+    $db = getDB();
+    if ($db && !empty($id)) {
+        try {
+            $stmt = $db->prepare("SELECT u.*, b.name as block_name, c.name as category_name, c.hindi_name as category_hindi_name, sc.name as subcategory_name, sc.hindi_name as subcategory_hindi_name 
+                                  FROM users u 
+                                  LEFT JOIN blocks b ON u.block_id = b.id 
+                                  LEFT JOIN categories c ON u.category_id = c.id 
+                                  LEFT JOIN subcategories sc ON u.subcategory_id = sc.id 
+                                  WHERE u.id = :id LIMIT 1");
+            $stmt->execute(['id' => intval($id)]);
+            $res = $stmt->fetch();
+            if ($res) return $res;
+        } catch (PDOException $e) {
+            error_log("getUserById error: " . $e->getMessage());
+        }
+    }
+    return null;
+}
+
+function saveUserFromAdmin($data, $id) {
+    $db = getDB();
+    if (!$db || empty($id)) return false;
+
+    $cleanHandle = !empty($data['username_handle']) ? ltrim(trim($data['username_handle']), '@') : null;
+
+    $params = [
+        'full_name' => sanitizeInput($data['full_name'] ?? ''),
+        'name_val' => sanitizeInput($data['full_name'] ?? ''),
+        'handle' => $cleanHandle ? ('@' . $cleanHandle) : null,
+        'mobile' => sanitizeInput($data['mobile'] ?? ''),
+        'whatsapp' => sanitizeInput($data['whatsapp'] ?? ''),
+        'email' => sanitizeInput($data['email'] ?? ''),
+        'business_name' => sanitizeInput($data['business_name'] ?? ''),
+        'designation' => sanitizeInput($data['designation'] ?? ''),
+        'pcat' => sanitizeInput($data['profession_category'] ?? ''),
+        'cat_id' => (!empty($data['category_id']) && is_numeric($data['category_id'])) ? intval($data['category_id']) : null,
+        'subcat_id' => (!empty($data['subcategory_id']) && is_numeric($data['subcategory_id'])) ? intval($data['subcategory_id']) : null,
+        'spec' => sanitizeInput($data['specialization'] ?? ''),
+        'edu' => sanitizeInput($data['education'] ?? ''),
+        'exp' => sanitizeInput($data['experience_years'] ?? ''),
+        'ohours' => sanitizeInput($data['office_hours'] ?? ''),
+        'block_id' => (!empty($data['block_id']) && is_numeric($data['block_id'])) ? intval($data['block_id']) : null,
+        'village_id' => (!empty($data['village_id']) && is_numeric($data['village_id'])) ? intval($data['village_id']) : null,
+        'address' => sanitizeInput($data['address'] ?? ''),
+        'pincode' => sanitizeInput($data['pincode'] ?? '841301'),
+        'bio' => sanitizeInput($data['bio'] ?? ''),
+        'about' => sanitizeInput($data['about'] ?? ''),
+        'status' => in_array(strtoupper($data['status'] ?? ''), ['ACTIVE', 'INACTIVE', 'SUSPENDED']) ? strtoupper($data['status']) : 'ACTIVE',
+        'type' => in_array(strtoupper($data['type'] ?? ''), ['USER', 'AGENT', 'ADMIN']) ? strtoupper($data['type']) : 'USER',
+        'mobile_status' => (strtoupper($data['mobile_status'] ?? '') === 'VERIFIED') ? 'VERIFIED' : 'UNVERIFIED',
+        'email_status' => (strtoupper($data['email_status'] ?? '') === 'VERIFIED') ? 'VERIFIED' : 'UNVERIFIED',
+        'pvis' => in_array($data['profile_visibility'] ?? '', ['PUBLIC', 'PRIVATE']) ? $data['profile_visibility'] : 'PUBLIC',
+        'id' => intval($id)
+    ];
+
+    try {
+        $sql = "UPDATE users SET 
+            full_name = :full_name,
+            name = :name_val,
+            username_handle = :handle,
+            mobile = :mobile,
+            whatsapp = :whatsapp,
+            email = :email,
+            business_name = :business_name,
+            designation = :designation,
+            profession_category = :pcat,
+            category_id = :cat_id,
+            subcategory_id = :subcat_id,
+            specialization = :spec,
+            education = :edu,
+            experience_years = :exp,
+            office_hours = :ohours,
+            block_id = :block_id,
+            village_id = :village_id,
+            address = :address,
+            pincode = :pincode,
+            bio = :bio,
+            about = :about,
+            status = :status,
+            type = :type,
+            mobile_status = :mobile_status,
+            email_status = :email_status,
+            profile_visibility = :pvis";
+
+        if (!empty($data['password'])) {
+            $sql .= ", password_hash = :hash, password = :pass";
+            $params['hash'] = password_hash($data['password'], PASSWORD_DEFAULT);
+            $params['pass'] = $data['password'];
+        }
+
+        if (!empty($data['profile_image'])) {
+            $sql .= ", profile_image = :pimg";
+            $params['pimg'] = $data['profile_image'];
+        }
+
+        $sql .= " WHERE id = :id";
+        $stmt = $db->prepare($sql);
+        return $stmt->execute($params);
+    } catch (PDOException $e) {
+        error_log("saveUserFromAdmin error: " . $e->getMessage());
+        return false;
+    }
+}
+
+function getAllAdminPayments($status_filter = null, $search = '') {
+    $db = getDB();
+    if (!$db) return [];
+
+    try {
+        $sql = "SELECT p.*, u.full_name as user_name, u.mobile as user_mobile, u.email as user_email, l.title as listing_title 
+                FROM payments p 
+                LEFT JOIN users u ON p.user_id = u.id 
+                LEFT JOIN listings l ON p.listing_id = l.id 
+                WHERE 1=1";
+        $params = [];
+
+        if (!empty($status_filter)) {
+            $sql .= " AND p.payment_status = :status";
+            $params['status'] = strtoupper($status_filter);
+        }
+
+        if (!empty($search)) {
+            $sql .= " AND (p.transaction_id LIKE :s OR p.payment_id LIKE :s OR u.full_name LIKE :s OR u.mobile LIKE :s OR l.title LIKE :s)";
+            $params['s'] = '%' . $search . '%';
+        }
+
+        $sql .= " ORDER BY p.id DESC";
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("getAllAdminPayments error: " . $e->getMessage());
+        return [];
+    }
+}
+
+function getPaymentSummaryStats() {
+    $db = getDB();
+    $stats = [
+        'total_revenue' => 0.00,
+        'successful_count' => 0,
+        'pending_count' => 0,
+        'failed_count' => 0,
+        'gold_revenue' => 0.00,
+        'platinum_revenue' => 0.00
+    ];
+
+    if (!$db) return $stats;
+
+    try {
+        $stats['total_revenue'] = (float)$db->query("SELECT SUM(amount) FROM payments WHERE payment_status = 'SUCCESS'")->fetchColumn();
+        $stats['successful_count'] = (int)$db->query("SELECT COUNT(*) FROM payments WHERE payment_status = 'SUCCESS'")->fetchColumn();
+        $stats['pending_count'] = (int)$db->query("SELECT COUNT(*) FROM payments WHERE payment_status = 'PENDING'")->fetchColumn();
+        $stats['failed_count'] = (int)$db->query("SELECT COUNT(*) FROM payments WHERE payment_status = 'FAILED'")->fetchColumn();
+        $stats['gold_revenue'] = (float)$db->query("SELECT SUM(amount) FROM payments WHERE payment_status = 'SUCCESS' AND plan_type = 'GOLD'")->fetchColumn();
+        $stats['platinum_revenue'] = (float)$db->query("SELECT SUM(amount) FROM payments WHERE payment_status = 'SUCCESS' AND plan_type = 'PLATINUM'")->fetchColumn();
+    } catch (PDOException $e) {
+        error_log("getPaymentSummaryStats error: " . $e->getMessage());
+    }
+
+    return $stats;
+}
+
+function updatePaymentStatus($paymentId, $status) {
+    $db = getDB();
+    if (!$db || empty($paymentId)) return false;
+
+    try {
+        $stmt = $db->prepare("UPDATE payments SET payment_status = :st WHERE id = :id");
+        $res = $stmt->execute([
+            'st' => strtoupper($status),
+            'id' => intval($paymentId)
+        ]);
+
+        if ($res && strtoupper($status) === 'SUCCESS') {
+            // Activate plan if listing ID is linked
+            $pStmt = $db->prepare("SELECT * FROM payments WHERE id = :id LIMIT 1");
+            $pStmt->execute(['id' => intval($paymentId)]);
+            $payment = $pStmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($payment && !empty($payment['listing_id'])) {
+                $planType = $payment['plan_type'];
+                $isFeatured = ($planType === 'PLATINUM') ? 'YES' : 'NO';
+                $isVerified = ($planType === 'PLATINUM' || $planType === 'GOLD') ? 'YES' : 'NO';
+                $expiresAt = date('Y-m-d H:i:s', strtotime('+1 year'));
+
+                $upListing = $db->prepare("UPDATE listings SET plan_type = :plan, plan_expires_at = :exp, is_featured = :feat, is_verified = :ver WHERE id = :id");
+                $upListing->execute([
+                    'plan' => $planType,
+                    'exp' => $expiresAt,
+                    'feat' => $isFeatured,
+                    'ver' => $isVerified,
+                    'id' => $payment['listing_id']
+                ]);
+            }
+        }
+
+        return $res;
+    } catch (PDOException $e) {
+        error_log("updatePaymentStatus error: " . $e->getMessage());
+        return false;
+    }
+}
+
+function getUserByHandle($handle) {
+    ensureUsersTable();
+    $db = getDB();
+    if (!$db || empty($handle)) return null;
+
+    $cleanHandle = ltrim(trim($handle), '@');
+
+    try {
+        $stmt = $db->prepare("SELECT u.*, b.name as block_name, b.hindi_name as block_hindi_name, c.name as category_name, c.hindi_name as category_hindi_name, sc.name as subcategory_name, sc.hindi_name as subcategory_hindi_name 
+                              FROM users u 
+                              LEFT JOIN blocks b ON u.block_id = b.id 
+                              LEFT JOIN categories c ON u.category_id = c.id 
+                              LEFT JOIN subcategories sc ON u.subcategory_id = sc.id 
+                              WHERE (u.username_handle = :h1 OR u.username_handle = :h2 OR u.id = :id) LIMIT 1");
+        $stmt->execute([
+            'h1' => $cleanHandle,
+            'h2' => '@' . $cleanHandle,
+            'id' => is_numeric($cleanHandle) ? intval($cleanHandle) : 0
+        ]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($user) return $user;
+    } catch (PDOException $e) {
+        error_log("getUserByHandle error: " . $e->getMessage());
+    }
+    return null;
+}
+
+function updateProfessionalUserProfile($userId, $data) {
+    ensureUsersTable();
+    $db = getDB();
+    if (!$db || empty($userId)) return false;
+
+    $cleanHandle = !empty($data['username_handle']) ? ltrim(trim($data['username_handle']), '@') : null;
+
+    // Preserve existing mobile & email if omitted
+    $existingUser = getUserById($userId);
+    $mobile = !empty($data['mobile']) ? sanitizeInput($data['mobile']) : ($existingUser['mobile'] ?? '');
+    $email = !empty($data['email']) ? sanitizeInput($data['email']) : ($existingUser['email'] ?? '');
+
+    try {
+        $stmt = $db->prepare("UPDATE users SET 
+            full_name = :fn,
+            name = :name_col,
+            username_handle = :handle,
+            designation = :desig,
+            business_name = :bname,
+            profession_category = :pcat,
+            category_id = :cat_id,
+            subcategory_id = :subcat_id,
+            specialization = :spec,
+            education = :edu,
+            experience_years = :exp,
+            office_hours = :ohours,
+            bio = :bio,
+            about = :about,
+            mobile = :mob,
+            email = :em,
+            whatsapp = :wa,
+            address = :addr,
+            pincode = :pin,
+            block_id = :blk,
+            profile_visibility = :pvis,
+            mobile_visibility = :mvis,
+            email_visibility = :evis,
+            address_visibility = :avis,
+            linkedin = :link,
+            twitter = :tw,
+            facebook = :fb,
+            instagram = :insta
+            WHERE id = :id");
+
+        $fullName = sanitizeInput($data['full_name'] ?? ($existingUser['full_name'] ?? ''));
+
+        $res = $stmt->execute([
+            'fn' => $fullName,
+            'name_col' => $fullName,
+            'handle' => $cleanHandle ? ('@' . $cleanHandle) : null,
+            'desig' => sanitizeInput($data['designation'] ?? ''),
+            'bname' => sanitizeInput($data['business_name'] ?? ''),
+            'pcat' => sanitizeInput($data['profession_category'] ?? ''),
+            'cat_id' => (!empty($data['category_id']) && is_numeric($data['category_id'])) ? intval($data['category_id']) : null,
+            'subcat_id' => (!empty($data['subcategory_id']) && is_numeric($data['subcategory_id'])) ? intval($data['subcategory_id']) : null,
+            'spec' => sanitizeInput($data['specialization'] ?? ''),
+            'edu' => sanitizeInput($data['education'] ?? ''),
+            'exp' => sanitizeInput($data['experience_years'] ?? ''),
+            'ohours' => sanitizeInput($data['office_hours'] ?? ''),
+            'bio' => sanitizeInput($data['bio'] ?? ''),
+            'about' => sanitizeInput($data['about'] ?? ''),
+            'mob' => $mobile,
+            'em' => $email,
+            'wa' => sanitizeInput($data['whatsapp'] ?? ''),
+            'addr' => sanitizeInput($data['address'] ?? ''),
+            'pin' => sanitizeInput($data['pincode'] ?? ''),
+            'blk' => (!empty($data['block_id']) && is_numeric($data['block_id'])) ? intval($data['block_id']) : null,
+            'pvis' => in_array($data['profile_visibility'] ?? '', ['PUBLIC', 'PRIVATE']) ? $data['profile_visibility'] : 'PUBLIC',
+            'mvis' => in_array($data['mobile_visibility'] ?? '', ['PUBLIC', 'PRIVATE']) ? $data['mobile_visibility'] : 'PUBLIC',
+            'evis' => in_array($data['email_visibility'] ?? '', ['PUBLIC', 'PRIVATE']) ? $data['email_visibility'] : 'PUBLIC',
+            'avis' => in_array($data['address_visibility'] ?? '', ['PUBLIC', 'PRIVATE']) ? $data['address_visibility'] : 'PUBLIC',
+            'link' => sanitizeInput($data['linkedin'] ?? ''),
+            'tw' => sanitizeInput($data['twitter'] ?? ''),
+            'fb' => sanitizeInput($data['facebook'] ?? ''),
+            'insta' => sanitizeInput($data['instagram'] ?? ''),
+            'id' => intval($userId)
+        ]);
+
+        if (!empty($data['profile_image'])) {
+            $db->prepare("UPDATE users SET profile_image = :img WHERE id = :id")->execute([
+                'img' => $data['profile_image'],
+                'id' => intval($userId)
+            ]);
+        }
+
+        return $res;
+    } catch (PDOException $e) {
+        error_log("updateUserProfile error: " . $e->getMessage());
+        return false;
+    }
+}
+
+function uploadUserProfilePhoto($file, $userId) {
+    if (empty($file['tmp_name']) || $file['error'] !== UPLOAD_ERR_OK) {
+        return null;
+    }
+
+    $allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+
+    if (!in_array($ext, $allowedExts)) {
+        return null;
+    }
+
+    $uploadDir = __DIR__ . '/../uploads/users/';
+    if (!file_exists($uploadDir)) {
+        @mkdir($uploadDir, 0777, true);
+    }
+
+    $filename = 'profile_' . intval($userId) . '_' . time() . '.' . $ext;
+    $targetPath = $uploadDir . $filename;
+
+    if (move_uploaded_file($file['tmp_name'], $targetPath)) {
+        return 'uploads/users/' . $filename;
+    }
+
+    return null;
+}
+
+function getCategoriesList() {
+    $db = getDB();
+    if (!$db) return [];
+    try {
+        $stmt = $db->query("SELECT * FROM categories WHERE status = 'ACTIVE' ORDER BY name ASC");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("getCategoriesList error: " . $e->getMessage());
         return [];
     }
 }

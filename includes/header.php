@@ -44,6 +44,13 @@ $meta_description = $meta_description ?? 'Saran Index is the digital directory o
 
 <body>
 
+<?php if (!empty($_SESSION['impersonated_by_admin'])): ?>
+    <div class="bg-warning text-dark py-2 px-3 fw-bold text-center border-bottom shadow-sm sticky-top" style="z-index: 9999;">
+        <i class="bi bi-shield-exclamation me-1"></i> Admin Impersonation Mode: You are currently logged in as user <u><?php echo sanitizeInput($_SESSION['user_name'] ?? 'User'); ?></u> (#<?php echo intval($_SESSION['user_id'] ?? 0); ?>).
+        <a href="admin/users.php?action=exit_impersonation" class="btn btn-dark btn-sm rounded-pill ms-2 px-3 fw-bold"><i class="bi bi-box-arrow-right me-1"></i> Return to Admin Panel</a>
+    </div>
+<?php endif; ?>
+
 <!-- Top Notification Bar -->
 <div class="bg-dark text-white py-1 px-3 text-center small border-bottom border-secondary">
     <div class="container d-flex flex-column flex-md-row align-items-center justify-content-between">
