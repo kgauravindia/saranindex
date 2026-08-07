@@ -693,7 +693,7 @@ CREATE TABLE IF NOT EXISTS `lgd_village` (
 -- ============================================================
 
 INSERT INTO `categories` (`id`, `name`, `hindi_name`, `icon`, `slug`, `section`, `status`)
-VALUES (30, 'Politicians & Public Representatives', 'नेता एवं जनप्रतिनिधि', 'bi-person-badge-fill', 'politicians-public-representatives', 'GOVT', 'ACTIVE')
+VALUES (30, 'Politics', 'राजनीति', 'bi-person-badge-fill', 'politics', 'GOVT', 'ACTIVE')
 ON DUPLICATE KEY UPDATE
     `name`       = VALUES(`name`),
     `hindi_name` = VALUES(`hindi_name`),
