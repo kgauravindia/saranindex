@@ -246,7 +246,7 @@ if (!empty($listing['category_id'])) {
                 <div class="row g-3">
                     <div class="col-12 col-md-8">
                         <label for="title" class="form-label small fw-semibold">Listing Title (English) <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control form-control-lg fs-6" id="title" name="title" value="<?php echo sanitizeInput($listing['title']); ?>" placeholder="e.g. Saran District Hospital / Chapra Mobile Store" required>
+                        <input type="text" class="form-control form-control-lg fs-6" id="title" name="title" value="<?php echo sanitizeInput($listing['title']); ?>" required>
                     </div>
 
                     <div class="col-12 col-md-4">
@@ -265,14 +265,14 @@ if (!empty($listing['category_id'])) {
 
                     <div class="col-12 col-md-6">
                         <label for="hindi_title" class="form-label small fw-semibold">Hindi Name (हिंदी नाम)</label>
-                        <input type="text" class="form-control" id="hindi_title" name="hindi_title" value="<?php echo sanitizeInput($listing['hindi_title']); ?>" placeholder="उदा. सदर अस्पताल, छपरा">
+                        <input type="text" class="form-control" id="hindi_title" name="hindi_title" value="<?php echo sanitizeInput($listing['hindi_title']); ?>">
                     </div>
 
                     <div class="col-12 col-md-6">
                         <label for="slug" class="form-label small fw-semibold">Custom URL Slug</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light text-muted small">saranindex.com/listing/</span>
-                            <input type="text" class="form-control" id="slug" name="slug" value="<?php echo sanitizeInput($listing['slug']); ?>" placeholder="auto-generated-from-title">
+                            <input type="text" class="form-control" id="slug" name="slug" value="<?php echo sanitizeInput($listing['slug']); ?>">
                         </div>
                     </div>
                 </div>
@@ -290,7 +290,7 @@ if (!empty($listing['category_id'])) {
                         <label for="mobile" class="form-label small fw-semibold">Mobile / Phone Number <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text bg-light"><i class="bi bi-telephone-fill text-muted"></i></span>
-                            <input type="text" class="form-control" id="mobile" name="mobile" value="<?php echo sanitizeInput($listing['mobile']); ?>" placeholder="e.g. 9876543210" required>
+                            <input type="text" class="form-control" id="mobile" name="mobile" value="<?php echo sanitizeInput($listing['mobile']); ?>" required>
                         </div>
                     </div>
 
@@ -307,33 +307,33 @@ if (!empty($listing['category_id'])) {
                         <label for="whatsapp" class="form-label small fw-semibold">WhatsApp Number</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light text-success"><i class="bi bi-whatsapp"></i></span>
-                            <input type="text" class="form-control" id="whatsapp" name="whatsapp" value="<?php echo sanitizeInput($listing['whatsapp']); ?>" placeholder="e.g. 9876543210">
+                            <input type="text" class="form-control" id="whatsapp" name="whatsapp" value="<?php echo sanitizeInput($listing['whatsapp']); ?>">
                         </div>
                     </div>
 
                     <div class="col-12 col-md-4">
                         <label for="contact_person" class="form-label small fw-semibold">Contact Person / Owner</label>
-                        <input type="text" class="form-control" id="contact_person" name="contact_person" value="<?php echo sanitizeInput($listing['contact_person']); ?>" placeholder="e.g. Dr. Rajesh Kumar">
+                        <input type="text" class="form-control" id="contact_person" name="contact_person" value="<?php echo sanitizeInput($listing['contact_person']); ?>">
                     </div>
 
                     <div class="col-12 col-md-6">
                         <label for="email" class="form-label small fw-semibold">Email Address</label>
-                        <input type="email" class="form-control" id="email" name="email" value="<?php echo sanitizeInput($listing['email']); ?>" placeholder="contact@example.com">
+                        <input type="email" class="form-control" id="email" name="email" value="<?php echo sanitizeInput($listing['email']); ?>">
                     </div>
 
                     <div class="col-12 col-md-6">
                         <label for="website" class="form-label small fw-semibold">Website URL</label>
-                        <input type="url" class="form-control" id="website" name="website" value="<?php echo sanitizeInput($listing['website']); ?>" placeholder="https://www.example.com">
+                        <input type="url" class="form-control" id="website" name="website" value="<?php echo sanitizeInput($listing['website']); ?>">
                     </div>
 
                     <div class="col-12 col-md-8">
                         <label for="address" class="form-label small fw-semibold">Street / Full Address</label>
-                        <input type="text" class="form-control" id="address" name="address" value="<?php echo sanitizeInput($listing['address']); ?>" placeholder="e.g. Main Market, Near Railway Station">
+                        <input type="text" class="form-control" id="address" name="address" value="<?php echo sanitizeInput($listing['address']); ?>">
                     </div>
 
                     <div class="col-12 col-md-4">
                         <label for="pincode" class="form-label small fw-semibold">Pincode</label>
-                        <input type="text" class="form-control" id="pincode" name="pincode" value="<?php echo sanitizeInput($listing['pincode']); ?>" placeholder="841301">
+                        <input type="text" class="form-control" id="pincode" name="pincode" value="<?php echo sanitizeInput($listing['pincode']); ?>">
                     </div>
                 </div>
             </div>
@@ -377,12 +377,12 @@ if (!empty($listing['category_id'])) {
                 <div class="row g-3 mb-3">
                     <div class="col-12 col-md-6">
                         <label for="business_hours" class="form-label small fw-semibold">Business / Opening Hours</label>
-                        <input type="text" class="form-control" id="business_hours" name="business_hours" value="<?php echo sanitizeInput($listing['business_hours']); ?>" placeholder="e.g. 9:00 AM - 8:00 PM (Mon-Sat)">
+                        <input type="text" class="form-control" id="business_hours" name="business_hours" value="<?php echo sanitizeInput($listing['business_hours']); ?>">
                     </div>
 
                     <div class="col-12 col-md-6">
                         <label for="map_link" class="form-label small fw-semibold">Google Maps Link</label>
-                        <input type="text" class="form-control" id="map_link" name="map_link" value="<?php echo sanitizeInput($listing['map_link']); ?>" placeholder="e.g. https://maps.google.com/?q=...">
+                        <input type="text" class="form-control" id="map_link" name="map_link" value="<?php echo sanitizeInput($listing['map_link']); ?>">
                     </div>
                 </div>
 
@@ -404,7 +404,7 @@ if (!empty($listing['category_id'])) {
                             </div>
                             <div>
                                 <label for="cover_image" class="form-label small text-muted mb-1">Or Image Relative URL / Path</label>
-                                <input type="text" class="form-control form-control-sm" id="cover_image" name="cover_image" value="<?php echo sanitizeInput($listing['cover_image']); ?>" placeholder="uploads/listings/example.jpg">
+                                <input type="text" class="form-control form-control-sm" id="cover_image" name="cover_image" value="<?php echo sanitizeInput($listing['cover_image']); ?>">
                             </div>
                         </div>
                     </div>
@@ -413,11 +413,11 @@ if (!empty($listing['category_id'])) {
                 <div class="row g-3 mb-3">
                     <div class="col-12 col-md-6">
                         <label for="services" class="form-label small fw-semibold">Key Services Offered (Comma Separated)</label>
-                        <input type="text" class="form-control" id="services" name="services" value="<?php echo sanitizeInput($listing['services']); ?>" placeholder="e.g. OPD, ICU, 24x7 Emergency, Ambulance">
+                        <input type="text" class="form-control" id="services" name="services" value="<?php echo sanitizeInput($listing['services']); ?>">
                     </div>
                     <div class="col-12 col-md-6">
                         <label for="products" class="form-label small fw-semibold">Products / Items Sold (Comma Separated)</label>
-                        <input type="text" class="form-control" id="products" name="products" value="<?php echo sanitizeInput($listing['products']); ?>" placeholder="e.g. Medicines, Surgical Supplies, Medical Devices">
+                        <input type="text" class="form-control" id="products" name="products" value="<?php echo sanitizeInput($listing['products']); ?>">
                     </div>
                 </div>
 
@@ -427,26 +427,26 @@ if (!empty($listing['category_id'])) {
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
                             <label for="gst_no" class="form-label small fw-semibold text-muted">GSTIN / GST Number</label>
-                            <input type="text" class="form-control form-control-sm text-uppercase font-monospace" id="gst_no" name="gst_no" value="<?php echo sanitizeInput($listing['gst_no']); ?>" placeholder="e.g. 10AAAAA0000A1Z5">
+                            <input type="text" class="form-control form-control-sm text-uppercase font-monospace" id="gst_no" name="gst_no" value="<?php echo sanitizeInput($listing['gst_no']); ?>">
                         </div>
                         <div class="col-12 col-md-6">
                             <label for="udyam_no" class="form-label small fw-semibold text-muted">Udyam / Udyog Aadhaar</label>
-                            <input type="text" class="form-control form-control-sm text-uppercase font-monospace" id="udyam_no" name="udyam_no" value="<?php echo sanitizeInput($listing['udyam_no']); ?>" placeholder="e.g. UDYAM-BR-28-0012345">
+                            <input type="text" class="form-control form-control-sm text-uppercase font-monospace" id="udyam_no" name="udyam_no" value="<?php echo sanitizeInput($listing['udyam_no']); ?>">
                         </div>
                         <div class="col-12 col-md-6">
                             <label for="cin_no" class="form-label small fw-semibold text-muted">CIN / Corporate Registration</label>
-                            <input type="text" class="form-control form-control-sm text-uppercase font-monospace" id="cin_no" name="cin_no" value="<?php echo sanitizeInput($listing['cin_no']); ?>" placeholder="e.g. U72900BR2017PTC034567">
+                            <input type="text" class="form-control form-control-sm text-uppercase font-monospace" id="cin_no" name="cin_no" value="<?php echo sanitizeInput($listing['cin_no']); ?>">
                         </div>
                         <div class="col-12 col-md-6">
                             <label for="local_reg_no" class="form-label small fw-semibold text-muted">Local License / Trade Reg. No.</label>
-                            <input type="text" class="form-control form-control-sm" id="local_reg_no" name="local_reg_no" value="<?php echo sanitizeInput($listing['local_reg_no']); ?>" placeholder="e.g. Chapra Municipal License #841301">
+                            <input type="text" class="form-control form-control-sm" id="local_reg_no" name="local_reg_no" value="<?php echo sanitizeInput($listing['local_reg_no']); ?>">
                         </div>
                     </div>
                 </div>
 
                 <div>
                     <label for="description" class="form-label small fw-semibold">Detailed Business / Entity Overview</label>
-                    <textarea class="form-control" id="description" name="description" rows="5" placeholder="Enter full details about services, history, specialties, facilities, etc."><?php echo sanitizeInput($listing['description']); ?></textarea>
+                    <textarea class="form-control" id="description" name="description" rows="5"><?php echo sanitizeInput($listing['description']); ?></textarea>
                 </div>
             </div>
         </div>

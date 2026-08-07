@@ -58,7 +58,7 @@ if ($db) {
         $stmt = $db->prepare("
             SELECT l.id, l.title, l.mobile, l.status, l.slug, l.created_at,
                    l.is_verified, l.is_featured, l.plan_type, l.block_id,
-                   b.block_name
+                   b.name AS block_name
             FROM listings l
             LEFT JOIN blocks b ON l.block_id = b.id
             WHERE l.id IN ({$placeholders})
