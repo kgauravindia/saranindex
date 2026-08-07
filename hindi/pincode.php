@@ -45,7 +45,7 @@ $listings = getListings('', '', '', 20, 0);
                         <?php endif; ?>
 
                         <div class="text-muted small mb-3">
-                            <i class="bi bi-geo-alt me-1 text-primary"></i><?php echo sanitizeInput($item['address']); ?> (पिन: <?php echo sanitizeInput($code); ?>)
+                            <i class="bi bi-geo-alt me-1 text-primary"></i><?php echo sanitizeInput(formatListingLocation($item, 'hi')); ?> (पिन: <?php echo sanitizeInput($code); ?>)
                         </div>
                     </div>
 

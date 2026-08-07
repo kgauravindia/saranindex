@@ -97,6 +97,7 @@ foreach ($all_subcategories as $sub) {
         <table class="table table-hover table-custom align-middle mb-0">
             <thead>
                 <tr>
+                    <th style="width: 60px;">#ID</th>
                     <th style="width: 50px;">Icon</th>
                     <th>Category Name</th>
                     <th>Hindi Name</th>
@@ -112,12 +113,16 @@ foreach ($all_subcategories as $sub) {
                     $sub_count = count($subs);
                 ?>
                     <tr>
+                        <td class="fw-bold text-muted">#<?php echo $cat['id']; ?></td>
                         <td>
                             <div class="bg-primary bg-opacity-10 text-primary rounded-2 p-2 text-center" style="width: 38px; height: 38px;">
                                 <i class="bi <?php echo sanitizeInput($cat['icon']); ?> fs-5"></i>
                             </div>
                         </td>
-                        <td class="fw-bold text-dark"><?php echo sanitizeInput($cat['name']); ?></td>
+                        <td class="fw-bold text-dark">
+                            <?php echo sanitizeInput($cat['name']); ?>
+                            <span class="badge bg-light text-secondary border small ms-1" title="Category ID">ID: #<?php echo $cat['id']; ?></span>
+                        </td>
                         <td class="text-muted"><?php echo sanitizeInput($cat['hindi_name'] ?? ''); ?></td>
                         <td>
                             <button class="btn btn-sm btn-light border rounded-pill fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#subs-cat-<?php echo $cat['id']; ?>">
@@ -134,10 +139,10 @@ foreach ($all_subcategories as $sub) {
                     </tr>
                     <!-- Expandable Subcategory List Row -->
                     <tr class="collapse bg-light" id="subs-cat-<?php echo $cat['id']; ?>">
-                        <td colspan="7" class="p-3">
+                        <td colspan="8" class="p-3">
                             <div class="p-3 bg-white rounded-3 border">
                                 <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
-                                    <span class="fw-bold text-primary small text-uppercase"><i class="bi bi-diagram-3-fill me-1"></i>Subcategories in <?php echo sanitizeInput($cat['name']); ?>:</span>
+                                    <span class="fw-bold text-primary small text-uppercase"><i class="bi bi-diagram-3-fill me-1"></i>Subcategories in <?php echo sanitizeInput($cat['name']); ?> (Cat ID: #<?php echo $cat['id']; ?>):</span>
                                     <button class="btn btn-sm btn-primary py-1 px-2.5 rounded-2 text-white fw-medium" data-bs-toggle="modal" data-bs-target="#addSubcategoryModal" onclick="document.getElementById('sub_cat_select').value='<?php echo $cat['id']; ?>';">
                                         <i class="bi bi-plus-lg me-1"></i>Add Subcategory
                                     </button>
@@ -146,6 +151,7 @@ foreach ($all_subcategories as $sub) {
                                     <div class="d-flex flex-wrap gap-2">
                                         <?php foreach ($subs as $s): ?>
                                             <span class="badge bg-light text-dark border p-2 d-inline-flex align-items-center gap-2 rounded-2 font-body font-normal">
+                                                <span class="badge bg-primary text-white">Sub ID: #<?php echo $s['id']; ?></span>
                                                 <span><strong><?php echo sanitizeInput($s['name']); ?></strong> <?php if (!empty($s['hindi_name'])): ?><span class="text-muted">(<?php echo sanitizeInput($s['hindi_name']); ?>)</span><?php endif; ?></span>
                                                 <a href="categories.php?action=delete_sub&sub_id=<?php echo $s['id']; ?>" class="text-danger text-decoration-none" onclick="return confirm('Delete subcategory <?php echo sanitizeInput($s['name']); ?>?');"><i class="bi bi-x-circle-fill"></i></a>
                                             </span>
@@ -228,7 +234,7 @@ foreach ($all_subcategories as $sub) {
                         <select class="form-select" id="sub_cat_select" name="category_id" required>
                             <option value="">Select Category</option>
                             <?php foreach ($categories as $cat): ?>
-                                <option value="<?php echo $cat['id']; ?>"><?php echo sanitizeInput($cat['name']); ?></option>
+                                <option value="<?php echo $cat['id']; ?>"><?php echo sanitizeInput($cat['name']); ?> (ID: #<?php echo $cat['id']; ?>)</option>
                             <?php endforeach; ?>
                         </select>
                     </div>

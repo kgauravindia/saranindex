@@ -11,7 +11,11 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     $target_id = intval($_GET['id']);
 
     if ($action === 'approve') {
-        if (updateListingStatus($target_id, 'ACTIVE')) {
+        $reason = '';
+        if (!isListingUserMobileActive($target_id, $reason)) {
+            $msg = "Cannot approve Listing #{$target_id}: " . $reason;
+            $msg_type = "danger";
+        } elseif (updateListingStatus($target_id, 'ACTIVE')) {
             $msg = "Listing #{$target_id} approved and published successfully!";
         } else {
             $msg = "Failed to update listing status.";
@@ -187,7 +191,16 @@ $recentListings = array_slice($recentListings, 0, 8);
                                 <?php if (!empty($item['hindi_title'])): ?>
                                     <small class="text-muted me-2"><?php echo sanitizeInput($item['hindi_title']); ?></small>
                                 <?php endif; ?>
-                                <span class="badge bg-light text-secondary border small mt-1"><?php echo sanitizeInput($item['category_name'] ?? 'General'); ?></span>
+                                <div class="d-flex flex-wrap gap-1 mt-1">
+                                    <span class="badge bg-light text-secondary border small" title="Category ID: #<?php echo $item['category_id']; ?>">
+                                        <i class="bi bi-folder me-1"></i>Cat #<?php echo $item['category_id']; ?>: <?php echo sanitizeInput($item['category_name'] ?? 'General'); ?>
+                                    </span>
+                                    <?php if (!empty($item['subcategory_name'])): ?>
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle small" title="Subcategory ID: #<?php echo $item['subcategory_id']; ?>">
+                                            <i class="bi bi-diagram-3 me-1"></i>Sub #<?php echo $item['subcategory_id']; ?>: <?php echo sanitizeInput($item['subcategory_name']); ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
                             </td>
                             <td>
                                 <div class="small fw-semibold text-dark"><i class="bi bi-geo-alt text-primary me-1"></i><?php echo sanitizeInput($item['block_name'] ?? 'Chapra Sadar'); ?></div>

@@ -38,7 +38,7 @@ $listings = getListings('', '', '', 20, 0);
                             </a>
                         </h4>
                         <div class="text-muted small mb-3">
-                            <i class="bi bi-geo-alt me-1 text-primary"></i><?php echo sanitizeInput($item['address']); ?> (PIN: <?php echo sanitizeInput($code); ?>)
+                            <i class="bi bi-geo-alt me-1 text-primary"></i><?php echo sanitizeInput(formatListingLocation($item)); ?> (PIN: <?php echo sanitizeInput($code); ?>)
                         </div>
                     </div>
 

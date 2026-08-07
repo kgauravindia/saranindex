@@ -173,7 +173,7 @@ $listings = getListings('', '', '', 6, 0);
 
 
                             <div class="text-muted small mb-3">
-                                <i class="bi bi-geo-alt me-1 text-primary"></i><?php echo sanitizeInput($item['address']); ?>
+                                <i class="bi bi-geo-alt me-1 text-primary"></i><?php echo sanitizeInput(formatListingLocation($item)); ?>
                             </div>
 
                             <p class="small text-secondary mb-3" style="line-height: 1.5;">
@@ -186,14 +186,20 @@ $listings = getListings('', '', '', 6, 0);
                                 <?php echo renderStarRating($item['star_rating']); ?>
                             </div>
                             <div class="d-flex gap-2">
-                                <?php if (!empty($item['whatsapp'])): ?>
-                                    <a href="https://wa.me/91<?php echo sanitizeInput($item['whatsapp']); ?>" target="_blank" class="btn-whatsapp">
-                                        <i class="bi bi-whatsapp"></i> Chat
+                                <?php if (isMobileNumberVisibleToVisitor($item)): ?>
+                                    <?php if (!empty($item['whatsapp'])): ?>
+                                        <a href="https://wa.me/91<?php echo sanitizeInput($item['whatsapp']); ?>" target="_blank" class="btn-whatsapp">
+                                            <i class="bi bi-whatsapp"></i> Chat
+                                        </a>
+                                    <?php endif; ?>
+                                    <a href="tel:<?php echo sanitizeInput($item['mobile']); ?>" class="btn-call">
+                                        <i class="bi bi-telephone-fill"></i> Call
+                                    </a>
+                                <?php else: ?>
+                                    <a href="login.php?redirect=<?php echo urlencode('listing/' . $item['slug']); ?>" class="btn-call bg-warning-subtle text-dark border-warning-subtle text-decoration-none" title="Log in to view full mobile number">
+                                        <i class="bi bi-lock-fill text-warning me-1"></i><?php echo sanitizeInput(maskPhoneNumber($item['mobile'])); ?>
                                     </a>
                                 <?php endif; ?>
-                                <a href="tel:<?php echo sanitizeInput($item['mobile']); ?>" class="btn-call">
-                                    <i class="bi bi-telephone-fill"></i> Call
-                                </a>
                             </div>
                         </div>
                     </div>

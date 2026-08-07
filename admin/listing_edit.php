@@ -19,6 +19,7 @@ $listing = [
     'slug' => '',
     'contact_person' => '',
     'mobile' => '',
+    'mobile_visibility' => 'PUBLIC',
     'whatsapp' => '',
     'email' => '',
     'website' => '',
@@ -27,6 +28,11 @@ $listing = [
     'map_link' => '',
     'business_hours' => '9:00 AM - 8:00 PM',
     'services' => '',
+    'products' => '',
+    'gst_no' => '',
+    'udyam_no' => '',
+    'cin_no' => '',
+    'local_reg_no' => '',
     'description' => '',
     'cover_image' => '',
     'is_verified' => 'NO',
@@ -84,6 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'slug' => sanitizeInput($_POST['slug'] ?? ''),
         'contact_person' => sanitizeInput($_POST['contact_person'] ?? ''),
         'mobile' => sanitizeInput($_POST['mobile'] ?? ''),
+        'mobile_visibility' => sanitizeInput($_POST['mobile_visibility'] ?? 'PUBLIC'),
         'whatsapp' => sanitizeInput($_POST['whatsapp'] ?? ''),
         'email' => sanitizeInput($_POST['email'] ?? ''),
         'website' => sanitizeInput($_POST['website'] ?? ''),
@@ -92,6 +99,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'map_link' => sanitizeInput($_POST['map_link'] ?? ''),
         'business_hours' => sanitizeInput($_POST['business_hours'] ?? '9:00 AM - 8:00 PM'),
         'services' => sanitizeInput($_POST['services'] ?? ''),
+        'products' => sanitizeInput($_POST['products'] ?? ''),
+        'gst_no' => sanitizeInput($_POST['gst_no'] ?? ''),
+        'udyam_no' => sanitizeInput($_POST['udyam_no'] ?? ''),
+        'cin_no' => sanitizeInput($_POST['cin_no'] ?? ''),
+        'local_reg_no' => sanitizeInput($_POST['local_reg_no'] ?? ''),
         'description' => sanitizeInput($_POST['description'] ?? ''),
         'cover_image' => $cover_image_url,
         'is_verified' => isset($_POST['is_verified']) && $_POST['is_verified'] === 'YES' ? 'YES' : 'NO',
@@ -101,8 +113,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'plan_expires_at' => !empty($_POST['plan_expires_at']) ? sanitizeInput($_POST['plan_expires_at']) : null
     ];
 
+    if ($post_data['status'] === 'ACTIVE') {
+        $checkData = [
+            'id' => $editing_id,
+            'user_id' => $listing['user_id'] ?? null,
+            'mobile' => $post_data['mobile'] ?? ($listing['mobile'] ?? '')
+        ];
+        $mob_err = '';
+        if (!isListingUserMobileActive($checkData, $mob_err)) {
+            $error = "Cannot set status to ACTIVE: " . $mob_err;
+            $post_data['status'] = 'PENDING';
+            $listing = array_merge($listing, $post_data);
+        }
+    }
+
     if (empty($error)) {
-        if (empty($post_data['title']) || empty($post_data['mobile'])) {
+        $dup = checkDuplicateListing($post_data['title'], $post_data['mobile'], $editing_id);
+        if ($dup) {
+            $error = "Duplicate Entry Detected: A listing with the title '" . htmlspecialchars($post_data['title']) . "' and mobile number '" . htmlspecialchars($post_data['mobile']) . "' already exists in the directory (Listing ID #" . $dup['id'] . ").";
+            $listing = array_merge($listing, $post_data);
+        } else if (empty($post_data['title']) || empty($post_data['mobile'])) {
             $error = "Please fill in all required fields: Title and Mobile Number.";
             $listing = array_merge($listing, $post_data);
         } else {
@@ -265,6 +295,15 @@ if (!empty($listing['category_id'])) {
                     </div>
 
                     <div class="col-12 col-md-4">
+                        <label for="mobile_visibility" class="form-label small fw-semibold">Mobile Visibility</label>
+                        <select class="form-select" id="mobile_visibility" name="mobile_visibility">
+                            <option value="REGISTERED" <?php echo ($listing['mobile_visibility'] ?? 'REGISTERED') === 'REGISTERED' ? 'selected' : ''; ?>>👤 REGISTERED (Log In Required - Default)</option>
+                            <option value="PUBLIC" <?php echo ($listing['mobile_visibility'] ?? '') === 'PUBLIC' ? 'selected' : ''; ?>>🌐 PUBLIC (Visible to Everyone)</option>
+                            <option value="HIDDEN" <?php echo ($listing['mobile_visibility'] ?? '') === 'HIDDEN' ? 'selected' : ''; ?>>🔒 HIDDEN (Private)</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-4">
                         <label for="whatsapp" class="form-label small fw-semibold">WhatsApp Number</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light text-success"><i class="bi bi-whatsapp"></i></span>
@@ -371,9 +410,38 @@ if (!empty($listing['category_id'])) {
                     </div>
                 </div>
 
-                <div class="mb-3">
-                    <label for="services" class="form-label small fw-semibold">Key Services Offered (Comma Separated)</label>
-                    <input type="text" class="form-control" id="services" name="services" value="<?php echo sanitizeInput($listing['services']); ?>" placeholder="e.g. OPD, ICU, 24x7 Emergency, Ambulance, Blood Bank">
+                <div class="row g-3 mb-3">
+                    <div class="col-12 col-md-6">
+                        <label for="services" class="form-label small fw-semibold">Key Services Offered (Comma Separated)</label>
+                        <input type="text" class="form-control" id="services" name="services" value="<?php echo sanitizeInput($listing['services']); ?>" placeholder="e.g. OPD, ICU, 24x7 Emergency, Ambulance">
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label for="products" class="form-label small fw-semibold">Products / Items Sold (Comma Separated)</label>
+                        <input type="text" class="form-control" id="products" name="products" value="<?php echo sanitizeInput($listing['products']); ?>" placeholder="e.g. Medicines, Surgical Supplies, Medical Devices">
+                    </div>
+                </div>
+
+                <!-- Business Registration & Legal Numbers Card -->
+                <div class="p-3 bg-light rounded-3 border mb-3">
+                    <h6 class="fw-bold text-dark mb-2 small text-uppercase"><i class="bi bi-shield-check text-success me-1"></i>Legal & Registration Numbers</h6>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label for="gst_no" class="form-label small fw-semibold text-muted">GSTIN / GST Number</label>
+                            <input type="text" class="form-control form-control-sm text-uppercase font-monospace" id="gst_no" name="gst_no" value="<?php echo sanitizeInput($listing['gst_no']); ?>" placeholder="e.g. 10AAAAA0000A1Z5">
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="udyam_no" class="form-label small fw-semibold text-muted">Udyam / Udyog Aadhaar</label>
+                            <input type="text" class="form-control form-control-sm text-uppercase font-monospace" id="udyam_no" name="udyam_no" value="<?php echo sanitizeInput($listing['udyam_no']); ?>" placeholder="e.g. UDYAM-BR-28-0012345">
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="cin_no" class="form-label small fw-semibold text-muted">CIN / Corporate Registration</label>
+                            <input type="text" class="form-control form-control-sm text-uppercase font-monospace" id="cin_no" name="cin_no" value="<?php echo sanitizeInput($listing['cin_no']); ?>" placeholder="e.g. U72900BR2017PTC034567">
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="local_reg_no" class="form-label small fw-semibold text-muted">Local License / Trade Reg. No.</label>
+                            <input type="text" class="form-control form-control-sm" id="local_reg_no" name="local_reg_no" value="<?php echo sanitizeInput($listing['local_reg_no']); ?>" placeholder="e.g. Chapra Municipal License #841301">
+                        </div>
+                    </div>
                 </div>
 
                 <div>
@@ -404,7 +472,7 @@ if (!empty($listing['category_id'])) {
                     <select class="form-select" id="category_id" name="category_id" required>
                         <?php foreach ($categories as $cat): ?>
                             <option value="<?php echo $cat['id']; ?>" <?php echo $listing['category_id'] == $cat['id'] ? 'selected' : ''; ?>>
-                                <?php echo sanitizeInput($cat['name']); ?>
+                                <?php echo sanitizeInput($cat['name']); ?> (ID: #<?php echo $cat['id']; ?>)
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -416,7 +484,7 @@ if (!empty($listing['category_id'])) {
                         <option value="">Choose Subcategory (Optional)</option>
                         <?php foreach ($initial_subcategories as $sub): ?>
                             <option value="<?php echo $sub['id']; ?>" <?php echo (!empty($listing['subcategory_id']) && intval($listing['subcategory_id']) === intval($sub['id'])) ? 'selected' : ''; ?>>
-                                <?php echo sanitizeInput($sub['name']); ?> <?php echo !empty($sub['hindi_name']) ? '('.sanitizeInput($sub['hindi_name']).')' : ''; ?>
+                                <?php echo sanitizeInput($sub['name']); ?> (ID: #<?php echo $sub['id']; ?>) <?php echo !empty($sub['hindi_name']) ? '('.sanitizeInput($sub['hindi_name']).')' : ''; ?>
                             </option>
                         <?php endforeach; ?>
                     </select>

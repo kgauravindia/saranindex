@@ -36,12 +36,18 @@ $subcategory_id = !empty($_POST['subcategory_id']) ? intval($_POST['subcategory_
 $block_id = isset($_POST['block_id']) ? intval($_POST['block_id']) : $listing['block_id'];
 $contact_person = $_POST['contact_person'] ?? $listing['contact_person'];
 $mobile = $_POST['mobile'] ?? $listing['mobile'];
+$mobile_visibility = $_POST['mobile_visibility'] ?? ($listing['mobile_visibility'] ?? 'PUBLIC');
 $whatsapp = $_POST['whatsapp'] ?? $listing['whatsapp'];
 $email = $_POST['email'] ?? $listing['email'];
 $address = $_POST['address'] ?? $listing['address'];
 $pincode = $_POST['pincode'] ?? $listing['pincode'];
-$services = $_POST['services'] ?? $listing['services'];
-$description = $_POST['description'] ?? $listing['description'];
+$services = $_POST['services'] ?? ($listing['services'] ?? '');
+$products = $_POST['products'] ?? ($listing['products'] ?? '');
+$gst_no = $_POST['gst_no'] ?? ($listing['gst_no'] ?? '');
+$udyam_no = $_POST['udyam_no'] ?? ($listing['udyam_no'] ?? '');
+$cin_no = $_POST['cin_no'] ?? ($listing['cin_no'] ?? '');
+$local_reg_no = $_POST['local_reg_no'] ?? ($listing['local_reg_no'] ?? '');
+$description = $_POST['description'] ?? ($listing['description'] ?? '');
 
 // Determine mauja_code for pre-filling
 $db = getDB();
@@ -49,7 +55,6 @@ $listing_mauja_code = '';
 if (!empty($listing['village_id'])) {
     $stmtM = $db->prepare("SELECT mauja_code FROM halka WHERE id = :id1 OR mauja_code = :id2 LIMIT 1");
     $stmtM->execute(['id1' => $listing['village_id'], 'id2' => $listing['village_id']]);
-
 
     $h = $stmtM->fetch(PDO::FETCH_ASSOC);
     if ($h) {
@@ -64,77 +69,93 @@ if (!empty($listing['village_id'])) {
 $mauja_code = isset($_POST['mauja_code']) ? sanitizeInput($_POST['mauja_code']) : (isset($_POST['census_village_code']) ? sanitizeInput($_POST['census_village_code']) : $listing_mauja_code);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Basic assignment from POST to allow sanitization logic below if needed, though they are already populated above.
     $title = sanitizeInput($_POST['title']);
     $hindi_title = sanitizeInput($_POST['hindi_title'] ?? '');
     $contact_person = sanitizeInput($_POST['contact_person'] ?? '');
     $mobile = sanitizeInput($_POST['mobile']);
+    $mobile_visibility = sanitizeInput($_POST['mobile_visibility'] ?? 'PUBLIC');
     $whatsapp = sanitizeInput($_POST['whatsapp'] ?? '');
     $email = sanitizeInput($_POST['email'] ?? '');
     $address = sanitizeInput($_POST['address']);
     $pincode = sanitizeInput($_POST['pincode'] ?? '');
     $services = sanitizeInput($_POST['services'] ?? '');
+    $products = sanitizeInput($_POST['products'] ?? '');
+    $gst_no = sanitizeInput($_POST['gst_no'] ?? '');
+    $udyam_no = sanitizeInput($_POST['udyam_no'] ?? '');
+    $cin_no = sanitizeInput($_POST['cin_no'] ?? '');
+    $local_reg_no = sanitizeInput($_POST['local_reg_no'] ?? '');
     $description = sanitizeInput($_POST['description'] ?? '');
 
-    if (!empty($title) && !empty($mobile) && $category_id > 0 && $block_id > 0) {
-        $db = getDB();
-        if ($db) {
-            try {
-                $base_slug = slugify($title);
-                $slug = $base_slug . '-' . rand(100, 999);
+    if (empty($title) || empty($mobile) || $category_id <= 0 || $block_id <= 0) {
+        $error_msg = "Please fill in all required fields marked with * (Title, Mobile, Category, and Block)";
+    } else {
+        // Duplicate Entry Validation (Title + Mobile) excluding current listing ID
+        $duplicate = checkDuplicateListing($title, $mobile, $listing_id);
+        if ($duplicate) {
+            $error_msg = "Duplicate Listing Detected: Another listing with the title '" . htmlspecialchars($title) . "' and mobile number '" . htmlspecialchars($mobile) . "' already exists in the directory (Listing ID #" . $duplicate['id'] . ").";
+        } else {
+            $db = getDB();
+            if ($db) {
+                try {
+                    $base_slug = slugify($title);
+                    $slug = $base_slug . '-' . rand(100, 999);
                 
-                // Fetch Mauja details if selected
-                $village_id_val = 0;
-                if (!empty($mauja_code)) {
-                    $stmtM = $db->prepare("SELECT * FROM halka WHERE mauja_code = :mcode LIMIT 1");
-                    $stmtM->execute(['mcode' => $mauja_code]);
-                    $maujaInfo = $stmtM->fetch(PDO::FETCH_ASSOC);
-                    if ($maujaInfo) {
-                        $village_id_val = intval($maujaInfo['id']);
-                        $mEngTitle = !empty($maujaInfo['mauja_english']) ? $maujaInfo['mauja_english'] : $maujaInfo['mauja_name'];
-                        if (empty($address)) {
-                            $address = "Mauja: " . $mEngTitle . " (" . $maujaInfo['mauja_name'] . ", Code: " . $maujaInfo['mauja_code'] . ")";
-                        }
-                    } else {
-                        $vInfo = getCensusVillageByCodeOrId($mauja_code);
-                        if ($vInfo) {
-                            $village_id_val = intval($vInfo['id']);
+                    $village_id_val = 0;
+                    if (!empty($mauja_code)) {
+                        $stmtM = $db->prepare("SELECT * FROM halka WHERE mauja_code = :mcode LIMIT 1");
+                        $stmtM->execute(['mcode' => $mauja_code]);
+                        $maujaInfo = $stmtM->fetch(PDO::FETCH_ASSOC);
+                        if ($maujaInfo) {
+                            $village_id_val = intval($maujaInfo['id']);
+                            $mEngTitle = !empty($maujaInfo['mauja_english']) ? $maujaInfo['mauja_english'] : $maujaInfo['mauja_name'];
                             if (empty($address)) {
-                                $address = "Village: " . $vInfo['name'] . " (Code: " . $vInfo['town_village_code'] . ")";
+                                $address = "Mauja: " . $mEngTitle . " (" . $maujaInfo['mauja_name'] . ", Code: " . $maujaInfo['mauja_code'] . ")";
+                            }
+                        } else {
+                            $vInfo = getCensusVillageByCodeOrId($mauja_code);
+                            if ($vInfo) {
+                                $village_id_val = intval($vInfo['id']);
+                                if (empty($address)) {
+                                    $address = "Village: " . $vInfo['name'] . " (Code: " . $vInfo['town_village_code'] . ")";
+                                }
                             }
                         }
                     }
-                }
 
-                $stmt = $db->prepare("UPDATE listings SET category_id = :cat, subcategory_id = :sub, block_id = :blk, village_id = :vid, title = :title, hindi_title = :htitle, contact_person = :cp, mobile = :mob, whatsapp = :wa, email = :email, address = :addr, pincode = :pin, services = :srv, description = :desc WHERE id = :id AND user_id = :uid");
-                $stmt->execute([
-                    'cat' => $category_id,
-                    'sub' => $subcategory_id,
-                    'blk' => $block_id,
-                    'vid' => $village_id_val,
-                    'title' => $title,
-                    'htitle' => $hindi_title,
-                    'cp' => $contact_person,
-                    'mob' => $mobile,
-                    'wa' => $whatsapp,
-                    'email' => $email,
-                    'addr' => $address,
-                    'pin' => $pincode,
-                    'srv' => $services,
-                    'desc' => $description,
-                    'id' => $listing_id,
-                    'uid' => $currentUser['id']
-                ]);
-                $success_msg = true;
-            } catch (PDOException $e) {
-                error_log("Listing update failed: " . $e->getMessage());
-                $error_msg = "Database error while updating listing: " . $e->getMessage();
+                    $stmt = $db->prepare("UPDATE listings SET category_id = :cat, subcategory_id = :sub, block_id = :blk, village_id = :vid, title = :title, hindi_title = :htitle, contact_person = :cp, mobile = :mob, mobile_visibility = :mvis, whatsapp = :wa, email = :email, address = :addr, pincode = :pin, services = :srv, products = :prod, gst_no = :gst, udyam_no = :udyam, cin_no = :cin, local_reg_no = :lreg, description = :desc WHERE id = :id AND user_id = :uid");
+                    $stmt->execute([
+                        'cat' => $category_id,
+                        'sub' => $subcategory_id,
+                        'blk' => $block_id,
+                        'vid' => $village_id_val,
+                        'title' => $title,
+                        'htitle' => $hindi_title,
+                        'cp' => $contact_person,
+                        'mob' => $mobile,
+                        'mvis' => $mobile_visibility,
+                        'wa' => $whatsapp,
+                        'email' => $email,
+                        'addr' => $address,
+                        'pin' => $pincode,
+                        'srv' => $services,
+                        'prod' => $products,
+                        'gst' => $gst_no,
+                        'udyam' => $udyam_no,
+                        'cin' => $cin_no,
+                        'lreg' => $local_reg_no,
+                        'desc' => $description,
+                        'id' => $listing_id,
+                        'uid' => $currentUser['id']
+                    ]);
+                    $success_msg = true;
+                } catch (PDOException $e) {
+                    error_log("Listing update failed: " . $e->getMessage());
+                    $error_msg = "Database error while updating listing: " . $e->getMessage();
+                }
+            } else {
+                $error_msg = "Database connection failed. Please try again.";
             }
-        } else {
-            $error_msg = "Database connection failed. Please try again.";
         }
-    } else {
-        $error_msg = "Please fill in all required fields marked with * (Title, Mobile, Category, and Block)";
     }
 }
 ?>
@@ -393,20 +414,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         <hr class="my-4 text-secondary-subtle opacity-25">
 
-                        <!-- SECTION 4: SERVICES & DESCRIPTION -->
+                        <!-- SECTION 4: PRODUCTS, SERVICES & REGISTRATION NUMBERS -->
                         <div class="mb-4 pb-2">
                             <div class="d-flex align-items-center gap-2 mb-3">
                                 <span class="badge rounded-circle bg-warning text-dark p-2 d-inline-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">4</span>
-                                <h6 class="fw-bold font-heading text-dark mb-0 fs-6">Services & Facilities Overview</h6>
+                                <h6 class="fw-bold font-heading text-dark mb-0 fs-6">Products, Services & Legal Registrations</h6>
                             </div>
 
                             <div class="row g-3">
-                                <!-- Services & Facilities -->
-                                <div class="col-md-12">
+                                <!-- Services Offered -->
+                                <div class="col-md-6">
                                     <label class="form-label fw-semibold fs-7 text-dark mb-1">
                                         Key Services / Facilities Offered
                                     </label>
-                                    <input type="text" name="services" class="form-control border-secondary-subtle rounded-3 py-2.5" placeholder="e.g. OPD, ICU, 24x7 Ambulance, Legal Consultation, Admissions Open (comma separated)" value="<?php echo htmlspecialchars($services); ?>">
+                                    <input type="text" name="services" class="form-control border-secondary-subtle rounded-3 py-2.5" placeholder="e.g. OPD, ICU, 24x7 Ambulance, Consultation (comma separated)" value="<?php echo htmlspecialchars($services); ?>">
+                                </div>
+
+                                <!-- Products Sold -->
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold fs-7 text-dark mb-1">
+                                        Products / Items Offered
+                                    </label>
+                                    <input type="text" name="products" class="form-control border-secondary-subtle rounded-3 py-2.5" placeholder="e.g. Medicines, Surgical Items, Hardware Goods (comma separated)" value="<?php echo htmlspecialchars($products); ?>">
+                                </div>
+
+                                <!-- Business Registration Numbers Box -->
+                                <div class="col-12">
+                                    <div class="p-3 bg-light rounded-3 border border-secondary-subtle">
+                                        <div class="fw-bold text-dark fs-7 text-uppercase mb-2">
+                                            <i class="bi bi-shield-check text-success me-1"></i> Business Registration & Govt Numbers <span class="text-muted fw-normal">(Optional)</span>
+                                        </div>
+                                        <div class="row g-2">
+                                            <div class="col-md-6 col-lg-3">
+                                                <label class="form-label fs-8 text-muted mb-1">GSTIN / GST No.</label>
+                                                <input type="text" name="gst_no" class="form-control form-control-sm text-uppercase font-monospace" placeholder="10AAAAA0000A1Z5" value="<?php echo htmlspecialchars($gst_no); ?>">
+                                            </div>
+                                            <div class="col-md-6 col-lg-3">
+                                                <label class="form-label fs-8 text-muted mb-1">Udyam / Udyog Aadhaar</label>
+                                                <input type="text" name="udyam_no" class="form-control form-control-sm text-uppercase font-monospace" placeholder="UDYAM-BR-28-001234" value="<?php echo htmlspecialchars($udyam_no); ?>">
+                                            </div>
+                                            <div class="col-md-6 col-lg-3">
+                                                <label class="form-label fs-8 text-muted mb-1">CIN / Corp. Reg. No.</label>
+                                                <input type="text" name="cin_no" class="form-control form-control-sm text-uppercase font-monospace" placeholder="U72900BR2017PTC0" value="<?php echo htmlspecialchars($cin_no); ?>">
+                                            </div>
+                                            <div class="col-md-6 col-lg-3">
+                                                <label class="form-label fs-8 text-muted mb-1">Local Trade License No.</label>
+                                                <input type="text" name="local_reg_no" class="form-control form-control-sm" placeholder="License / Reg #12345" value="<?php echo htmlspecialchars($local_reg_no); ?>">
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <!-- Description -->

@@ -135,13 +135,22 @@ require_once __DIR__ . '/includes/header.php';
 
             <div class="col-lg-4 text-lg-end">
                 <div class="d-flex flex-column gap-2 justify-content-lg-end">
-                    <a href="tel:<?php echo sanitizeInput($listing['mobile']); ?>" class="btn btn-primary btn-lg rounded-pill fw-bold shadow">
-                        <i class="bi bi-telephone-fill me-2"></i>Call <?php echo sanitizeInput($listing['mobile']); ?>
-                    </a>
-                    <?php if (!empty($listing['whatsapp'])): ?>
-                        <a href="https://wa.me/91<?php echo sanitizeInput($listing['whatsapp']); ?>" target="_blank" class="btn btn-success btn-lg rounded-pill fw-bold shadow-sm">
-                            <i class="bi bi-whatsapp me-2"></i>WhatsApp Direct Message
+                    <?php if (isMobileNumberVisibleToVisitor($listing)): ?>
+                        <a href="tel:<?php echo sanitizeInput($listing['mobile']); ?>" class="btn btn-primary btn-lg rounded-pill fw-bold shadow">
+                            <i class="bi bi-telephone-fill me-2"></i>Call <?php echo sanitizeInput($listing['mobile']); ?>
                         </a>
+                        <?php if (!empty($listing['whatsapp'])): ?>
+                            <a href="https://wa.me/91<?php echo sanitizeInput($listing['whatsapp']); ?>" target="_blank" class="btn btn-success btn-lg rounded-pill fw-bold shadow-sm">
+                                <i class="bi bi-whatsapp me-2"></i>WhatsApp Direct Message
+                            </a>
+                        <?php endif; ?>
+                    <?php else: ?>
+                        <a href="login.php?redirect=<?php echo urlencode('profile.php?slug=' . $listing['slug']); ?>" class="btn btn-primary btn-lg rounded-pill fw-bold shadow" title="Log in to view full mobile number">
+                            <i class="bi bi-lock-fill me-2"></i>Call <?php echo sanitizeInput(maskPhoneNumber($listing['mobile'])); ?>
+                        </a>
+                        <small class="text-white-50 small mt-1">
+                            <i class="bi bi-info-circle me-1"></i>Mobile number is masked for guests. <a href="login.php" class="text-warning fw-bold text-decoration-underline">Log in</a> to view full number.
+                        </small>
                     <?php endif; ?>
                 </div>
             </div>
@@ -161,17 +170,72 @@ require_once __DIR__ . '/includes/header.php';
                         <?php echo sanitizeInput($listing['description']); ?>
                     </p>
 
-                    <?php if (!empty($listing['services'])): ?>
-                        <h5 class="fw-bold font-heading text-dark mt-4 mb-3">Services & Key Features</h5>
+                    <?php if (!empty($listing['services']) || !empty($listing['products'])): ?>
+                        <h5 class="fw-bold font-heading text-dark mt-4 mb-3">
+                            <i class="bi bi-box-seam-fill text-primary me-2"></i>Products, Services & Key Features
+                        </h5>
                         <div class="d-flex flex-wrap gap-2">
                             <?php 
-                            $servicesList = explode(',', $listing['services']);
-                            foreach ($servicesList as $srv): 
+                            if (!empty($listing['products'])):
+                                $productsList = explode(',', $listing['products']);
+                                foreach ($productsList as $prod): 
+                                    if (empty(trim($prod))) continue;
+                            ?>
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill font-body fw-medium" style="font-size: 0.9rem;">
+                                    <i class="bi bi-box-seam me-1"></i><?php echo sanitizeInput(trim($prod)); ?>
+                                </span>
+                            <?php 
+                                endforeach; 
+                            endif; 
+                            ?>
+
+                            <?php 
+                            if (!empty($listing['services'])):
+                                $servicesList = explode(',', $listing['services']);
+                                foreach ($servicesList as $srv): 
+                                    if (empty(trim($srv))) continue;
                             ?>
                                 <span class="badge bg-light text-dark border px-3 py-2 rounded-pill font-body fw-medium" style="font-size: 0.9rem;">
                                     <i class="bi bi-check-circle-fill text-success me-1"></i><?php echo sanitizeInput(trim($srv)); ?>
                                 </span>
-                            <?php endforeach; ?>
+                            <?php 
+                                endforeach; 
+                            endif; 
+                            ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (!empty($listing['gst_no']) || !empty($listing['udyam_no']) || !empty($listing['cin_no']) || !empty($listing['local_reg_no'])): ?>
+                        <div class="card border-0 bg-light rounded-4 p-4 mt-4 border border-secondary-subtle">
+                            <h5 class="fw-bold font-heading text-dark mb-3">
+                                <i class="bi bi-shield-check text-success me-2"></i>Business Registration & Legal Details
+                            </h5>
+                            <div class="row g-3">
+                                <?php if (!empty($listing['gst_no'])): ?>
+                                    <div class="col-sm-6">
+                                        <div class="small text-muted mb-1">GSTIN / GST Number</div>
+                                        <div class="fw-bold text-dark font-monospace"><i class="bi bi-patch-check-fill text-success me-1"></i><?php echo sanitizeInput($listing['gst_no']); ?></div>
+                                    </div>
+                                <?php endif; ?>
+                                <?php if (!empty($listing['udyam_no'])): ?>
+                                    <div class="col-sm-6">
+                                        <div class="small text-muted mb-1">Udyam / Udyog Aadhaar</div>
+                                        <div class="fw-bold text-dark font-monospace"><i class="bi bi-patch-check-fill text-success me-1"></i><?php echo sanitizeInput($listing['udyam_no']); ?></div>
+                                    </div>
+                                <?php endif; ?>
+                                <?php if (!empty($listing['cin_no'])): ?>
+                                    <div class="col-sm-6">
+                                        <div class="small text-muted mb-1">CIN / Corp. Registration</div>
+                                        <div class="fw-bold text-dark font-monospace"><i class="bi bi-building-check text-primary me-1"></i><?php echo sanitizeInput($listing['cin_no']); ?></div>
+                                    </div>
+                                <?php endif; ?>
+                                <?php if (!empty($listing['local_reg_no'])): ?>
+                                    <div class="col-sm-6">
+                                        <div class="small text-muted mb-1">Local License / Trade Reg.</div>
+                                        <div class="fw-bold text-dark"><i class="bi bi-award-fill text-warning me-1"></i><?php echo sanitizeInput($listing['local_reg_no']); ?></div>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     <?php endif; ?>
                 </div>

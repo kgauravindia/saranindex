@@ -193,11 +193,11 @@ $all_categories = getCategoriesList();
 
                     <div class="col-12 col-md-6">
                         <label for="category_id" class="form-label small fw-semibold">Profession Main Category</label>
-                        <select class="form-select" id="user_category_id" name="category_id" onchange="loadUserSubcategories(this.value)">
-                            <option value="">-- Select Main Category --</option>
+                        <select class="form-select" id="user_category_id" name="category_id">
+                            <option value="">-- Select Category --</option>
                             <?php foreach ($all_categories as $cat): ?>
-                                <option value="<?php echo $cat['id']; ?>" <?php echo (isset($user['category_id']) && $user['category_id'] == $cat['id']) ? 'selected' : ''; ?>>
-                                    <?php echo sanitizeInput($cat['name']); ?> <?php echo !empty($cat['hindi_name']) ? '('.sanitizeInput($cat['hindi_name']).')' : ''; ?>
+                                <option value="<?php echo $cat['id']; ?>" <?php echo ($user['category_id'] ?? '') == $cat['id'] ? 'selected' : ''; ?>>
+                                    <?php echo sanitizeInput($cat['name']); ?> (ID: #<?php echo $cat['id']; ?>) <?php echo !empty($cat['hindi_name']) ? '('.sanitizeInput($cat['hindi_name']).')' : ''; ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
@@ -208,7 +208,7 @@ $all_categories = getCategoriesList();
                         <select class="form-select" id="user_subcategory_id" name="subcategory_id">
                             <option value="">-- Select Sub-Category --</option>
                             <?php if (!empty($user['subcategory_id'])): ?>
-                                <option value="<?php echo $user['subcategory_id']; ?>" selected><?php echo sanitizeInput($user['subcategory_name'] ?? 'Current Sub-Category'); ?></option>
+                                <option value="<?php echo $user['subcategory_id']; ?>" selected><?php echo sanitizeInput($user['subcategory_name'] ?? 'Current Sub-Category'); ?> (ID: #<?php echo $user['subcategory_id']; ?>)</option>
                             <?php endif; ?>
                         </select>
                     </div>
@@ -406,7 +406,7 @@ function loadUserSubcategories(catId, selectedSubId = null) {
                 data.subcategories.forEach(sub => {
                     const opt = document.createElement('option');
                     opt.value = sub.id;
-                    opt.textContent = sub.name + (sub.hindi_name ? ' (' + sub.hindi_name + ')' : '');
+                    opt.textContent = sub.name + ' (ID: #' + sub.id + ')' + (sub.hindi_name ? ' (' + sub.hindi_name + ')' : '');
                     if (selectedSubId && sub.id == selectedSubId) {
                         opt.selected = true;
                     }

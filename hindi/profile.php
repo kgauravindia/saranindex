@@ -137,15 +137,24 @@ require_once __DIR__ . '/includes/header.php';
             </div>
 
             <div class="col-lg-4 text-lg-end">
-                <div class="d-flex gap-2 justify-content-lg-end">
-                    <?php if (!empty($listing['whatsapp'])): ?>
-                        <a href="https://wa.me/91<?php echo sanitizeInput($listing['whatsapp']); ?>" target="_blank" class="btn btn-success btn-lg rounded-pill px-4 fw-bold shadow">
-                            <i class="bi bi-whatsapp me-2"></i>व्हाट्सएप
+                <div class="d-flex flex-column gap-2 justify-content-lg-end">
+                    <?php if (isMobileNumberVisibleToVisitor($listing)): ?>
+                        <?php if (!empty($listing['whatsapp'])): ?>
+                            <a href="https://wa.me/91<?php echo sanitizeInput($listing['whatsapp']); ?>" target="_blank" class="btn btn-success btn-lg rounded-pill px-4 fw-bold shadow">
+                                <i class="bi bi-whatsapp me-2"></i>व्हाट्सएप
+                            </a>
+                        <?php endif; ?>
+                        <a href="tel:<?php echo sanitizeInput($listing['mobile']); ?>" class="btn btn-primary btn-lg rounded-pill px-4 fw-bold shadow">
+                            <i class="bi bi-telephone-fill me-2"></i>कॉल करें (<?php echo sanitizeInput($listing['mobile']); ?>)
                         </a>
+                    <?php else: ?>
+                        <a href="login.php?redirect=<?php echo urlencode('profile.php?slug=' . $listing['slug']); ?>" class="btn btn-primary btn-lg rounded-pill fw-bold shadow" title="पूरा नंबर देखने के लिए लॉग इन करें">
+                            <i class="bi bi-lock-fill me-2"></i>कॉल <?php echo sanitizeInput(maskPhoneNumber($listing['mobile'])); ?>
+                        </a>
+                        <small class="text-white-50 small mt-1">
+                            <i class="bi bi-info-circle me-1"></i>नंबर सार्वजनिक रूप से छुपाया गया है। पूरा नंबर देखने के लिए <a href="login.php" class="text-warning fw-bold text-decoration-underline">लॉग इन करें</a>।
+                        </small>
                     <?php endif; ?>
-                    <a href="tel:<?php echo sanitizeInput($listing['mobile']); ?>" class="btn btn-primary btn-lg rounded-pill px-4 fw-bold shadow">
-                        <i class="bi bi-telephone-fill me-2"></i>कॉल करें
-                    </a>
                 </div>
             </div>
         </div>

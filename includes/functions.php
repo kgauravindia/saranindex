@@ -622,9 +622,10 @@ function getAllAdminListings($status = null, $search = null) {
     $db = getDB();
     if ($db) {
         try {
-            $sql = "SELECT l.*, c.name as category_name, b.name as block_name 
+            $sql = "SELECT l.*, c.name as category_name, c.id as cat_id, sc.name as subcategory_name, sc.id as sub_cat_id, b.name as block_name 
                     FROM listings l 
                     LEFT JOIN categories c ON l.category_id = c.id 
+                    LEFT JOIN subcategories sc ON l.subcategory_id = sc.id 
                     LEFT JOIN blocks b ON l.block_id = b.id WHERE 1=1";
             $params = [];
 
@@ -663,6 +664,13 @@ function getListingById($id) {
 function updateListingStatus($id, $status) {
     $db = getDB();
     if ($db) {
+        if (strtoupper($status) === 'ACTIVE') {
+            $reason = '';
+            if (!isListingUserMobileActive($id, $reason)) {
+                error_log("updateListingStatus blocked for listing #{$id}: " . $reason);
+                return false;
+            }
+        }
         try {
             $stmt = $db->prepare("UPDATE listings SET status = :status WHERE id = :id");
             return $stmt->execute(['status' => $status, 'id' => $id]);
@@ -722,6 +730,7 @@ function saveListing($data, $id = null) {
         'slug' => $slug,
         'contact_person' => $data['contact_person'] ?? '',
         'mobile' => $data['mobile'] ?? '',
+        'mobile_visibility' => in_array(strtoupper($data['mobile_visibility'] ?? ''), ['HIDDEN', 'PRIVATE', 'HIDE', 'NO']) ? 'HIDDEN' : 'PUBLIC',
         'whatsapp' => $data['whatsapp'] ?? '',
         'email' => $data['email'] ?? '',
         'website' => $data['website'] ?? '',
@@ -730,6 +739,11 @@ function saveListing($data, $id = null) {
         'map_link' => $data['map_link'] ?? '',
         'business_hours' => $data['business_hours'] ?? '9:00 AM - 8:00 PM',
         'services' => $data['services'] ?? '',
+        'products' => $data['products'] ?? '',
+        'gst_no' => $data['gst_no'] ?? '',
+        'udyam_no' => $data['udyam_no'] ?? '',
+        'cin_no' => $data['cin_no'] ?? '',
+        'local_reg_no' => $data['local_reg_no'] ?? '',
         'description' => $data['description'] ?? '',
         'cover_image' => $data['cover_image'] ?? '',
         'is_verified' => $data['is_verified'] ?? 'NO',
@@ -738,6 +752,18 @@ function saveListing($data, $id = null) {
         'plan_type' => $data['plan_type'] ?? 'FREE',
         'plan_expires_at' => !empty($data['plan_expires_at']) ? $data['plan_expires_at'] : null
     ];
+
+    if (strtoupper($params['status']) === 'ACTIVE') {
+        $checkData = [
+            'id' => $id,
+            'user_id' => $data['user_id'] ?? null,
+            'mobile' => $data['mobile'] ?? ''
+        ];
+        $mobReason = '';
+        if (!isListingUserMobileActive($checkData, $mobReason)) {
+            $params['status'] = 'PENDING';
+        }
+    }
 
     try {
         if ($id) {
@@ -753,6 +779,7 @@ function saveListing($data, $id = null) {
                 slug = :slug,
                 contact_person = :contact_person,
                 mobile = :mobile,
+                mobile_visibility = :mobile_visibility,
                 whatsapp = :whatsapp,
                 email = :email,
                 website = :website,
@@ -761,6 +788,11 @@ function saveListing($data, $id = null) {
                 map_link = :map_link,
                 business_hours = :business_hours,
                 services = :services,
+                products = :products,
+                gst_no = :gst_no,
+                udyam_no = :udyam_no,
+                cin_no = :cin_no,
+                local_reg_no = :local_reg_no,
                 description = :description,
                 cover_image = :cover_image,
                 is_verified = :is_verified,
@@ -775,13 +807,13 @@ function saveListing($data, $id = null) {
         } else {
             $sql = "INSERT INTO listings (
                 entity_type, category_id, subcategory_id, block_id, panchayat_id, village_id,
-                title, hindi_title, slug, contact_person, mobile, whatsapp, email, website,
-                address, pincode, map_link, business_hours, services, description, cover_image,
+                title, hindi_title, slug, contact_person, mobile, mobile_visibility, whatsapp, email, website,
+                address, pincode, map_link, business_hours, services, products, gst_no, udyam_no, cin_no, local_reg_no, description, cover_image,
                 is_verified, is_featured, status, plan_type, plan_expires_at
             ) VALUES (
                 :entity_type, :category_id, :subcategory_id, :block_id, :panchayat_id, :village_id,
-                :title, :hindi_title, :slug, :contact_person, :mobile, :whatsapp, :email, :website,
-                :address, :pincode, :map_link, :business_hours, :services, :description, :cover_image,
+                :title, :hindi_title, :slug, :contact_person, :mobile, :mobile_visibility, :whatsapp, :email, :website,
+                :address, :pincode, :map_link, :business_hours, :services, :products, :gst_no, :udyam_no, :cin_no, :local_reg_no, :description, :cover_image,
                 :is_verified, :is_featured, :status, :plan_type, :plan_expires_at
             )";
             $stmt = $db->prepare($sql);
@@ -2212,6 +2244,83 @@ function getUserById($id) {
     return null;
 }
 
+function getUserByMobile($mobile) {
+    $db = getDB();
+    if ($db && !empty($mobile)) {
+        try {
+            $cleanMobile = preg_replace('/[^0-9]/', '', $mobile);
+            $m10 = (strlen($cleanMobile) >= 10) ? substr($cleanMobile, -10) : $cleanMobile;
+            if (!empty($m10)) {
+                $stmt = $db->prepare("SELECT u.*, b.name as block_name, c.name as category_name, c.hindi_name as category_hindi_name, sc.name as subcategory_name, sc.hindi_name as subcategory_hindi_name 
+                                      FROM users u 
+                                      LEFT JOIN blocks b ON u.block_id = b.id 
+                                      LEFT JOIN categories c ON u.category_id = c.id 
+                                      LEFT JOIN subcategories sc ON u.subcategory_id = sc.id 
+                                      WHERE u.mobile = :mob OR u.mobile = :m10 OR RIGHT(u.mobile, 10) = :m10 LIMIT 1");
+                $stmt->execute(['mob' => $mobile, 'm10' => $m10]);
+            } else {
+                $stmt = $db->prepare("SELECT u.*, b.name as block_name, c.name as category_name, c.hindi_name as category_hindi_name, sc.name as subcategory_name, sc.hindi_name as subcategory_hindi_name 
+                                      FROM users u 
+                                      LEFT JOIN blocks b ON u.block_id = b.id 
+                                      LEFT JOIN categories c ON u.category_id = c.id 
+                                      LEFT JOIN subcategories sc ON u.subcategory_id = sc.id 
+                                      WHERE u.mobile = :mob LIMIT 1");
+                $stmt->execute(['mob' => $mobile]);
+            }
+            $res = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($res) return $res;
+        } catch (PDOException $e) {
+            error_log("getUserByMobile error: " . $e->getMessage());
+        }
+    }
+    return null;
+}
+
+function isAdminLoggedIn() {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    return isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
+}
+
+function isListingUserMobileActive($listingIdOrData, &$reason = '') {
+    $listing = null;
+    if (is_array($listingIdOrData)) {
+        $listing = $listingIdOrData;
+    } else {
+        $listing = getListingById(intval($listingIdOrData));
+    }
+
+    if (!$listing) {
+        $reason = "Listing record not found.";
+        return false;
+    }
+
+    $user = null;
+    if (!empty($listing['user_id'])) {
+        $user = getUserById($listing['user_id']);
+    }
+    
+    if (!$user && !empty($listing['mobile'])) {
+        $user = getUserByMobile($listing['mobile']);
+    }
+
+    // If no registered user account is linked, this is an unregistered guest submission.
+    // Unregistered guest submissions are allowed and can be approved/published by Admin.
+    if (!$user) {
+        $reason = "Unregistered guest submission (no user account). Admin approval allowed.";
+        return true;
+    }
+
+    $userStatus = strtoupper($user['status'] ?? 'ACTIVE');
+    if ($userStatus === 'SUSPENDED' || $userStatus === 'INACTIVE') {
+        $reason = "The owner's user account (Mobile: " . htmlspecialchars($user['mobile'] ?? '') . ") is " . $userStatus . ". Listing cannot be approved until user account is ACTIVE.";
+        return false;
+    }
+
+    return true;
+}
+
 function saveUserFromAdmin($data, $id) {
     $db = getDB();
     if (!$db || empty($id)) return false;
@@ -2555,6 +2664,120 @@ function getCategoriesList() {
         return [];
     }
 }
+
+function formatListingLocation($item, $lang = 'en') {
+    $parts = [];
+    if (!empty($item['address'])) {
+        $parts[] = trim($item['address']);
+    }
+    if (!empty($item['block_name'])) {
+        $parts[] = trim($item['block_name']);
+    }
+    if ($lang === 'hi') {
+        $parts[] = 'सारण';
+        $parts[] = 'बिहार';
+    } else {
+        $parts[] = 'Saran';
+        $parts[] = 'Bihar';
+    }
+    return implode(', ', $parts);
+}
+
+function isMobileNumberVisibleToVisitor($listing) {
+    // Registered logged-in users can always see the numbers after login
+    if (isUserLoggedIn()) {
+        return true;
+    }
+
+    // Default visibility is REGISTERED (means not public for guests)
+    $vis = strtoupper($listing['mobile_visibility'] ?? 'REGISTERED');
+    if ($vis !== 'PUBLIC') {
+        return false;
+    }
+
+    // If mobile status is UNVERIFIED, hide for public guests
+    if (isset($listing['mobile_status']) && strtoupper($listing['mobile_status']) === 'UNVERIFIED') {
+        return false;
+    }
+
+    return true;
+}
+
+function isEmailVisibleToVisitor($listing) {
+    // Registered logged-in users can always see emails after login
+    if (isUserLoggedIn()) {
+        return true;
+    }
+
+    // Default visibility is REGISTERED (means not public for guests)
+    $vis = strtoupper($listing['email_visibility'] ?? 'REGISTERED');
+    if ($vis !== 'PUBLIC') {
+        return false;
+    }
+
+    return true;
+}
+
+function maskPhoneNumber($mobile) {
+    $clean = preg_replace('/[^0-9]/', '', $mobile);
+    if (strlen($clean) >= 10) {
+        return substr($clean, 0, 5) . '*****';
+    }
+    if (strlen($clean) > 3) {
+        return substr($clean, 0, 3) . '***';
+    }
+    return '******';
+}
+
+function maskEmailAddress($email) {
+    if (empty($email)) return '';
+    $parts = explode('@', $email);
+    if (count($parts) < 2) return '*****@*****';
+    $name = $parts[0];
+    $domain = $parts[1];
+    $maskedName = strlen($name) > 2 ? substr($name, 0, 2) . '*****' : '*****';
+    return $maskedName . '@' . $domain;
+}
+
+function checkDuplicateListing($title, $mobile, $excludeId = null) {
+    $db = getDB();
+    if (!$db) return null;
+
+    $cleanTitle = trim(preg_replace('/\s+/', ' ', $title));
+    $cleanMobile = trim(preg_replace('/[^0-9]/', '', $mobile));
+
+    if (empty($cleanTitle) || empty($cleanMobile)) {
+        return null;
+    }
+
+    $sql = "SELECT id, title, mobile, status, slug FROM listings 
+            WHERE LOWER(TRIM(title)) = LOWER(:title) 
+            AND (RIGHT(mobile, 10) = RIGHT(:mobile, 10) OR mobile = :raw_mobile)";
+    $params = [
+        'title' => $cleanTitle,
+        'mobile' => $cleanMobile,
+        'raw_mobile' => trim($mobile)
+    ];
+
+    if (!empty($excludeId)) {
+        $sql .= " AND id != :exclude_id";
+        $params['exclude_id'] = intval($excludeId);
+    }
+
+    $sql .= " LIMIT 1";
+
+    try {
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        $res = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $res ? $res : null;
+    } catch (PDOException $e) {
+        error_log("checkDuplicateListing error: " . $e->getMessage());
+        return null;
+    }
+}
+
+
 
 
 

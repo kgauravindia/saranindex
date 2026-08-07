@@ -221,7 +221,7 @@ $blocks = getBlocks();
                             </h3>
 
                             <div class="text-muted small mb-2">
-                                <i class="bi bi-geo-alt me-1 text-primary"></i><?php echo sanitizeInput($item['address']); ?>
+                                <i class="bi bi-geo-alt me-1 text-primary"></i><?php echo sanitizeInput(formatListingLocation($item, 'hi')); ?>
                             </div>
 
                             <?php if (!empty($item['description'])): ?>
@@ -236,14 +236,20 @@ $blocks = getBlocks();
                                 <?php echo renderStarRating($item['star_rating']); ?>
                             </div>
                             <div class="d-flex gap-2 w-100-mobile">
-                                <?php if (!empty($item['whatsapp'])): ?>
-                                    <a href="https://wa.me/91<?php echo sanitizeInput($item['whatsapp']); ?>" target="_blank" class="btn btn-sm btn-success rounded-pill px-3 py-1.5 flex-grow-1 flex-md-grow-0">
-                                        <i class="bi bi-whatsapp me-1"></i> व्हाट्सएप
+                                <?php if (isMobileNumberVisibleToVisitor($item)): ?>
+                                    <?php if (!empty($item['whatsapp'])): ?>
+                                        <a href="https://wa.me/91<?php echo sanitizeInput($item['whatsapp']); ?>" target="_blank" class="btn btn-sm btn-success rounded-pill px-3 py-1.5 flex-grow-1 flex-md-grow-0">
+                                            <i class="bi bi-whatsapp me-1"></i> व्हाट्सएप
+                                        </a>
+                                    <?php endif; ?>
+                                    <a href="tel:<?php echo sanitizeInput($item['mobile']); ?>" class="btn btn-sm btn-primary rounded-pill px-3 py-1.5 flex-grow-1 flex-md-grow-0">
+                                        <i class="bi bi-telephone-fill me-1"></i> कॉल करें
+                                    </a>
+                                <?php else: ?>
+                                    <a href="login.php?redirect=<?php echo urlencode('listing/' . $item['slug']); ?>" class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1.5 flex-grow-1 flex-md-grow-0 text-dark fw-semibold" title="पूरा नंबर देखने के लिए लॉग इन करें">
+                                        <i class="bi bi-lock-fill text-warning me-1"></i><?php echo sanitizeInput(maskPhoneNumber($item['mobile'])); ?>
                                     </a>
                                 <?php endif; ?>
-                                <a href="tel:<?php echo sanitizeInput($item['mobile']); ?>" class="btn btn-sm btn-primary rounded-pill px-3 py-1.5 flex-grow-1 flex-md-grow-0">
-                                    <i class="bi bi-telephone-fill me-1"></i> कॉल करें
-                                </a>
                             </div>
                         </div>
                     </div>

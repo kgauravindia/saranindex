@@ -37,12 +37,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($db) {
             try {
                 $base_slug = slugify($title);
-                $slug = $base_slug;
-                $stmtCheck = $db->prepare("SELECT id FROM listings WHERE slug = :slug LIMIT 1");
-                $stmtCheck->execute(['slug' => $slug]);
-                if ($stmtCheck->fetch()) {
-                    $slug = $base_slug . '-' . rand(100, 999);
-                }
+                // Duplicate Entry Validation (Title + Mobile)
+                $duplicate = checkDuplicateListing($title, $mobile);
+                if ($duplicate) {
+                    $error_msg = "Duplicate Listing Detected: A listing with the title '" . htmlspecialchars($title) . "' and mobile number '" . htmlspecialchars($mobile) . "' already exists in the directory (Listing ID #" . $duplicate['id'] . ").";
+                } else {
+                    $slug = $base_slug;
+                    $stmtCheck = $db->prepare("SELECT id FROM listings WHERE slug = :slug LIMIT 1");
+                    $stmtCheck->execute(['slug' => $slug]);
+                    if ($stmtCheck->fetch()) {
+                        $slug = $base_slug . '-' . rand(100, 999);
+                    }
                 
                 // Fetch Mauja details if selected
                 $village_id_val = 0;
@@ -71,7 +76,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $is_verified_val = ($plan_type === 'PLATINUM' || $plan_type === 'GOLD') ? 'YES' : 'NO';
                 $plan_expires_val = ($plan_type !== 'FREE') ? date('Y-m-d H:i:s', strtotime('+1 year')) : null;
 
-                $stmt = $db->prepare("INSERT INTO listings (user_id, category_id, subcategory_id, block_id, village_id, title, hindi_title, slug, contact_person, mobile, whatsapp, email, address, pincode, services, description, plan_type, plan_expires_at, is_featured, is_verified, status) VALUES (:uid, :cat, :sub, :blk, :vid, :title, :htitle, :slug, :cp, :mob, :wa, :email, :addr, :pin, :srv, :desc, :plan, :plan_exp, :feat, :ver, 'ACTIVE')");
+                $is_unregistered_submission = false;
+                $initial_status = 'PENDING';
+                if (!empty($currentUser)) {
+                    $checkData = ['user_id' => $currentUser['id'], 'mobile' => $mobile];
+                    if (isListingUserMobileActive($checkData)) {
+                        $initial_status = 'ACTIVE';
+                    }
+                } else {
+                    $is_unregistered_submission = true;
+                    $initial_status = 'PENDING';
+                }
+
+                $stmt = $db->prepare("INSERT INTO listings (user_id, category_id, subcategory_id, block_id, village_id, title, hindi_title, slug, contact_person, mobile, whatsapp, email, address, pincode, services, description, plan_type, plan_expires_at, is_featured, is_verified, status) VALUES (:uid, :cat, :sub, :blk, :vid, :title, :htitle, :slug, :cp, :mob, :wa, :email, :addr, :pin, :srv, :desc, :plan, :plan_exp, :feat, :ver, :status)");
                 $stmt->execute([
                     'uid' => $currentUser['id'] ?? null,
                     'cat' => $category_id,
@@ -92,9 +109,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'plan' => $plan_type,
                     'plan_exp' => $plan_expires_val,
                     'feat' => $is_featured_val,
-                    'ver' => $is_verified_val
+                    'ver' => $is_verified_val,
+                    'status' => $initial_status
                 ]);
+                $submitted_title = $title;
                 $success_msg = true;
+                } // End if (!$duplicate)
             } catch (PDOException $e) {
                 error_log("Listing insert failed: " . $e->getMessage());
                 $error_msg = "Database error while creating listing: " . $e->getMessage();
@@ -154,11 +174,28 @@ require_once __DIR__ . '/includes/header.php';
                         </div>
                         <div class="flex-grow-1">
                             <h5 class="fw-bold text-success mb-1">Listing Submitted Successfully!</h5>
-                            <p class="text-secondary small mb-3">Thank you for adding your entity on <strong>Saran Index</strong>. Your listing has been created and will be reviewed by our moderation team shortly.</p>
-                            <div class="d-flex gap-2 flex-wrap">
-                                <a href="dashboard.php" class="btn btn-sm btn-success rounded-pill px-3 fw-bold"><i class="bi bi-speedometer2 me-1"></i> Go to Dashboard</a>
-                                <a href="add-contact.php" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold"><i class="bi bi-plus-lg me-1"></i> Add Another Listing</a>
-                            </div>
+                            <?php if (!empty($is_unregistered_submission)): ?>
+                                <p class="text-secondary small mb-3">
+                                    Thank you for submitting <strong><?php echo sanitizeInput($submitted_title ?? 'your listing'); ?></strong> on <strong>Saran Index</strong>.
+                                    <br>
+                                    <span class="badge bg-warning text-dark mt-2 mb-1 px-3 py-1.5 rounded-pill fs-7 fw-bold shadow-xs">
+                                        <i class="bi bi-hourglass-split me-1"></i> Pending Admin Approval
+                                    </span>
+                                    <br>
+                                    Since you are not registered or logged in, your listing has been queued and will be published live once reviewed and approved by our admin team.
+                                </p>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <a href="register.php" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold"><i class="bi bi-person-plus me-1"></i> Register Free Account</a>
+                                    <a href="login.php" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold"><i class="bi bi-box-arrow-in-right me-1"></i> Login</a>
+                                    <a href="add-contact.php" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold"><i class="bi bi-plus-lg me-1"></i> Add Another Listing</a>
+                                </div>
+                            <?php else: ?>
+                                <p class="text-secondary small mb-3">Thank you for adding your entity on <strong>Saran Index</strong>. Your listing has been created!</p>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <a href="dashboard.php" class="btn btn-sm btn-success rounded-pill px-3 fw-bold"><i class="bi bi-speedometer2 me-1"></i> Go to Dashboard</a>
+                                    <a href="add-contact.php" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold"><i class="bi bi-plus-lg me-1"></i> Add Another Listing</a>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>

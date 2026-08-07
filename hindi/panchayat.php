@@ -75,7 +75,7 @@ require_once __DIR__ . '/includes/header.php';
                         <?php endif; ?>
 
                         <div class="text-muted small mb-3">
-                            <i class="bi bi-geo-alt me-1 text-primary"></i><?php echo sanitizeInput($item['address']); ?>
+                            <i class="bi bi-geo-alt me-1 text-primary"></i><?php echo sanitizeInput(formatListingLocation($item, 'hi')); ?>
                         </div>
 
                         <p class="small text-secondary mb-3" style="line-height: 1.5;">

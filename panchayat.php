@@ -60,7 +60,7 @@ require_once __DIR__ . '/includes/header.php';
                             </a>
                         </h4>
                         <div class="text-muted small mb-3">
-                            <i class="bi bi-geo-alt me-1 text-primary"></i><?php echo sanitizeInput($item['address']); ?>
+                            <i class="bi bi-geo-alt me-1 text-primary"></i><?php echo sanitizeInput(formatListingLocation($item)); ?>
                         </div>
                     </div>
 

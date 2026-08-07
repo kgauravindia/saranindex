@@ -69,7 +69,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $is_verified_val = ($plan_type === 'PLATINUM' || $plan_type === 'GOLD') ? 'YES' : 'NO';
                 $plan_expires_val = ($plan_type !== 'FREE') ? date('Y-m-d H:i:s', strtotime('+1 year')) : null;
 
-                $stmt = $db->prepare("INSERT INTO listings (user_id, category_id, subcategory_id, block_id, village_id, title, hindi_title, slug, contact_person, mobile, whatsapp, email, address, pincode, services, description, plan_type, plan_expires_at, is_featured, is_verified, status) VALUES (:uid, :cat, :sub, :blk, :vid, :title, :htitle, :slug, :cp, :mob, :wa, :email, :addr, :pin, :srv, :desc, :plan, :plan_exp, :feat, :ver, 'ACTIVE')");
+                $is_unregistered_submission = false;
+                $initial_status = 'PENDING';
+                if (!empty($currentUser)) {
+                    $checkData = ['user_id' => $currentUser['id'], 'mobile' => $mobile];
+                    if (isListingUserMobileActive($checkData)) {
+                        $initial_status = 'ACTIVE';
+                    }
+                } else {
+                    $is_unregistered_submission = true;
+                    $initial_status = 'PENDING';
+                }
+
+                $stmt = $db->prepare("INSERT INTO listings (user_id, category_id, subcategory_id, block_id, village_id, title, hindi_title, slug, contact_person, mobile, whatsapp, email, address, pincode, services, description, plan_type, plan_expires_at, is_featured, is_verified, status) VALUES (:uid, :cat, :sub, :blk, :vid, :title, :htitle, :slug, :cp, :mob, :wa, :email, :addr, :pin, :srv, :desc, :plan, :plan_exp, :feat, :ver, :status)");
                 $stmt->execute([
                     'uid' => $currentUser['id'] ?? null,
                     'cat' => $category_id,
@@ -90,8 +102,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'plan' => $plan_type,
                     'plan_exp' => $plan_expires_val,
                     'feat' => $is_featured_val,
-                    'ver' => $is_verified_val
+                    'ver' => $is_verified_val,
+                    'status' => $initial_status
                 ]);
+                $submitted_title = !empty($hindi_title) ? $hindi_title : $title;
                 $success_msg = true;
             } catch (PDOException $e) {
                 error_log("Listing insert failed: " . $e->getMessage());
@@ -155,11 +169,28 @@ require_once __DIR__ . '/includes/header.php';
                         </div>
                         <div class="flex-grow-1">
                             <h5 class="fw-bold text-success mb-1">लिस्टिंग सफलतापूर्वक दर्ज हो गई!</h5>
-                            <p class="text-secondary small mb-3"><strong>सारण इंडेक्स</strong> पर अपनी जानकारी जोड़ने के लिए धन्यवाद। आपकी लिस्टिंग बना दी गई है और जल्द ही प्रकाशित कर दी जाएगी।</p>
-                            <div class="d-flex gap-2 flex-wrap">
-                                <a href="dashboard.php" class="btn btn-sm btn-success rounded-pill px-3 fw-bold"><i class="bi bi-speedometer2 me-1"></i> डैशबोर्ड पर जाएं</a>
-                                <a href="add-contact.php" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold"><i class="bi bi-plus-lg me-1"></i> दूसरी लिस्टिंग जोड़ें</a>
-                            </div>
+                            <?php if (!empty($is_unregistered_submission)): ?>
+                                <p class="text-secondary small mb-3">
+                                    <strong>सारण इंडेक्स</strong> पर <strong><?php echo sanitizeInput($submitted_title ?? 'आपकी जानकारी'); ?></strong> जोड़ने के लिए धन्यवाद।
+                                    <br>
+                                    <span class="badge bg-warning text-dark mt-2 mb-1 px-3 py-1.5 rounded-pill fs-7 fw-bold shadow-xs">
+                                        <i class="bi bi-hourglass-split me-1"></i> एडमिन स्वीकृति के लिए लंबित (Pending Admin Approval)
+                                    </span>
+                                    <br>
+                                    चूंकि आप पंजीकृत या लॉगिन नहीं हैं, आपकी लिस्टिंग दर्ज कर ली गई है और एडमिन द्वारा समीक्षा एवं स्वीकृति के पश्चात लाइव प्रकाशित कर दी जाएगी।
+                                </p>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <a href="register.php" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold"><i class="bi bi-person-plus me-1"></i> नया अकाउंट बनाएं</a>
+                                    <a href="login.php" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold"><i class="bi bi-box-arrow-in-right me-1"></i> लॉगिन करें</a>
+                                    <a href="add-contact.php" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold"><i class="bi bi-plus-lg me-1"></i> दूसरी लिस्टिंग जोड़ें</a>
+                                </div>
+                            <?php else: ?>
+                                <p class="text-secondary small mb-3"><strong>सारण इंडेक्स</strong> पर आपकी जानकारी सफलतापूर्वक दर्ज कर दी गई है।</p>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <a href="dashboard.php" class="btn btn-sm btn-success rounded-pill px-3 fw-bold"><i class="bi bi-speedometer2 me-1"></i> डैशबोर्ड पर जाएं</a>
+                                    <a href="add-contact.php" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold"><i class="bi bi-plus-lg me-1"></i> दूसरी लिस्टिंग जोड़ें</a>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>

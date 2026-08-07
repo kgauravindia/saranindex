@@ -11,8 +11,15 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     $target_id = intval($_GET['id']);
 
     if ($action === 'approve') {
-        if (updateListingStatus($target_id, 'ACTIVE')) {
+        $reason = '';
+        if (!isListingUserMobileActive($target_id, $reason)) {
+            $msg = "Cannot approve Listing #{$target_id}: " . $reason;
+            $msg_type = "danger";
+        } elseif (updateListingStatus($target_id, 'ACTIVE')) {
             $msg = "Listing #{$target_id} approved successfully!";
+        } else {
+            $msg = "Failed to approve Listing #{$target_id}.";
+            $msg_type = "danger";
         }
     } elseif ($action === 'reject') {
         if (updateListingStatus($target_id, 'REJECTED')) {
@@ -132,7 +139,16 @@ $listings = getAllAdminListings($status_filter, $search_query);
                                 <?php if (!empty($item['hindi_title'])): ?>
                                     <div class="small text-muted mb-1"><?php echo sanitizeInput($item['hindi_title']); ?></div>
                                 <?php endif; ?>
-                                <span class="badge bg-light text-secondary border small"><?php echo sanitizeInput($item['category_name'] ?? 'General'); ?></span>
+                                <div class="d-flex flex-wrap gap-1 mt-1">
+                                    <span class="badge bg-light text-secondary border small" title="Category ID: #<?php echo $item['category_id']; ?>">
+                                        <i class="bi bi-folder me-1"></i>Cat #<?php echo $item['category_id']; ?>: <?php echo sanitizeInput($item['category_name'] ?? 'General'); ?>
+                                    </span>
+                                    <?php if (!empty($item['subcategory_name'])): ?>
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle small" title="Subcategory ID: #<?php echo $item['subcategory_id']; ?>">
+                                            <i class="bi bi-diagram-3 me-1"></i>Sub #<?php echo $item['subcategory_id']; ?>: <?php echo sanitizeInput($item['subcategory_name']); ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
                             </td>
                             <td>
                                 <div class="small fw-semibold text-dark"><i class="bi bi-geo-alt text-primary me-1"></i><?php echo sanitizeInput($item['block_name'] ?? 'Chapra Sadar'); ?></div>
@@ -144,10 +160,20 @@ $listings = getAllAdminListings($status_filter, $search_query);
                             <td>
                                 <?php 
                                     $st = strtoupper($item['status'] ?? 'ACTIVE');
+                                    $mob_reason = '';
+                                    $is_mob_active = isListingUserMobileActive($item, $mob_reason);
                                     if ($st === 'ACTIVE') {
                                         echo '<span class="badge badge-status-active"><i class="bi bi-check-circle me-1"></i>Active</span>';
+                                        if (empty($item['user_id'])) {
+                                            echo '<div class="mt-1"><span class="badge bg-light text-secondary border small"><i class="bi bi-person-slash me-1"></i>Unregistered Entry</span></div>';
+                                        }
                                     } elseif ($st === 'PENDING') {
                                         echo '<span class="badge badge-status-pending"><i class="bi bi-clock me-1"></i>Pending</span>';
+                                        if (empty($item['user_id'])) {
+                                            echo '<div class="mt-1"><span class="badge bg-info text-dark small" title="Submitted by an unregistered guest user. Can be approved by Admin."><i class="bi bi-person-exclamation me-1"></i>Guest Submission</span></div>';
+                                        } elseif (!$is_mob_active) {
+                                            echo '<div class="mt-1"><span class="badge bg-warning text-dark small" title="' . htmlspecialchars($mob_reason) . '"><i class="bi bi-exclamation-triangle-fill me-1"></i>Mobile Unverified</span></div>';
+                                        }
                                     } else {
                                         echo '<span class="badge badge-status-rejected"><i class="bi bi-x-circle me-1"></i>Rejected</span>';
                                     }
