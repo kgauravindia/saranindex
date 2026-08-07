@@ -723,3 +723,19 @@ ON DUPLICATE KEY UPDATE
     `hindi_name`  = VALUES(`hindi_name`),
     `slug`        = VALUES(`slug`),
     `type`        = VALUES(`type`);
+
+-- Additional subcategories for Politicians (#260-#266) | Added: 2026-08-07
+INSERT INTO `subcategories` (`id`, `category_id`, `name`, `hindi_name`, `slug`, `type`) VALUES
+(260, 30, 'Nagar Nigam Ward',          'नगर निगम वार्ड',         'nagar-nigam-ward',          'PROFESSIONAL'),
+(261, 30, 'Chairman',                  'अध्यक्ष',                  'chairman',                  'PROFESSIONAL'),
+(262, 30, 'Vice Chairman',             'उपाध्यक्ष',                'vice-chairman',             'PROFESSIONAL'),
+(263, 30, 'Jila Parishad Adhyaksh',   'जिला परिषद अध्यक्ष',      'jila-parishad-adhyaksh',    'PROFESSIONAL'),
+(264, 30, 'Jila Parishad Upadhyaksh', 'जिला परिषद उपाध्यक्ष',    'jila-parishad-upadhyaksh',  'PROFESSIONAL'),
+(265, 30, 'Pramukh',                  'प्रमुख',                   'pramukh',                   'PROFESSIONAL'),
+(266, 30, 'Up Pramukh',               'उप प्रमुख',                'up-pramukh',                'PROFESSIONAL')
+ON DUPLICATE KEY UPDATE
+    `category_id` = VALUES(`category_id`),
+    `name`        = VALUES(`name`),
+    `hindi_name`  = VALUES(`hindi_name`),
+    `slug`        = VALUES(`slug`),
+    `type`        = VALUES(`type`);
