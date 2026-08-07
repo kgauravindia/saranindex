@@ -164,7 +164,7 @@ function getCategories() {
     $db = getDB();
     if ($db) {
         try {
-            $stmt = $db->query("SELECT * FROM categories WHERE status='ACTIVE' ORDER BY id ASC");
+            $stmt = $db->query("SELECT * FROM categories WHERE status='ACTIVE' ORDER BY name ASC");
             $results = $stmt->fetchAll();
             if ($results) return $results;
         } catch (PDOException $e) {}
