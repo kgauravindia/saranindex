@@ -687,3 +687,39 @@ CREATE TABLE IF NOT EXISTS `lgd_village` (
     `census_2011_code` VARCHAR(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ============================================================
+-- SEED: Politicians & Public Representatives Category (#30)
+-- Added: 2026-08-07 | Does not modify existing IDs
+-- ============================================================
+
+INSERT INTO `categories` (`id`, `name`, `hindi_name`, `icon`, `slug`, `section`, `status`)
+VALUES (30, 'Politicians & Public Representatives', 'नेता एवं जनप्रतिनिधि', 'bi-person-badge-fill', 'politicians-public-representatives', 'GOVT', 'ACTIVE')
+ON DUPLICATE KEY UPDATE
+    `name`       = VALUES(`name`),
+    `hindi_name` = VALUES(`hindi_name`),
+    `icon`       = VALUES(`icon`),
+    `slug`       = VALUES(`slug`);
+
+INSERT INTO `subcategories` (`id`, `category_id`, `name`, `hindi_name`, `slug`, `type`) VALUES
+(244, 30, 'Ward Member',              'वार्ड सदस्य',             'ward-member',              'PROFESSIONAL'),
+(245, 30, 'Panch',                    'पंच',                      'panch',                    'PROFESSIONAL'),
+(246, 30, 'Mukhiya',                  'मुखिया',                   'mukhiya',                  'PROFESSIONAL'),
+(247, 30, 'Sarpanch',                 'सरपंच',                    'sarpanch',                 'PROFESSIONAL'),
+(248, 30, 'Panchayat Samiti Member',  'पंचायत समिति सदस्य',      'panchayat-samiti-member',  'PROFESSIONAL'),
+(249, 30, 'Jila Parishad Member',     'जिला परिषद सदस्य',        'jila-parishad-member',     'PROFESSIONAL'),
+(250, 30, 'Nagar Panchayat Ward',     'नगर पंचायत वार्ड',         'nagar-panchayat-ward',     'PROFESSIONAL'),
+(251, 30, 'Nagar Parishad Ward',      'नगर परिषद वार्ड',           'nagar-parishad-ward',      'PROFESSIONAL'),
+(252, 30, 'MLA',                      'विधायक',                    'mla',                      'PROFESSIONAL'),
+(253, 30, 'MLC',                      'विधान पार्षद',              'mlc',                      'PROFESSIONAL'),
+(254, 30, 'MP (Lok Sabha)',           'सांसद (लोक सभा)',           'mp-lok-sabha',             'PROFESSIONAL'),
+(255, 30, 'MP (Rajya Sabha)',         'सांसद (राज्य सभा)',         'mp-rajya-sabha',           'PROFESSIONAL'),
+(256, 30, 'Minister (State)',         'मंत्री (राज्य)',             'minister-state',           'PROFESSIONAL'),
+(257, 30, 'Minister (Central)',       'मंत्री (केंद्र)',             'minister-central',         'PROFESSIONAL'),
+(258, 30, 'Ex-Politician',            'पूर्व नेता',                 'ex-politician',            'PROFESSIONAL'),
+(259, 30, 'Political Party Office',   'राजनीतिक दल कार्यालय',     'political-party-office',   'BUSINESS')
+ON DUPLICATE KEY UPDATE
+    `category_id` = VALUES(`category_id`),
+    `name`        = VALUES(`name`),
+    `hindi_name`  = VALUES(`hindi_name`),
+    `slug`        = VALUES(`slug`),
+    `type`        = VALUES(`type`);
