@@ -33,7 +33,7 @@ if ($export_action === 'selected' && !empty($selected_ids)) {
         $sql = "SELECT l.*, 
                        c.name AS category_name, 
                        sc.name AS subcategory_name, 
-                       COALESCE(b.block_name, b.name) AS block_name,
+                       b.name AS block_name,
                        p.panchayat_name AS panchayat_name,
                        v.village_name AS village_name
                 FROM listings l 
@@ -45,7 +45,7 @@ if ($export_action === 'selected' && !empty($selected_ids)) {
                 WHERE l.id IN ($placeholders)
                 ORDER BY l.id DESC";
         $stmt = $db->prepare($sql);
-        $stmt->execute($ids);
+        $stmt->execute(array_values($ids));
         $listings = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 } else {
@@ -53,7 +53,7 @@ if ($export_action === 'selected' && !empty($selected_ids)) {
     $sql = "SELECT l.*, 
                    c.name AS category_name, 
                    sc.name AS subcategory_name, 
-                   COALESCE(b.block_name, b.name) AS block_name,
+                   b.name AS block_name,
                    p.panchayat_name AS panchayat_name,
                    v.village_name AS village_name
             FROM listings l 
