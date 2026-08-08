@@ -80,6 +80,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
 }
 
+// Increment listing view count
+incrementViewCount($listing['id']);
+$listing['view_count'] = ($listing['view_count'] ?? 0) + 1;
+
 $user_claim = hasUserClaimedListing($listing['id'], isUserLoggedIn() ? getLoggedInUser()['id'] : null, isUserLoggedIn() ? getLoggedInUser()['mobile'] : null);
 
 $reviews = getReviewsByListingId($listing['id']);
@@ -133,6 +137,8 @@ require_once __DIR__ . '/includes/header.php';
                     <div><i class="bi bi-geo-alt me-1 text-primary"></i><?php echo sanitizeInput($listing['address']); ?></div>
                     <div>•</div>
                     <div><i class="bi bi-building me-1 text-warning"></i>प्रखंड: <?php echo sanitizeInput($listing['block_name']); ?></div>
+                    <div>•</div>
+                    <div><i class="bi bi-eye-fill text-info me-1"></i><?php echo number_format($listing['view_count']); ?> व्यूज़</div>
                 </div>
             </div>
 

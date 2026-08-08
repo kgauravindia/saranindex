@@ -81,6 +81,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
 }
 
+// Increment listing view count
+incrementViewCount($listing['id']);
+// Re-fetch to get updated view_count
+$listing['view_count'] = ($listing['view_count'] ?? 0) + 1;
+
 $user_claim = hasUserClaimedListing($listing['id'], isUserLoggedIn() ? getLoggedInUser()['id'] : null, isUserLoggedIn() ? getLoggedInUser()['mobile'] : null);
 
 $reviews = getReviewsByListingId($listing['id']);
@@ -130,6 +135,7 @@ require_once __DIR__ . '/includes/header.php';
                 <div class="d-flex align-items-center gap-3 text-white-50 flex-wrap">
                     <div><i class="bi bi-geo-alt text-warning me-1"></i><?php echo sanitizeInput($listing['block_name']); ?>, Saran District</div>
                     <div><i class="bi bi-star-fill text-warning me-1"></i><?php echo number_format($listing['star_rating'], 1); ?> Rating</div>
+                    <div><i class="bi bi-eye-fill text-info me-1"></i><?php echo number_format($listing['view_count']); ?> Views</div>
                 </div>
             </div>
 

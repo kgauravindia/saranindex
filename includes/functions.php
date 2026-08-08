@@ -249,6 +249,17 @@ function getListingBySlug($slug) {
     return null;
 }
 
+function incrementViewCount($listing_id) {
+    $db = getDB();
+    if ($db && $listing_id) {
+        try {
+            $stmt = $db->prepare("UPDATE listings SET view_count = view_count + 1 WHERE id = :id");
+            $stmt->execute(['id' => $listing_id]);
+        } catch (PDOException $e) {}
+    }
+}
+
+
 function renderStarRating($rating) {
     $rating = floatval($rating);
     $full = floor($rating);
