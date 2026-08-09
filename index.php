@@ -28,7 +28,7 @@ $listings = getListings('', '', '', 6, 0);
 
         <!-- Search Bar Component -->
         <div class="row justify-content-center">
-            <div class="col-lg-9 col-md-11">
+            <div class="col-lg-9 col-md-11 position-relative">
                 <form action="search.php" method="GET" class="search-card d-flex align-items-center gap-2">
                     <button type="button" class="btn mic-btn flex-shrink-0" id="micButton" title="Voice Search">
                         <i class="bi bi-mic-fill fs-5"></i>
@@ -48,7 +48,7 @@ $listings = getListings('', '', '', 6, 0);
                 </form>
                 
                 <!-- Live Autocomplete Suggest Container -->
-                <div id="autocomplete_results" class="position-absolute w-100 text-start z-3" style="max-width: 780px; display: none;"></div>
+                <div id="autocomplete_results" class="position-absolute start-0 end-0 text-start z-3 px-3" style="display: none; top: 100%; margin-top: 6px;"></div>
             </div>
         </div>
     </div>

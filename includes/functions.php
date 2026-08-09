@@ -195,7 +195,23 @@ function getAllSubcategories() {
     $db = getDB();
     if ($db) {
         try {
-            $stmt = $db->query("SELECT s.*, c.name as category_name FROM subcategories s LEFT JOIN categories c ON s.category_id = c.id ORDER BY c.name ASC, CASE WHEN s.type = 'PROFESSIONAL' THEN 1 ELSE 2 END ASC, s.name ASC");
+            $stmt = $db->query("SELECT s.*, c.name as category_name, c.slug as category_slug FROM subcategories s LEFT JOIN categories c ON s.category_id = c.id ORDER BY c.name ASC, CASE WHEN s.type = 'PROFESSIONAL' THEN 1 ELSE 2 END ASC, s.name ASC");
+            return $stmt->fetchAll();
+        } catch (PDOException $e) {}
+    }
+    return [];
+}
+
+function getSubcategoriesByCategorySlug($category_slug = '') {
+    $db = getDB();
+    if ($db) {
+        try {
+            if (!empty($category_slug)) {
+                $stmt = $db->prepare("SELECT s.*, c.slug as category_slug, c.name as category_name FROM subcategories s JOIN categories c ON s.category_id = c.id WHERE c.slug = :cat_slug ORDER BY s.name ASC");
+                $stmt->execute(['cat_slug' => $category_slug]);
+            } else {
+                $stmt = $db->query("SELECT s.*, c.slug as category_slug, c.name as category_name FROM subcategories s JOIN categories c ON s.category_id = c.id ORDER BY c.name ASC, s.name ASC");
+            }
             return $stmt->fetchAll();
         } catch (PDOException $e) {}
     }
@@ -225,6 +241,51 @@ function getDataSources($status = 'ACTIVE') {
     return [];
 }
 
+function getSourceById($id) {
+    $db = getDB();
+    if ($db && !empty($id)) {
+        try {
+            $stmt = $db->prepare("SELECT * FROM sources WHERE id = :id LIMIT 1");
+            $stmt->execute(['id' => $id]);
+            return $stmt->fetch();
+        } catch (PDOException $e) {}
+    }
+    return null;
+}
+
+function getSourceByName($name) {
+    $db = getDB();
+    if ($db && !empty($name)) {
+        try {
+            $stmt = $db->prepare("SELECT * FROM sources WHERE title LIKE :n OR domain LIKE :n OR authority_badge LIKE :n LIMIT 1");
+            $stmt->execute(['n' => '%' . $name . '%']);
+            return $stmt->fetch();
+        } catch (PDOException $e) {}
+    }
+    return null;
+}
+
+function getPanchayats($block_id = null) {
+    $db = getDB();
+    if ($db) {
+        try {
+            $sql = "SELECT p.*, COALESCE(b.name_english, b.name) as block_name, b.hindi_name as block_hindi, b.slug as block_slug FROM panchayats p JOIN blocks b ON p.block_id = b.id";
+            if ($block_id) {
+                $sql .= " WHERE p.block_id = :bid";
+            }
+            $sql .= " ORDER BY b.id ASC, p.panchayat_name ASC";
+            $stmt = $db->prepare($sql);
+            if ($block_id) {
+                $stmt->execute(['bid' => $block_id]);
+            } else {
+                $stmt->execute();
+            }
+            return $stmt->fetchAll();
+        } catch (PDOException $e) {}
+    }
+    return [];
+}
+
 
 
 function getListings($search = '', $category_slug = '', $block_slug = '', $limit = 20, $offset = 0, $subcategory_slug = '') {
@@ -236,13 +297,82 @@ function getListings($search = '', $category_slug = '', $block_slug = '', $limit
                     LEFT JOIN categories c ON l.category_id = c.id 
                     LEFT JOIN subcategories sc ON l.subcategory_id = sc.id
                     LEFT JOIN blocks b ON l.block_id = b.id 
+                    LEFT JOIN panchayats p ON l.panchayat_id = p.id
                     WHERE l.status='ACTIVE'";
             $params = [];
 
             if (!empty($search)) {
-                $sql .= " AND (l.title LIKE :q OR l.hindi_title LIKE :q OR l.description LIKE :q OR l.services LIKE :q OR l.address LIKE :q)";
-                $params['q'] = '%' . $search . '%';
+                $search = trim($search);
+                $trans_map = [
+                    'sinh' => 'singh', 'singh' => 'sinh',
+                    'pndit' => 'pandit', 'pandit' => 'pndit',
+                    'devee' => 'devi', 'devi' => 'devee',
+                    'tivaree' => 'tiwari', 'tiwari' => 'tivaree',
+                    'kumaree' => 'kumari', 'kumari' => 'kumaree',
+                    'mohn' => 'mohan', 'mohan' => 'mohn',
+                    'ranee' => 'rani', 'rani' => 'ranee'
+                ];
+                
+                $search_lower = strtolower($search);
+                $search_variants = [$search];
+                foreach ($trans_map as $from => $to) {
+                    if (strpos($search_lower, $from) !== false) {
+                        $search_variants[] = str_replace($from, $to, $search_lower);
+                    }
+                }
+                $search_variants = array_unique($search_variants);
+                
+                $fields = [
+                    'l.title', 'l.hindi_title', 'l.contact_person', 'l.description', 
+                    'l.services', 'l.products', 'l.address', 'l.mobile',
+                    'c.name', 'c.hindi_name', 'sc.name', 'sc.hindi_name', 
+                    'b.name', 'b.hindi_name', 'b.name_english', 
+                    'p.panchayat_name', 'p.hindi_name', 'p.village', 'p.village_hindi'
+                ];
+                
+                $phrase_or = [];
+                foreach ($search_variants as $v_idx => $variant) {
+                    foreach ($fields as $f_idx => $field) {
+                        $param_key = "v_{$v_idx}_{$f_idx}";
+                        $phrase_or[] = "$field LIKE :$param_key";
+                        $params[$param_key] = '%' . $variant . '%';
+                    }
+                }
+                
+                $words = array_filter(explode(' ', preg_replace('/\s+/', ' ', $search)));
+                if (count($words) > 1) {
+                    $token_and_group = [];
+                    foreach ($words as $w_idx => $word) {
+                        if (mb_strlen($word) < 2) continue;
+                        $w_lower = strtolower($word);
+                        $word_variants = [$word];
+                        if (isset($trans_map[$w_lower])) {
+                            $word_variants[] = $trans_map[$w_lower];
+                        }
+                        
+                        $token_word_or = [];
+                        foreach ($word_variants as $wv_idx => $w_var) {
+                            foreach ($fields as $f_idx => $field) {
+                                $param_key = "w_{$w_idx}_{$wv_idx}_{$f_idx}";
+                                $token_word_or[] = "$field LIKE :$param_key";
+                                $params[$param_key] = '%' . $w_var . '%';
+                            }
+                        }
+                        if (!empty($token_word_or)) {
+                            $token_and_group[] = '(' . implode(' OR ', $token_word_or) . ')';
+                        }
+                    }
+                    
+                    if (!empty($token_and_group)) {
+                        $sql .= " AND ((" . implode(' OR ', $phrase_or) . ") OR (" . implode(' AND ', $token_and_group) . "))";
+                    } else {
+                        $sql .= " AND (" . implode(' OR ', $phrase_or) . ")";
+                    }
+                } else {
+                    $sql .= " AND (" . implode(' OR ', $phrase_or) . ")";
+                }
             }
+
             if (!empty($category_slug)) {
                 $sql .= " AND c.slug = :cat_slug";
                 $params['cat_slug'] = $category_slug;
@@ -262,7 +392,9 @@ function getListings($search = '', $category_slug = '', $block_slug = '', $limit
             $stmt->execute($params);
             $results = $stmt->fetchAll();
             if ($results) return $results;
-        } catch (PDOException $e) {}
+        } catch (PDOException $e) {
+            error_log("getListings error: " . $e->getMessage());
+        }
     }
     return [];
 }

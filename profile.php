@@ -424,6 +424,48 @@ require_once __DIR__ . '/includes/header.php';
                 </div>
             <?php endif; ?>
 
+            <?php 
+            $dataSource = null;
+            if (!empty($listing['source_id'])) {
+                $dataSource = getSourceById($listing['source_id']);
+            }
+            if (!$dataSource && !empty($listing['source'])) {
+                $dataSource = getSourceByName($listing['source']);
+            }
+            if ($dataSource):
+            ?>
+                <!-- Official Data Source & Verification Card -->
+                <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white p-4 border-start border-4 border-primary" style="background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge <?php echo !empty($dataSource['badge_color_class']) ? $dataSource['badge_color_class'] : 'bg-primary-subtle text-primary'; ?> fw-semibold px-2.5 py-1 rounded-pill small">
+                                <i class="bi <?php echo !empty($dataSource['badge_icon']) ? $dataSource['badge_icon'] : 'bi-patch-check-fill'; ?> me-1"></i>
+                                <?php echo sanitizeInput($dataSource['badge_text'] ?? 'Verified Data Source'); ?>
+                            </span>
+                        </div>
+                        <span class="badge bg-secondary-subtle text-secondary small px-2 py-1 rounded-pill">
+                            <?php echo sanitizeInput($dataSource['authority_badge'] ?? 'Government Data'); ?>
+                        </span>
+                    </div>
+
+                    <h6 class="fw-bold text-dark font-heading mb-1">
+                        <?php echo sanitizeInput($dataSource['title']); ?>
+                    </h6>
+                    <p class="text-muted small mb-3">
+                        <?php echo sanitizeInput($dataSource['subtitle']); ?>
+                    </p>
+
+                    <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+                        <a href="<?php echo sanitizeInput($dataSource['url']); ?>" target="_blank" rel="noopener" class="text-primary fw-semibold small text-decoration-none hover-underline">
+                            <i class="bi bi-box-arrow-up-right me-1"></i><?php echo sanitizeInput($dataSource['domain']); ?>
+                        </a>
+                        <a href="sources" class="text-muted small text-decoration-none hover-primary">
+                            View All Sources <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            <?php endif; ?>
+
             <!-- Claim Business Widget -->
             <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white p-4 border border-warning-subtle" style="background: linear-gradient(135deg, #fffdf5 0%, #ffffff 100%); border-left: 4px solid #ffc107 !important;">
                 <div class="d-flex align-items-center gap-3 mb-3">

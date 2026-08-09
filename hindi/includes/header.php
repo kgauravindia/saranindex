@@ -84,10 +84,6 @@ $meta_description = $meta_description ?? 'सारण इंडेक्स स
                 <li class="nav-item">
                     <a class="nav-link text-dark px-3" href="village"><i class="bi bi-houses me-1"></i>गाँव</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link text-dark px-3" href="pricing"><i class="bi bi-star me-1 text-warning"></i>मेंबरशिप प्लान</a>
-                </li>
-
             </ul>
 
             <div class="d-flex align-items-center gap-2">

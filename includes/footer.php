@@ -75,6 +75,7 @@
                     <li class="mb-2"><a href="privacy-policy" class="text-white-50 text-decoration-none hover-white"><i class="bi bi-chevron-right me-1 text-warning"></i>Privacy Policy</a></li>
                     <li class="mb-2"><a href="terms" class="text-white-50 text-decoration-none hover-white"><i class="bi bi-chevron-right me-1 text-warning"></i>Terms & Conditions</a></li>
                     <li class="mb-2"><a href="refund-policy" class="text-white-50 text-decoration-none hover-white"><i class="bi bi-chevron-right me-1 text-warning"></i>Refund Policy</a></li>
+                    <li class="mb-2"><a href="pricing" class="text-white-50 text-decoration-none hover-white"><i class="bi bi-chevron-right me-1 text-warning"></i>Pricing</a></li>
                     <li class="mb-2"><a href="sources" class="text-white-50 text-decoration-none hover-white"><i class="bi bi-chevron-right me-1 text-warning"></i>Official Data Sources</a></li>
                     <li class="mb-2"><a href="contact" class="text-white-50 text-decoration-none hover-white"><i class="bi bi-chevron-right me-1 text-warning"></i>Contact & Support</a></li>
                     <li class="mb-2"><a href="admin/login.php" class="text-white-50 text-decoration-none hover-white"><i class="bi bi-shield-lock me-1 text-warning"></i>Admin Portal</a></li>

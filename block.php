@@ -24,47 +24,56 @@ if ($block) {
     $ruralPct = $popTotal > 0 ? round(($popRural / $popTotal) * 100, 1) : 0;
     $urbanPct = $popTotal > 0 ? round(($popUrban / $popTotal) * 100, 1) : 0;
 
-    $page_title = sanitizeInput($block['block_name']) . " Block ({$block['hindi_name']}) Census 2011 Data & Directory – Saran Index";
-    $meta_description = "Official Census 2011 demographics, population (" . number_format($popTotal) . "), households, literacy rate ({$litRate}%), rural & urban stats for " . $block['block_name'] . " Block, Saran District (Chapra, Bihar).";
+    $panchayats = getPanchayats($block['id']);
+
+    $page_title = sanitizeInput($block['block_name']) . " Block ({$block['hindi_name']}) Census 2011 Data & Gram Panchayats – Saran Index";
+    $meta_description = "Official Census 2011 demographics, population (" . number_format($popTotal) . "), households, " . count($panchayats) . " Gram Panchayats, villages, literacy rate ({$litRate}%) for " . $block['block_name'] . " Block, Saran District (Chapra, Bihar).";
     require_once __DIR__ . '/includes/header.php';
     ?>
 
-    <!-- Hero Header -->
-    <div class="bg-gradient-primary text-white py-5 position-relative overflow-hidden">
-        <div class="position-absolute top-0 start-0 w-100 h-100" style="background: radial-gradient(circle at top left, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 60%); pointer-events: none;"></div>
-        <div class="position-absolute bottom-0 end-0 w-100 h-100" style="background: radial-gradient(circle at bottom right, rgba(59,130,246,0.3) 0%, rgba(0,0,0,0) 50%); pointer-events: none;"></div>
-        
-        <div class="container position-relative z-index-1">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb bg-transparent p-0 mb-3 small">
-                    <li class="breadcrumb-item"><a href="index.php" class="text-white-50 text-decoration-none hover-white">Home</a></li>
-                    <li class="breadcrumb-item"><a href="blocks" class="text-white-50 text-decoration-none hover-white">Blocks</a></li>
-                    <li class="breadcrumb-item text-warning active" aria-current="page"><?php echo sanitizeInput($block['block_name']); ?></li>
+    <!-- Hero Section (matching index.php UI) -->
+    <section class="hero-wrapper position-relative text-center">
+        <div class="container position-relative z-1">
+            <div class="d-inline-flex align-items-center mb-3 brand-badge">
+                <i class="bi bi-patch-check-fill text-warning me-2 fs-6"></i>
+                <span>CD Block / Sub-District • Saran District, Bihar</span>
+            </div>
+
+            <nav aria-label="breadcrumb" class="d-flex justify-content-center mb-3">
+                <ol class="breadcrumb bg-white bg-opacity-10 px-3 py-1.5 rounded-pill mb-0 small border border-white border-opacity-10">
+                    <li class="breadcrumb-item"><a href="./" class="text-white-50 text-decoration-none">Home</a></li>
+                    <li class="breadcrumb-item"><a href="blocks" class="text-white-50 text-decoration-none">Blocks</a></li>
+                    <li class="breadcrumb-item active text-warning fw-semibold" aria-current="page"><?php echo sanitizeInput($block['block_name']); ?></li>
                 </ol>
             </nav>
-            <div class="d-flex flex-wrap align-items-center justify-content-between gap-4">
-                <div>
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <span class="badge bg-warning text-dark fw-bold px-3 py-1.5 rounded-pill uppercase tracking-wider small">CD Block / Sub-District</span>
-                        <span class="badge bg-white bg-opacity-20 text-white border border-white border-opacity-20 px-3 py-1.5 rounded-pill small">PIN: <?php echo sanitizeInput($block['pincode']); ?></span>
-                    </div>
-                    <h1 class="fw-bolder font-heading text-white display-4 mb-1 lh-sm"><?php echo sanitizeInput($block['block_name']); ?> Block</h1>
-                    <p class="text-white-50 lead mb-0 fs-5"><?php echo sanitizeInput($block['hindi_name']); ?> • Saran District, Bihar</p>
-                </div>
-                <div class="d-flex flex-wrap gap-2">
-                    <a href="search.php?block=<?php echo sanitizeInput($block['slug']); ?>" class="btn btn-warning text-dark fw-bold rounded-pill px-4 py-2.5 shadow-sm hover-lift">
-                        <i class="bi bi-search me-1.5"></i> Browse Local Directory
-                    </a>
-                    <a href="villages?block=<?php echo urlencode($block['name']); ?>" class="btn btn-light rounded-pill px-4 py-2.5 fw-bold shadow-sm hover-lift">
-                        <i class="bi bi-houses-fill me-1.5 text-primary"></i> View Villages
-                    </a>
-                </div>
+
+            <h1 class="display-4 fw-bolder font-heading text-white mb-2 tracking-tight">
+                <?php echo sanitizeInput($block['block_name']); ?> Block
+                <?php if (!empty($block['hindi_name'])): ?>
+                    <span class="text-white-50 fs-3 ms-1">(<?php echo sanitizeInput($block['hindi_name']); ?>)</span>
+                <?php endif; ?>
+            </h1>
+
+            <p class="lead text-white-50 font-heading fw-semibold mb-4 fs-4" style="color: #cbd5e1 !important;">
+                PIN Code: <?php echo sanitizeInput($block['pincode']); ?> • <?php echo count($panchayats); ?> Gram Panchayats • Population: <?php echo number_format($popTotal); ?>
+            </p>
+
+            <div class="d-flex flex-wrap justify-content-center gap-2 mb-2">
+                <a href="#gramPanchayatsSection" class="btn btn-warning text-dark fw-bold rounded-pill px-4 py-2.5 shadow-sm hover-lift">
+                    <i class="bi bi-building-check me-1.5"></i> View <?php echo count($panchayats); ?> Panchayats
+                </a>
+                <a href="search.php?block=<?php echo sanitizeInput($block['slug']); ?>" class="btn btn-outline-light rounded-pill px-4 py-2.5 fw-bold hover-lift">
+                    <i class="bi bi-search me-1.5"></i> Local Directory
+                </a>
+                <a href="villages?block=<?php echo urlencode($block['name']); ?>" class="btn btn-light text-primary rounded-pill px-4 py-2.5 fw-bold shadow-sm hover-lift">
+                    <i class="bi bi-houses-fill me-1.5"></i> View Villages
+                </a>
             </div>
         </div>
-    </div>
+    </section>
 
     <div class="container py-5">
-        <!-- Top Demographic Summary Cards -->
+        <!-- Top Demographic Summary Cards (matching index.php UI) -->
         <div class="row g-4 mb-5">
             <div class="col-6 col-lg-3">
                 <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100 hover-lift position-relative overflow-hidden">
@@ -90,22 +99,22 @@ if ($block) {
 
             <div class="col-6 col-lg-3">
                 <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100 hover-lift position-relative overflow-hidden">
-                    <div class="position-absolute top-0 end-0 p-3 opacity-10 text-success fs-1"><i class="bi bi-house-door-fill"></i></div>
+                    <div class="position-absolute top-0 end-0 p-3 opacity-10 text-success fs-1"><i class="bi bi-building-check"></i></div>
                     <div class="d-flex align-items-center gap-3 mb-3">
                         <div class="rounded-circle bg-success-subtle text-success d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
-                            <i class="bi bi-house-door-fill fs-4"></i>
+                            <i class="bi bi-building-check fs-4"></i>
                         </div>
                         <div>
-                            <div class="text-muted small fw-semibold uppercase tracking-wider">Households</div>
-                            <div class="fw-bolder fs-3 text-dark lh-sm"><?php echo number_format($households); ?></div>
+                            <div class="text-muted small fw-semibold uppercase tracking-wider">Gram Panchayats</div>
+                            <div class="fw-bolder fs-3 text-dark lh-sm"><?php echo count($panchayats); ?></div>
                         </div>
                     </div>
                     <div class="progress rounded-pill bg-light" style="height: 6px;">
                         <div class="progress-bar bg-success rounded-pill" role="progressbar" style="width: 100%"></div>
                     </div>
-                    <div class="mt-2 small text-muted d-flex align-items-center gap-1">
-                        <i class="bi bi-diagram-3-fill text-success me-1"></i>
-                        <span>Panchayats: <strong><?php echo sanitizeInput($block['total_panchayats']); ?></strong></span>
+                    <div class="mt-2 small text-muted d-flex align-items-center justify-content-between">
+                        <span>Households: <strong><?php echo number_format($households); ?></strong></span>
+                        <a href="#gramPanchayatsSection" class="text-success fw-bold text-decoration-none">View All <i class="bi bi-arrow-down"></i></a>
                     </div>
                 </div>
             </div>
@@ -152,6 +161,86 @@ if ($block) {
                         <span>Urban: <strong><?php echo number_format($popUrban); ?></strong></span>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Real Gram Panchayats Section for this Block -->
+        <div id="gramPanchayatsSection" class="card border-0 shadow-lg rounded-4 overflow-hidden mb-5">
+            <div class="card-header bg-dark text-white p-4 d-flex flex-wrap align-items-center justify-content-between gap-2 border-0">
+                <div>
+                    <h4 class="fw-bold font-heading mb-1 text-white">
+                        <i class="bi bi-building-check text-warning me-2"></i>Gram Panchayats in <?php echo sanitizeInput($block['block_name']); ?> Block (<?php echo count($panchayats); ?>)
+                    </h4>
+                    <p class="text-white-50 small mb-0">Official Gram Panchayats and constituent villages (maujas) under <?php echo sanitizeInput($block['block_name']); ?></p>
+                </div>
+                <span class="badge bg-warning text-dark fw-bold px-3 py-2 rounded-pill"><?php echo count($panchayats); ?> Gram Panchayats</span>
+            </div>
+
+            <div class="card-body p-4 bg-light">
+                <?php if (empty($panchayats)): ?>
+                    <div class="alert alert-info rounded-3 text-center my-3">
+                        <i class="bi bi-info-circle me-1"></i> No Gram Panchayats listed for this block yet.
+                    </div>
+                <?php else: ?>
+                    <div class="row g-4">
+                        <?php foreach ($panchayats as $p): 
+                            $vEn = !empty($p['village']) ? explode(',', $p['village']) : [];
+                            $vHi = !empty($p['village_hindi']) ? explode(',', $p['village_hindi']) : [];
+                            $vCount = max(count($vEn), count($vHi));
+                        ?>
+                            <div class="col-lg-4 col-md-6">
+                                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100 hover-lift d-flex flex-column justify-content-between">
+                                    <div>
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <span class="badge bg-primary-subtle text-primary fw-semibold px-2.5 py-1 rounded-pill small">
+                                                <i class="bi bi-houses me-1"></i><?php echo $vCount; ?> Villages
+                                            </span>
+                                            <span class="badge bg-warning-subtle text-dark border border-warning-subtle small px-2.5 py-1 rounded-pill">
+                                                <?php echo sanitizeInput($block['block_name']); ?>
+                                            </span>
+                                        </div>
+                                        <h4 class="fw-bold text-dark font-heading mb-1 fs-5">
+                                            <a href="panchayat/<?php echo urlencode($p['slug']); ?>" class="text-dark text-decoration-none hover-primary">
+                                                <?php echo sanitizeInput($p['panchayat_name']); ?>
+                                            </a>
+                                        </h4>
+                                        <?php if (!empty($p['hindi_name'])): ?>
+                                            <div class="text-muted small fw-semibold mb-2"><?php echo sanitizeInput($p['hindi_name']); ?> ग्राम पंचायत</div>
+                                        <?php endif; ?>
+                                        <?php if (!empty($p['panchayat_samiti_no'])): ?>
+                                            <div class="badge bg-primary-subtle text-primary border border-primary-subtle fw-semibold px-2.5 py-1 rounded-pill small mb-3">
+                                                <i class="bi bi-award me-1"></i>Samiti No: <?php echo sanitizeInput($p['panchayat_samiti_no']); ?>
+                                            </div>
+                                        <?php endif; ?>
+
+                                        <?php if ($vCount > 0): ?>
+                                            <div class="small text-secondary mb-3 p-2.5 rounded-3 bg-light border" style="font-size: 0.82rem;">
+                                                <strong class="text-dark"><i class="bi bi-pin-map text-warning me-1"></i> Key Villages (Mauja):</strong> 
+                                                <div class="mt-1">
+                                                    <?php 
+                                                    $shownV = [];
+                                                    for ($i = 0; $i < min(4, $vCount); $i++) {
+                                                        $val = !empty($vEn[$i]) ? trim($vEn[$i]) : (!empty($vHi[$i]) ? trim($vHi[$i]) : '');
+                                                        if ($val) $shownV[] = $val;
+                                                    }
+                                                    echo sanitizeInput(implode(', ', $shownV));
+                                                    if ($vCount > 4) echo ' <span class="text-primary fw-bold">+' . ($vCount - 4) . ' more</span>';
+                                                    ?>
+                                                </div>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <div class="pt-3 border-top mt-2">
+                                        <a href="panchayat/<?php echo urlencode($p['slug']); ?>" class="btn btn-outline-primary rounded-pill w-100 fw-semibold btn-sm py-2">
+                                            View Panchayat & Villages <i class="bi bi-chevron-right ms-1"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -246,83 +335,172 @@ require_once __DIR__ . '/includes/header.php';
 $blocks = getBlocks();
 ?>
 
-<!-- Banner Section -->
-<div class="bg-gradient-primary text-white py-5 position-relative overflow-hidden">
-    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: radial-gradient(circle at top left, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 60%); pointer-events: none;"></div>
-    <div class="container text-center position-relative z-index-1">
-        <span class="badge bg-warning text-dark fw-bold px-3 py-1.5 rounded-pill uppercase tracking-wider mb-2">Administrative Directory</span>
-        <h1 class="fw-bolder font-heading text-white display-4 mb-2">All 20 Blocks of Saran District</h1>
-        <p class="text-white-50 lead mx-auto mb-0" style="max-width: 650px;">Explore official Census 2011 demographic data, population, literacy stats, businesses, panchayats, and schools in every block of Saran District.</p>
-    </div>
-</div>
+<!-- Banner Hero Section (matching index.php UI) -->
+<section class="hero-wrapper position-relative text-center">
+    <div class="container position-relative z-1">
+        <div class="d-inline-flex align-items-center mb-3 brand-badge">
+            <i class="bi bi-patch-check-fill text-warning me-2 fs-6"></i>
+            <span>Administrative & Geographic Directory • Saran District</span>
+        </div>
 
-<div class="container py-5">
-    <div class="row g-4">
-        <?php foreach ($blocks as $blk): ?>
-            <div class="col-lg-4 col-md-6">
-                <div class="card border-0 shadow-sm rounded-4 h-100 p-4 hover-lift bg-white">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <div class="bg-primary-subtle text-primary p-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
-                            <i class="bi bi-geo-alt-fill fs-4"></i>
-                        </div>
-                        <span class="badge bg-light text-muted border px-2.5 py-1 rounded-pill small fw-medium">PIN: <?php echo sanitizeInput($blk['pincode']); ?></span>
-                    </div>
+        <h1 class="display-4 fw-bolder font-heading text-white mb-2 tracking-tight">
+            All 20 Blocks of Saran District
+        </h1>
+        
+        <p class="lead text-white-50 font-heading fw-semibold mb-3 fs-3" style="color: #cbd5e1 !important;">
+            Census 2011 Demographics & 318 Panchayats
+        </p>
+        
+        <p class="text-white-50 mx-auto mb-4" style="max-width: 680px; font-size: 1.05rem;">
+            Explore official Census 2011 demographics, population, literacy stats, businesses, <strong>318 Gram Panchayats</strong>, and schools in every block of Saran District (Chapra), Bihar.
+        </p>
 
-                    <h4 class="fw-bold text-dark font-heading mb-1">
-                        <a href="<?php echo getBlockUrl($blk['slug']); ?>" class="text-dark text-decoration-none hover-primary transition-all">
-                            <?php echo sanitizeInput($blk['block_name']); ?>
-                        </a>
-                    </h4>
-                    <div class="text-muted small fw-semibold mb-3"><?php echo sanitizeInput($blk['hindi_name']); ?></div>
+        <!-- Search Bar Component (matching index.php search-card style) -->
+        <div class="row justify-content-center">
+            <div class="col-lg-9 col-md-11">
+                <div class="search-card d-flex align-items-center gap-2">
+                    <button type="button" class="btn mic-btn flex-shrink-0" id="micButtonBlock" title="Voice Search">
+                        <i class="bi bi-mic-fill fs-5"></i>
+                    </button>
+                    
+                    <input type="text" id="blockSearchInput" class="form-control search-input flex-grow-1" placeholder="Search block by name, Hindi name, or PIN code..." autocomplete="off" onkeyup="filterBlocks()">
 
-                    <!-- Census 2011 Summary Badges -->
-                    <?php if (!empty($blk['pop_tot'])): ?>
-                        <div class="bg-light rounded-3 p-3 mb-3 border border-light">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="small text-muted"><i class="bi bi-people-fill me-1.5 text-primary"></i> Total Population:</span>
-                                <span class="fw-bold small text-dark"><?php echo number_format($blk['pop_tot']); ?></span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="small text-muted"><i class="bi bi-house-door-fill me-1.5 text-secondary"></i> Households:</span>
-                                <span class="fw-bold small text-dark"><?php echo number_format($blk['households']); ?></span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="small text-muted"><i class="bi bi-pie-chart-fill me-1.5 text-info"></i> Rural / Urban:</span>
-                                <span class="badge bg-white text-dark border small fw-semibold">
-                                    <?php echo number_format($blk['pop_rural']); ?> / <?php echo number_format($blk['pop_urban']); ?>
-                                </span>
-                            </div>
-                        </div>
-                    <?php endif; ?>
-
-                    <div class="d-flex align-items-center justify-content-between pt-3 border-top mt-auto gap-2">
-                        <a href="<?php echo getBlockUrl($blk['slug']); ?>" class="btn btn-sm btn-outline-primary rounded-pill fw-bold px-3">
-                            Block Details <i class="bi bi-info-circle ms-1"></i>
-                        </a>
-                        <a href="search.php?block=<?php echo sanitizeInput($blk['slug']); ?>" class="btn btn-sm btn-primary rounded-pill fw-bold px-3 shadow-sm">
-                            Directory <i class="bi bi-arrow-right ms-1"></i>
-                        </a>
-                    </div>
+                    <button type="button" class="btn search-submit-btn flex-shrink-0" onclick="filterBlocks()">
+                        <i class="bi bi-search me-1"></i>Search
+                    </button>
                 </div>
             </div>
-        <?php endforeach; ?>
+        </div>
     </div>
-</div>
+</section>
 
-<style>
-.hover-lift {
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
+<!-- 20 Blocks Grid Section (matching index.php UI layout) -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+            <div>
+                <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-2 rounded-pill uppercase tracking-wider small">Geographic Directory</span>
+                <h2 class="fw-bold font-heading text-dark mt-2 fs-2 mb-0">Saran Sub-Districts (CD Blocks)</h2>
+            </div>
+            <div class="badge bg-primary text-white fw-bold fs-6 px-3 py-2 rounded-pill shadow-sm" id="blockCountBadge">
+                Showing <?php echo count($blocks); ?> Blocks
+            </div>
+        </div>
+
+        <div class="row g-4" id="blocksGrid">
+            <?php foreach ($blocks as $blk): 
+                $bSearchStr = strtolower(($blk['block_name'] ?? '') . ' ' . ($blk['hindi_name'] ?? '') . ' ' . ($blk['pincode'] ?? ''));
+            ?>
+                <div class="col-lg-4 col-md-6 block-card-item" data-search="<?php echo htmlspecialchars($bSearchStr, ENT_QUOTES); ?>">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 p-4 hover-lift transition-all bg-white d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <div class="bg-primary-subtle text-primary p-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
+                                    <i class="bi bi-geo-alt-fill fs-4"></i>
+                                </div>
+                                <span class="badge bg-light text-dark border px-2.5 py-1 rounded-pill small fw-semibold">
+                                    PIN: <?php echo sanitizeInput($blk['pincode']); ?>
+                                </span>
+                            </div>
+
+                            <h4 class="fw-bold text-dark font-heading mb-1 fs-4">
+                                <a href="<?php echo getBlockUrl($blk['slug']); ?>" class="text-dark text-decoration-none hover-primary transition-all">
+                                    <?php echo sanitizeInput($blk['block_name']); ?>
+                                </a>
+                            </h4>
+                            <div class="text-muted small fw-semibold mb-3"><?php echo sanitizeInput($blk['hindi_name']); ?> अंचल</div>
+
+                            <!-- Census 2011 Summary Badges -->
+                            <?php if (!empty($blk['pop_tot'])): ?>
+                                <div class="bg-light rounded-3 p-3 mb-3 border border-light small">
+                                    <div class="d-flex justify-content-between align-items-center mb-1.5">
+                                        <span class="text-muted"><i class="bi bi-people-fill me-1.5 text-primary"></i> Population:</span>
+                                        <span class="fw-bold text-dark"><?php echo number_format($blk['pop_tot']); ?></span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-1.5">
+                                        <span class="text-muted"><i class="bi bi-building-check me-1.5 text-success"></i> Gram Panchayats:</span>
+                                        <span class="fw-bold text-success"><?php echo number_format($blk['total_panchayats']); ?> Panchayats</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="text-muted"><i class="bi bi-house-door-fill me-1.5 text-secondary"></i> Households:</span>
+                                        <span class="fw-bold text-dark"><?php echo number_format($blk['households']); ?></span>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="d-flex align-items-center justify-content-between pt-3 border-top mt-auto gap-2">
+                            <a href="<?php echo getBlockUrl($blk['slug']); ?>#gramPanchayatsSection" class="btn btn-sm btn-outline-primary rounded-pill fw-semibold px-3 py-1.5">
+                                Panchayats (<?php echo $blk['total_panchayats']; ?>)
+                            </a>
+                            <a href="<?php echo getBlockUrl($blk['slug']); ?>" class="btn btn-sm btn-primary rounded-pill fw-semibold px-3 py-1.5 shadow-sm">
+                                View Block <i class="bi bi-chevron-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+
+        <div id="noBlocksAlert" class="alert alert-info rounded-4 text-center py-5 d-none mt-4 shadow-sm">
+            <i class="bi bi-search fs-1 text-primary mb-2 d-block"></i>
+            <h5 class="fw-bold text-dark mb-1">No Block found</h5>
+            <p class="text-muted mb-3">Try searching for another block name or PIN code.</p>
+            <button class="btn btn-primary rounded-pill px-4 py-2 fw-semibold" onclick="clearBlockSearch()">Clear Search</button>
+        </div>
+    </div>
+</section>
+
+<script>
+function filterBlocks() {
+    const query = document.getElementById('blockSearchInput').value.toLowerCase().trim();
+    const items = document.querySelectorAll('.block-card-item');
+    let visibleCount = 0;
+
+    items.forEach(item => {
+        const itemSearch = item.getAttribute('data-search').toLowerCase();
+        if (query === '' || itemSearch.includes(query)) {
+            item.classList.remove('d-none');
+            visibleCount++;
+        } else {
+            item.classList.add('d-none');
+        }
+    });
+
+    document.getElementById('blockCountBadge').innerText = 'Showing ' + visibleCount + ' Blocks';
+    
+    const noResults = document.getElementById('noBlocksAlert');
+    if (visibleCount === 0) {
+        noResults.classList.remove('d-none');
+    } else {
+        noResults.classList.add('d-none');
+    }
 }
-.hover-lift:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.1) !important;
+
+function clearBlockSearch() {
+    document.getElementById('blockSearchInput').value = '';
+    filterBlocks();
 }
-.hover-primary:hover {
-    color: var(--primary-color) !important;
-}
-.hover-white:hover {
-    color: #ffffff !important;
-}
-</style>
+</script>
+
+<!-- Official Data Sources Attribution Banner -->
+<section class="py-4 bg-white border-top">
+    <div class="container">
+        <div class="p-4 rounded-4 bg-light border d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-primary-subtle text-primary p-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
+                    <i class="bi bi-shield-check fs-4"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold text-dark font-heading mb-1">Standardized Public & Government Data Sources</h6>
+                    <p class="text-muted small mb-0">Local Block boundaries, Gram Panchayat lists, census stats, and revenue circle data reference LGD Portal, Bihar Bhumi, Census 2011, and NIC Saran.</p>
+                </div>
+            </div>
+            <a href="sources" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold text-nowrap">
+                <i class="bi bi-link-45deg me-1"></i>View Official Sources
+            </a>
+        </div>
+    </div>
+</section>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

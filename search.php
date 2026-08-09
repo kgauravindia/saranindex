@@ -15,6 +15,7 @@ require_once __DIR__ . '/includes/header.php';
 
 $blocks = getBlocks();
 $categories = getCategories();
+$allSubcategories = getAllSubcategories();
 $listings = getListings($q, $category_slug, $block_slug, 50, 0, $sub_slug);
 $censusVillages = !empty($q) ? getCensusVillages($block_slug, $q, 6, 0) : [];
 ?>
@@ -28,9 +29,9 @@ $censusVillages = !empty($q) ? getCensusVillages($block_slug, $q, 6, 0) : [];
 
 <div class="container py-4">
     <!-- Filter Bar -->
-    <div class="bg-white p-3 rounded-4 shadow-sm border mb-4">
-        <form action="search.php" method="GET" class="row g-3 align-items-center">
-            <div class="col-md-4">
+    <div class="bg-white p-3.5 rounded-4 shadow-sm border mb-4">
+        <form action="search.php" method="GET" class="row g-3 align-items-end">
+            <div class="col-lg-3 col-md-6">
                 <label class="form-label small fw-bold text-muted mb-1">Search Keywords</label>
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
@@ -38,9 +39,9 @@ $censusVillages = !empty($q) ? getCensusVillages($block_slug, $q, 6, 0) : [];
                 </div>
             </div>
             
-            <div class="col-md-3">
-                <label class="form-label small fw-bold text-muted mb-1">Category Vertical</label>
-                <select name="category" class="form-select bg-light">
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label small fw-bold text-muted mb-1">Category</label>
+                <select name="category" id="categorySelect" class="form-select bg-light">
                     <option value="">All Categories</option>
                     <?php foreach ($categories as $cat): ?>
                         <option value="<?php echo sanitizeInput($cat['slug']); ?>" <?php echo ($category_slug === $cat['slug']) ? 'selected' : ''; ?>>
@@ -50,7 +51,19 @@ $censusVillages = !empty($q) ? getCensusVillages($block_slug, $q, 6, 0) : [];
                 </select>
             </div>
 
-            <div class="col-md-3">
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label small fw-bold text-muted mb-1">Subcategory</label>
+                <select name="sub" id="subCategorySelect" class="form-select bg-light">
+                    <option value="">All Subcategories</option>
+                    <?php foreach ($allSubcategories as $sc): ?>
+                        <option value="<?php echo sanitizeInput($sc['slug']); ?>" data-category="<?php echo sanitizeInput($sc['category_slug']); ?>" <?php echo ($sub_slug === $sc['slug']) ? 'selected' : ''; ?>>
+                            <?php echo sanitizeInput($sc['name']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
                 <label class="form-label small fw-bold text-muted mb-1">Select Block</label>
                 <select name="block" class="form-select bg-light">
                     <option value="">All 20 Saran Blocks</option>
@@ -62,11 +75,45 @@ $censusVillages = !empty($q) ? getCensusVillages($block_slug, $q, 6, 0) : [];
                 </select>
             </div>
 
-            <div class="col-md-2 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary w-100 rounded-3 fw-bold"><i class="bi bi-funnel-fill me-1"></i>Filter</button>
+            <div class="col-12 d-flex justify-content-end gap-2 pt-1 border-top mt-3">
+                <a href="search.php" class="btn btn-light border px-4 rounded-3 fw-bold small text-muted">Reset Filters</a>
+                <button type="submit" class="btn btn-primary px-4 rounded-3 fw-bold small"><i class="bi bi-funnel-fill me-1"></i>Apply Filters</button>
             </div>
         </form>
     </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const catSelect = document.getElementById('categorySelect');
+        const subSelect = document.getElementById('subCategorySelect');
+        
+        function filterSubcategories() {
+            const selectedCat = catSelect.value;
+            const subOptions = subSelect.querySelectorAll('option');
+            
+            subOptions.forEach(opt => {
+                if (opt.value === '') {
+                    opt.style.display = 'block';
+                    return;
+                }
+                const optCat = opt.getAttribute('data-category');
+                if (!selectedCat || optCat === selectedCat) {
+                    opt.style.display = 'block';
+                } else {
+                    opt.style.display = 'none';
+                    if (opt.selected) {
+                        subSelect.value = '';
+                    }
+                }
+            });
+        }
+        
+        if (catSelect && subSelect) {
+            catSelect.addEventListener('change', filterSubcategories);
+            filterSubcategories();
+        }
+    });
+    </script>
 
     <!-- Search Results Header -->
     <div class="d-flex align-items-center justify-content-between mb-3">
