@@ -88,7 +88,7 @@ require_once __DIR__ . '/includes/header.php';
                                 <tr>
                                     <td class="fw-bold">#<?php echo $cl['id']; ?></td>
                                     <td>
-                                        <a href="../profile.php?slug=<?php echo sanitizeInput($cl['listing_slug']); ?>" target="_blank" class="fw-bold text-dark text-decoration-none">
+                                        <a href="../<?php echo getListingUrl($cl['listing_slug']); ?>" target="_blank" class="fw-bold text-dark text-decoration-none">
                                             <?php echo sanitizeInput($cl['listing_title']); ?> <i class="bi bi-box-arrow-up-right small ms-1 text-primary"></i>
                                         </a>
                                         <div class="small text-muted"><?php echo sanitizeInput($cl['category_name']); ?></div>

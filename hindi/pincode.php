@@ -53,9 +53,15 @@ $listings = getListings('', '', '', 20, 0);
                         <div>
                             <?php echo renderStarRating($item['star_rating']); ?>
                         </div>
-                        <a href="tel:<?php echo sanitizeInput($item['mobile']); ?>" class="btn-call">
-                            <i class="bi bi-telephone-fill"></i> कॉल करें
-                        </a>
+                        <?php if (isMobileNumberVisibleToVisitor($item)): ?>
+                            <a href="tel:<?php echo sanitizeInput($item['mobile']); ?>" class="btn-call">
+                                <i class="bi bi-telephone-fill"></i> कॉल करें
+                            </a>
+                        <?php else: ?>
+                            <a href="../login.php?redirect=<?php echo urlencode('hindi/pincode.php?code=' . $code); ?>" class="btn-call text-muted" title="नंबर देखने के लिए लॉग इन करें">
+                                <i class="bi bi-lock-fill text-warning me-1"></i><?php echo sanitizeInput(maskPhoneNumber($item['mobile'])); ?>
+                            </a>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>

@@ -68,6 +68,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
+// Handle Delete User Profile POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && ($_POST['action'] === 'delete_profile' || $_POST['action'] === 'delete_account')) {
+    $confirm_input = trim($_POST['confirm_delete'] ?? '');
+    if (strtoupper($confirm_input) === 'DELETE') {
+        $userIdToDelete = $user['id'];
+        if (deleteUser($userIdToDelete)) {
+            header("Location: login.php?msg=profile_deleted");
+            exit;
+        } else {
+            $msg = "An error occurred while deleting your user profile. Please try again.";
+            $msg_type = 'danger';
+        }
+    } else {
+        $msg = "Please type 'DELETE' in capital letters to confirm user profile deletion.";
+        $msg_type = 'danger';
+    }
+}
+
 // Handle Plan Upgrade & Online Payment POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'upgrade_plan') {
     $listingId = intval($_POST['listing_id'] ?? 0);
@@ -192,9 +210,14 @@ require_once __DIR__ . '/includes/header.php';
 
                 <hr class="text-secondary opacity-25">
 
-                <button type="button" class="btn btn-light btn-sm w-100 rounded-pill fw-semibold text-secondary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
-                    <i class="bi bi-gear me-1"></i> Manage Account Settings
-                </button>
+                <div class="d-flex flex-column gap-2">
+                    <button type="button" class="btn btn-light btn-sm w-100 rounded-pill fw-semibold text-secondary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                        <i class="bi bi-gear me-1"></i> Manage Account Settings
+                    </button>
+                    <button type="button" class="btn btn-outline-danger btn-sm w-100 rounded-pill fw-semibold" data-bs-toggle="modal" data-bs-target="#deleteProfileModal">
+                        <i class="bi bi-trash me-1"></i> Delete User Profile
+                    </button>
+                </div>
             </div>
 
             <!-- Quick Support Box -->
@@ -501,11 +524,55 @@ require_once __DIR__ . '/includes/header.php';
                             <label class="form-label fw-semibold small text-dark mb-1">Change Password <span class="text-muted fw-normal">(Leave blank to keep current)</span></label>
                             <input type="password" name="new_password" class="form-control rounded-3 py-2" placeholder="Enter new password (min. 6 characters)">
                         </div>
+                        
+                        <!-- Danger Zone: Delete Account -->
+                        <div class="col-12 border-top pt-3 mt-2">
+                            <div class="p-3 bg-danger-subtle border border-danger-subtle rounded-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                <div>
+                                    <div class="fw-bold text-danger small"><i class="bi bi-exclamation-triangle-fill me-1"></i> Danger Zone: Delete User Profile</div>
+                                    <div class="text-muted" style="font-size: 0.8rem;">Permanently remove your user profile and details from the <code>users</code> table.</div>
+                                </div>
+                                <button type="button" class="btn btn-outline-danger btn-sm rounded-pill fw-bold" data-bs-toggle="modal" data-bs-target="#deleteProfileModal" data-bs-dismiss="modal">
+                                    <i class="bi bi-trash me-1"></i> Delete Profile
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer bg-white p-3 border-top">
                     <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold"><i class="bi bi-check-lg me-1"></i> Save Professional Profile</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete User Profile Modal -->
+<div class="modal fade" id="deleteProfileModal" tabindex="-1" aria-labelledby="deleteProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="bg-danger text-white p-4">
+                <div class="d-flex align-items-center justify-content-between">
+                    <h5 class="fw-bold font-heading mb-0 text-white"><i class="bi bi-exclamation-triangle-fill me-2"></i> Delete User Profile</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+            </div>
+            <form action="dashboard.php" method="POST">
+                <input type="hidden" name="action" value="delete_profile">
+                <div class="modal-body p-4 bg-light">
+                    <div class="alert alert-warning border-warning rounded-3 small mb-3">
+                        <i class="bi bi-shield-exclamation me-1"></i> <strong>Warning:</strong> Deleting your user profile from the <code>users</code> table is <strong>permanent</strong> and cannot be undone.
+                    </div>
+                    <p class="small text-muted mb-3">Your profile info, uploaded avatar, and user credentials will be permanently deleted from the database. Any listings associated with your account will remain accessible as guest listings.</p>
+                    <div class="mb-3">
+                        <label for="confirm_delete" class="form-label fw-bold small text-dark">Type <span class="text-danger">DELETE</span> to confirm profile deletion:</label>
+                        <input type="text" name="confirm_delete" id="confirm_delete" class="form-control rounded-3" placeholder="Type DELETE in capital letters" required autocomplete="off">
+                    </div>
+                </div>
+                <div class="modal-footer bg-white p-3 border-top">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold"><i class="bi bi-trash-fill me-1"></i> Permanently Delete Profile</button>
                 </div>
             </form>
         </div>

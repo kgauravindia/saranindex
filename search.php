@@ -100,7 +100,7 @@ $censusVillages = !empty($q) ? getCensusVillages($block_slug, $q, 6, 0) : [];
                                 <span class="text-muted fs-7">Code: <?php echo sanitizeInput($cv['town_village_code']); ?></span>
                             </div>
                             <h6 class="fw-bold text-dark mb-1">
-                                <a href="village.php?slug=<?php echo sanitizeInput($cvSlug); ?>" class="text-dark text-decoration-none hover-primary">
+                                <a href="<?php echo getVillageUrl($cvSlug); ?>" class="text-dark text-decoration-none hover-primary">
                                     <?php echo sanitizeInput($cv['name']); ?>
                                 </a>
                                 <?php if (!empty($cv['name_hindi'])): ?>
@@ -142,7 +142,7 @@ $censusVillages = !empty($q) ? getCensusVillages($block_slug, $q, 6, 0) : [];
                             </div>
 
                             <h4 class="fw-bold text-dark mb-1 font-heading fs-5">
-                                <a href="profile.php?slug=<?php echo sanitizeInput($item['slug']); ?>" class="text-dark text-decoration-none hover-primary">
+                                <a href="<?php echo getListingUrl($item['slug']); ?>" class="text-dark text-decoration-none hover-primary">
                                     <?php echo sanitizeInput($item['title']); ?>
                                 </a>
                             </h4>

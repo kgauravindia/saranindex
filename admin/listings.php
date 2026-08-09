@@ -169,7 +169,7 @@ $listings = getAllAdminListings($status_filter, $search_query);
                                 <td class="fw-bold text-muted">#<?php echo $item['id']; ?></td>
                                 <td>
                                     <div class="fw-bold text-dark mb-0.5">
-                                        <a href="../profile.php?slug=<?php echo $item['slug']; ?>" target="_blank" class="text-dark text-decoration-none hover-primary">
+                                        <a href="../<?php echo getListingUrl($item['slug']); ?>" target="_blank" class="text-dark text-decoration-none hover-primary">
                                             <?php echo sanitizeInput($item['title']); ?>
                                         </a>
                                     </div>
@@ -244,7 +244,7 @@ $listings = getAllAdminListings($status_filter, $search_query);
                                         <a href="listing_edit.php?id=<?php echo $item['id']; ?>" class="btn btn-outline-secondary" title="Edit">
                                             <i class="bi bi-pencil"></i>
                                         </a>
-                                        <a href="../profile.php?slug=<?php echo $item['slug']; ?>" target="_blank" class="btn btn-outline-info" title="View Profile">
+                                        <a href="../<?php echo getListingUrl($item['slug']); ?>" target="_blank" class="btn btn-outline-info" title="View Profile">
                                             <i class="bi bi-eye"></i>
                                         </a>
                                         <a href="listings.php?action=delete&id=<?php echo $item['id']; ?>" class="btn btn-outline-danger" onclick="return confirm('Are you sure you want to delete this listing?');" title="Delete">

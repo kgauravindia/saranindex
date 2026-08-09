@@ -430,7 +430,7 @@ if ($village):
                         <?php foreach ($nearby as $nv): 
                             $nvSlug = !empty($nv['unique_slug']) ? $nv['unique_slug'] : $nv['town_village_code'];
                         ?>
-                            <a href="village.php?slug=<?php echo sanitizeInput($nvSlug); ?>" class="list-group-item list-group-item-action px-0 py-2.5 d-flex align-items-center justify-content-between border-bottom">
+                            <a href="<?php echo getVillageUrl($nvSlug); ?>" class="list-group-item list-group-item-action px-0 py-2.5 d-flex align-items-center justify-content-between border-bottom">
                                 <div>
                                     <div class="fw-semibold text-dark"><?php echo sanitizeInput($nv['name']); ?></div>
                                     <?php if (!empty($nv['name_hindi'])): ?>
@@ -570,7 +570,7 @@ require_once __DIR__ . '/includes/header.php';
                         </div>
 
                         <h3 class="fw-bold text-dark mb-1 font-heading fs-5">
-                            <a href="village.php?slug=<?php echo $vSlug; ?>" class="text-dark text-decoration-none hover-primary">
+                            <a href="<?php echo getVillageUrl($vSlug); ?>" class="text-dark text-decoration-none hover-primary">
                                 <?php echo $vName; ?>
                             </a>
                             <?php if ($vHindi): ?>
@@ -595,7 +595,7 @@ require_once __DIR__ . '/includes/header.php';
 
                         <div class="mt-auto pt-2 d-flex align-items-center justify-content-between">
                             <span class="text-muted small"><i class="bi bi-people-fill me-1"></i> Workers: <?php echo number_format($v['tot_work_tot']); ?></span>
-                            <a href="village.php?slug=<?php echo $vSlug; ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                            <a href="<?php echo getVillageUrl($vSlug); ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3">
                                 View Profile <i class="bi bi-arrow-right ms-1"></i>
                             </a>
                         </div>

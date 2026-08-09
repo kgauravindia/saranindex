@@ -84,7 +84,7 @@ $reviews = getAllAdminReviews($status_filter);
                                 <td class="fw-bold text-muted">#<?php echo $rev['id']; ?></td>
                                 <td>
                                     <?php if (!empty($rev['listing_slug'])): ?>
-                                        <a href="../profile.php?slug=<?php echo sanitizeInput($rev['listing_slug']); ?>" target="_blank" class="fw-bold text-dark text-decoration-none">
+                                        <a href="../<?php echo getListingUrl($rev['listing_slug']); ?>" target="_blank" class="fw-bold text-dark text-decoration-none">
                                             <?php echo sanitizeInput($rev['listing_title']); ?> <i class="bi bi-box-arrow-up-right small ms-1 text-primary"></i>
                                         </a>
                                     <?php else: ?>

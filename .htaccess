@@ -55,4 +55,10 @@
     RewriteRule ^privacy-policy/?$ privacy-policy.php [L,QSA]
     RewriteRule ^terms/?$ terms.php [L,QSA]
     RewriteRule ^refund-policy/?$ refund-policy.php [L,QSA]
+
+    # Direct 2-Segment SEO Subcategory Rewrite (e.g. /classifieds/tenders)
+    RewriteRule ^([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/?$ category.php?slug=$1&sub=$2 [L,QSA]
+
+    # Direct 1-Segment SEO Listing / Category Slug Rewrite (e.g. /classifieds or /vivekanand-international-public-school-65688)
+    RewriteRule ^([a-zA-Z0-9_-]+)/?$ profile.php?slug=$1 [L,QSA]
 </IfModule>

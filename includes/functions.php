@@ -22,13 +22,13 @@ function slugify($text) {
 
 function getCategoryUrl($cat_slug, $sub_slug = '') {
     if (!empty($sub_slug)) {
-        return "category/" . rawurlencode($cat_slug) . "/" . rawurlencode($sub_slug);
+        return rawurlencode($cat_slug) . "/" . rawurlencode($sub_slug);
     }
-    return "category/" . rawurlencode($cat_slug);
+    return rawurlencode($cat_slug);
 }
 
 function getListingUrl($slug) {
-    return "listing/" . rawurlencode($slug);
+    return rawurlencode($slug);
 }
 
 function getBlockUrl($slug = '') {
@@ -44,7 +44,7 @@ function getPanchayatUrl($slug) {
 
 function getVillageUrl($slug) {
     if (empty($slug)) return "villages";
-    return "villages/" . rawurlencode($slug);
+    return "village/" . rawurlencode($slug);
 }
 
 
@@ -2105,15 +2105,62 @@ function updateUserStatus($id, $status) {
 
 function deleteUser($id) {
     $db = getDB();
-    if ($db) {
-        try {
-            $stmt = $db->prepare("DELETE FROM users WHERE id = :id");
-            return $stmt->execute(['id' => intval($id)]);
-        } catch (PDOException $e) {
-            error_log("deleteUser error: " . $e->getMessage());
+    if (!$db || empty($id)) return false;
+
+    $uid = intval($id);
+    try {
+        // Fetch user data to clean up profile assets
+        $stmtU = $db->prepare("SELECT * FROM users WHERE id = :id LIMIT 1");
+        $stmtU->execute(['id' => $uid]);
+        $user = $stmtU->fetch(PDO::FETCH_ASSOC);
+
+        if (!$user) return false;
+
+        // Delete profile photo from disk if present
+        if (!empty($user['profile_image'])) {
+            $imgPath = __DIR__ . '/../' . ltrim($user['profile_image'], '/');
+            if (file_exists($imgPath) && is_file($imgPath)) {
+                @unlink($imgPath);
+            }
         }
+        if (!empty($user['photo'])) {
+            $photoPath = __DIR__ . '/../' . ltrim($user['photo'], '/');
+            if (file_exists($photoPath) && is_file($photoPath)) {
+                @unlink($photoPath);
+            }
+        }
+
+        // Nullify foreign key references in related tables to prevent constraint violations
+        try {
+            $db->prepare("UPDATE listings SET user_id = NULL WHERE user_id = :uid")->execute(['uid' => $uid]);
+        } catch (PDOException $ex) {}
+
+        try {
+            $db->prepare("UPDATE reviews SET user_id = NULL WHERE user_id = :uid")->execute(['uid' => $uid]);
+        } catch (PDOException $ex) {}
+
+        try {
+            $db->prepare("UPDATE claims SET user_id = NULL WHERE user_id = :uid")->execute(['uid' => $uid]);
+        } catch (PDOException $ex) {}
+
+        try {
+            $db->prepare("UPDATE payments SET user_id = NULL WHERE user_id = :uid")->execute(['uid' => $uid]);
+        } catch (PDOException $ex) {}
+
+        // Delete user record from users table
+        $delStmt = $db->prepare("DELETE FROM users WHERE id = :uid");
+        $result = $delStmt->execute(['uid' => $uid]);
+
+        // If the current logged-in user deleted their own profile, destroy session
+        if ($result && session_status() !== PHP_SESSION_NONE && isset($_SESSION['user_id']) && intval($_SESSION['user_id']) === $uid) {
+            logoutPublicUser();
+        }
+
+        return $result;
+    } catch (PDOException $e) {
+        error_log("deleteUser error: " . $e->getMessage());
+        return false;
     }
-    return false;
 }
 
 function getAllAdmins() {
@@ -2677,37 +2724,51 @@ function getCategoriesList() {
 }
 
 function formatListingLocation($item, $lang = 'en') {
+    $address = isset($item['address']) ? trim($item['address']) : '';
+    $blockName = isset($item['block_name']) ? trim($item['block_name']) : '';
+
+    if (!empty($address)) {
+        return $address;
+    }
+
+    // Fallback if address is empty: Block Name, Saran, Bihar
+    $distStr = ($lang === 'hi') ? 'सारण' : 'Saran';
+    $stateStr = ($lang === 'hi') ? 'बिहार' : 'Bihar';
+
     $parts = [];
-    if (!empty($item['address'])) {
-        $parts[] = trim($item['address']);
+    if (!empty($blockName)) {
+        $parts[] = $blockName;
     }
-    if (!empty($item['block_name'])) {
-        $parts[] = trim($item['block_name']);
-    }
-    if ($lang === 'hi') {
-        $parts[] = 'सारण';
-        $parts[] = 'बिहार';
-    } else {
-        $parts[] = 'Saran';
-        $parts[] = 'Bihar';
-    }
+    $parts[] = $distStr;
+    $parts[] = $stateStr;
     return implode(', ', $parts);
 }
 
 function isMobileNumberVisibleToVisitor($listing) {
-    // Registered logged-in users can always see the numbers after login
+    if (empty($listing['mobile'])) {
+        return false;
+    }
+
+    $vis = strtoupper($listing['mobile_visibility'] ?? 'REGISTERED');
+    $mobStatus = strtoupper($listing['mobile_status'] ?? '');
+
+    // If explicitly set to HIDDEN / PRIVATE / BLOCKED / HIDE / NO / DISABLED, or mobile status is BLOCKED, hide for everyone
+    if (in_array($vis, ['HIDDEN', 'PRIVATE', 'HIDE', 'NO', 'BLOCKED', 'DISABLED']) || $mobStatus === 'BLOCKED') {
+        return false;
+    }
+
+    // Registered logged-in users can see the numbers after login
     if (isUserLoggedIn()) {
         return true;
     }
 
     // Default visibility is REGISTERED (means not public for guests)
-    $vis = strtoupper($listing['mobile_visibility'] ?? 'REGISTERED');
     if ($vis !== 'PUBLIC') {
         return false;
     }
 
     // If mobile status is UNVERIFIED, hide for public guests
-    if (isset($listing['mobile_status']) && strtoupper($listing['mobile_status']) === 'UNVERIFIED') {
+    if ($mobStatus === 'UNVERIFIED') {
         return false;
     }
 

@@ -55,7 +55,7 @@ require_once __DIR__ . '/includes/header.php';
                         </div>
 
                         <h4 class="fw-bold text-dark mb-1 font-heading fs-5">
-                            <a href="profile.php?slug=<?php echo sanitizeInput($item['slug']); ?>" class="text-dark text-decoration-none hover-primary">
+                            <a href="<?php echo getListingUrl($item['slug']); ?>" class="text-dark text-decoration-none hover-primary">
                                 <?php echo sanitizeInput($item['title']); ?>
                             </a>
                         </h4>
@@ -68,9 +68,15 @@ require_once __DIR__ . '/includes/header.php';
                         <div>
                             <?php echo renderStarRating($item['star_rating']); ?>
                         </div>
-                        <a href="tel:<?php echo sanitizeInput($item['mobile']); ?>" class="btn-call">
-                            <i class="bi bi-telephone-fill"></i> Call
-                        </a>
+                        <?php if (isMobileNumberVisibleToVisitor($item)): ?>
+                            <a href="tel:<?php echo sanitizeInput($item['mobile']); ?>" class="btn-call">
+                                <i class="bi bi-telephone-fill"></i> Call
+                            </a>
+                        <?php else: ?>
+                            <a href="login.php?redirect=<?php echo urlencode('panchayat.php?slug=' . $panchayat['slug']); ?>" class="btn-call text-muted" title="Log in to view mobile number">
+                                <i class="bi bi-lock-fill text-warning me-1"></i><?php echo sanitizeInput(maskPhoneNumber($item['mobile'])); ?>
+                            </a>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>

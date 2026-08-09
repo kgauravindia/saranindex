@@ -246,7 +246,7 @@ $recentListings = array_slice($recentListings, 0, 8);
                                     <a href="listing_edit.php?id=<?php echo $item['id']; ?>" class="btn btn-outline-secondary" title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <a href="../profile.php?slug=<?php echo $item['slug']; ?>" target="_blank" class="btn btn-outline-info" title="View Public Profile">
+                                    <a href="../<?php echo getListingUrl($item['slug']); ?>" target="_blank" class="btn btn-outline-info" title="View Public Profile">
                                         <i class="bi bi-eye"></i>
                                     </a>
                                     <a href="index.php?action=delete&id=<?php echo $item['id']; ?>" class="btn btn-outline-danger" onclick="return confirm('Are you sure you want to delete this listing?');" title="Delete">

@@ -231,14 +231,13 @@ $listings = getListings('', '', '', 6, 0);
 <!-- Call to Action for Business Owners -->
 <section class="py-5 bg-white">
     <div class="container">
-        <div class="bg-primary text-white rounded-4 p-4 p-md-5 position-relative overflow-hidden shadow-lg">
-            <div class="row align-items-center g-4">
+        <div class="cta-banner text-white p-4 p-md-5 shadow-lg">
+            <div class="row align-items-center g-4 position-relative z-1">
                 <div class="col-lg-8">
                     <span class="badge bg-warning text-dark fw-bold px-3 py-1 rounded-pill mb-3">व्यापारियों एवं पेशेवरों के लिए</span>
                     <h2 class="fw-bold font-heading text-white display-6 mb-3">सारण जिले भर में अपना व्यवसाय बढ़ाएं</h2>
-                    <p class="text-white-50 lead mb-0" style="font-size: 1.1rem;">
+                    <p class="text-white-50 lead mb-0" style="font-size: 1.1rem; color: #cbd5e1 !important;">
                         अपनी दुकान, क्लिनिक या स्कूल को <strong>सारण इंडेक्स</strong> पर निःशुल्क पंजीकृत करें। छपरा, मढ़ौरा, सोनपुर और सभी 20 प्रखंडों के हजारों ग्राहकों तक पहुंचें।
-
                     </p>
                 </div>
                 <div class="col-lg-4 text-lg-end">

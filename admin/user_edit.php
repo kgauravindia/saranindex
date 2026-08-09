@@ -334,6 +334,10 @@ $all_categories = getCategoriesList();
                         <i class="bi bi-box-arrow-in-right me-1"></i> Login As This User
                     </a>
 
+                    <a href="users.php?action=delete&id=<?php echo $user_id; ?>" class="btn btn-outline-danger fw-bold py-2 rounded-3" onclick="return confirm('Are you sure you want to permanently delete user account #<?php echo $user_id; ?> (<?php echo sanitizeInput(addslashes($user['full_name'])); ?>)? This action cannot be undone.');">
+                        <i class="bi bi-trash-fill me-1"></i> Delete User Profile
+                    </a>
+
                     <a href="users.php" class="btn btn-light border fw-medium rounded-3">Cancel</a>
                 </div>
             </div>

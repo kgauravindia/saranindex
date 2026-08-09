@@ -154,7 +154,7 @@ require_once __DIR__ . '/includes/header.php';
                             <i class="bi bi-telephone-fill me-2"></i>कॉल करें (<?php echo sanitizeInput($listing['mobile']); ?>)
                         </a>
                     <?php else: ?>
-                        <a href="login.php?redirect=<?php echo urlencode('profile.php?slug=' . $listing['slug']); ?>" class="btn btn-primary btn-lg rounded-pill fw-bold shadow" title="पूरा नंबर देखने के लिए लॉग इन करें">
+                        <a href="../login.php?redirect=<?php echo urlencode(getListingUrl($listing['slug'])); ?>" class="btn btn-primary btn-lg rounded-pill fw-bold shadow" title="पूरा नंबर देखने के लिए लॉग इन करें">
                             <i class="bi bi-lock-fill me-2"></i>कॉल <?php echo sanitizeInput(maskPhoneNumber($listing['mobile'])); ?>
                         </a>
                         <small class="text-white-50 small mt-1">
@@ -300,7 +300,7 @@ require_once __DIR__ . '/includes/header.php';
                         <h6 class="fw-bold mb-1 text-dark">केवल पंजीकृत उपयोगकर्ता ही समीक्षा दे सकते हैं</h6>
                         <p class="small text-muted mb-3">सारण इंडेक्स पर रेटिंग एवं समीक्षा पोस्ट करने के लिए कृपया अपने खाते में लॉगिन करें या नया खाता बनाएं।</p>
                         <div class="d-flex justify-content-center gap-2">
-                            <a href="../login.php?redirect=<?php echo urlencode('hindi/profile.php?slug=' . $listing['slug']); ?>" class="btn btn-primary btn-sm fw-bold px-4 rounded-pill">
+                            <a href="../login.php?redirect=<?php echo urlencode(getListingUrl($listing['slug'])); ?>" class="btn btn-primary btn-sm fw-bold px-4 rounded-pill">
                                 <i class="bi bi-box-arrow-in-right me-1"></i> लॉगिन करें
                             </a>
                             <a href="../register.php" class="btn btn-outline-primary btn-sm fw-bold px-4 rounded-pill">
@@ -449,11 +449,18 @@ require_once __DIR__ . '/includes/header.php';
                     <i class="bi bi-telephone-fill text-primary fs-5 me-3"></i>
                     <div>
                         <strong class="d-block text-dark small">मोबाइल नंबर</strong>
-                        <a href="tel:<?php echo sanitizeInput($listing['mobile']); ?>" class="text-primary fw-bold text-decoration-none"><?php echo sanitizeInput($listing['mobile']); ?></a>
+                        <?php if (isMobileNumberVisibleToVisitor($listing)): ?>
+                            <a href="tel:<?php echo sanitizeInput($listing['mobile']); ?>" class="text-primary fw-bold text-decoration-none"><?php echo sanitizeInput($listing['mobile']); ?></a>
+                        <?php else: ?>
+                            <span class="text-muted small fw-bold"><i class="bi bi-lock-fill me-1 text-warning"></i><?php echo sanitizeInput(maskPhoneNumber($listing['mobile'])); ?></span>
+                            <?php if (!isUserLoggedIn()): ?>
+                                <div class="mt-1"><a href="../login.php?redirect=<?php echo urlencode(getListingUrl($listing['slug'])); ?>" class="text-primary small text-decoration-underline">लॉग इन करें</a></div>
+                            <?php endif; ?>
+                        <?php endif; ?>
                     </div>
                 </div>
 
-                <?php if (!empty($listing['whatsapp'])): ?>
+                <?php if (!empty($listing['whatsapp']) && isMobileNumberVisibleToVisitor($listing)): ?>
                     <div class="d-flex mb-3">
                         <i class="bi bi-whatsapp text-success fs-5 me-3"></i>
                         <div>

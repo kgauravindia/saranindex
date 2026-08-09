@@ -231,7 +231,7 @@ $total_extra_entries = array_sum(array_column($duplicate_groups, 'total')) - $to
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <a href="../profile.php?slug=<?php echo $item['slug']; ?>" target="_blank"
+                                    <a href="../<?php echo getListingUrl($item['slug']); ?>" target="_blank"
                                         class="text-dark text-decoration-none fw-semibold small">
                                         <?php echo htmlspecialchars($item['title']); ?>
                                         <i class="bi bi-box-arrow-up-right ms-1 text-muted" style="font-size:0.7rem;"></i>

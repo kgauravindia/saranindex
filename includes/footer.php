@@ -87,6 +87,50 @@
                     <a href="category/schools-education" class="btn btn-sm btn-dark text-white-50 border-secondary">Schools</a>
                     <a href="category/government-offices" class="btn btn-sm btn-dark text-white-50 border-secondary">Govt Offices</a>
                     <a href="category/hotels-restaurants" class="btn btn-sm btn-dark text-white-50 border-secondary">Hotels</a>
+            </div>
+        </div>
+
+        <div class="row pt-4 mt-3 border-top border-secondary">
+            <div class="col-12">
+                <h6 class="text-warning text-uppercase fw-bold mb-3 tracking-wide" style="font-size: 0.8rem;">
+                    <i class="bi bi-geo-alt-fill me-1"></i>Business by Block
+                </h6>
+                <div class="d-flex flex-wrap gap-2 text-white-50 small">
+                    <?php 
+                    if (!function_exists('getBlocks')) {
+                        @include_once __DIR__ . '/functions.php';
+                    }
+                    $footer_blocks = function_exists('getBlocks') ? getBlocks() : [];
+                    if (!empty($footer_blocks)):
+                        foreach ($footer_blocks as $fblk):
+                            $bName = preg_replace('/\s+Sadar$/i', '', $fblk['block_name'] ?? $fblk['name'] ?? '');
+                    ?>
+                        <a href="search.php?q=&category=&block=<?php echo urlencode($fblk['slug']); ?>" class="text-white-50 text-decoration-none hover-white me-3 mb-1">
+                            Business in <?php echo sanitizeInput($bName); ?>
+                        </a>
+                    <?php 
+                        endforeach;
+                    else:
+                    ?>
+                        <a href="search.php?q=&category=&block=chapra-sadar" class="text-white-50 text-decoration-none hover-white me-3 mb-1">Business in Chapra</a>
+                        <a href="search.php?q=&category=&block=ekma" class="text-white-50 text-decoration-none hover-white me-3 mb-1">Business in Ekma</a>
+                        <a href="search.php?q=&category=&block=marhaura" class="text-white-50 text-decoration-none hover-white me-3 mb-1">Business in Marhaura</a>
+                        <a href="search.php?q=&category=&block=sonpur" class="text-white-50 text-decoration-none hover-white me-3 mb-1">Business in Sonepur</a>
+                        <a href="search.php?q=&category=&block=garkha" class="text-white-50 text-decoration-none hover-white me-3 mb-1">Business in Garkha</a>
+                        <a href="search.php?q=&category=&block=parsa" class="text-white-50 text-decoration-none hover-white me-3 mb-1">Business in Parsa</a>
+                        <a href="search.php?q=&category=&block=dighwara" class="text-white-50 text-decoration-none hover-white me-3 mb-1">Business in Dighwara</a>
+                        <a href="search.php?q=&category=&block=amanour" class="text-white-50 text-decoration-none hover-white me-3 mb-1">Business in Amanour</a>
+                        <a href="search.php?q=&category=&block=baniapur" class="text-white-50 text-decoration-none hover-white me-3 mb-1">Business in Baniapur</a>
+                        <a href="search.php?q=&category=&block=taraiya" class="text-white-50 text-decoration-none hover-white me-3 mb-1">Business in Taraiya</a>
+                        <a href="search.php?q=&category=&block=isuapur" class="text-white-50 text-decoration-none hover-white me-3 mb-1">Business in Isuapur</a>
+                        <a href="search.php?q=&category=&block=lahladpur" class="text-white-50 text-decoration-none hover-white me-3 mb-1">Business in Lahladpur</a>
+                        <a href="search.php?q=&category=&block=manjhi" class="text-white-50 text-decoration-none hover-white me-3 mb-1">Business in Manjhi</a>
+                        <a href="search.php?q=&category=&block=maker" class="text-white-50 text-decoration-none hover-white me-3 mb-1">Business in Maker</a>
+                        <a href="search.php?q=&category=&block=nagra" class="text-white-50 text-decoration-none hover-white me-3 mb-1">Business in Nagra</a>
+                        <a href="search.php?q=&category=&block=mashrakh" class="text-white-50 text-decoration-none hover-white me-3 mb-1">Business in Mashrakh</a>
+                        <a href="search.php?q=&category=&block=panapur" class="text-white-50 text-decoration-none hover-white me-3 mb-1">Business in Panapur</a>
+                        <a href="search.php?q=&category=&block=rivilganj" class="text-white-50 text-decoration-none hover-white me-3 mb-1">Business in Revelganj</a>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

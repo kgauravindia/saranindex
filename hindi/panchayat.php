@@ -88,14 +88,20 @@ require_once __DIR__ . '/includes/header.php';
                             <?php echo renderStarRating($item['star_rating']); ?>
                         </div>
                         <div class="d-flex gap-2">
-                            <?php if (!empty($item['whatsapp'])): ?>
+                            <?php if (!empty($item['whatsapp']) && isMobileNumberVisibleToVisitor($item)): ?>
                                 <a href="https://wa.me/91<?php echo sanitizeInput($item['whatsapp']); ?>" target="_blank" class="btn-whatsapp">
                                     <i class="bi bi-whatsapp"></i> व्हाट्सएप
                                 </a>
                             <?php endif; ?>
-                            <a href="tel:<?php echo sanitizeInput($item['mobile']); ?>" class="btn-call">
-                                <i class="bi bi-telephone-fill"></i> कॉल करें
-                            </a>
+                            <?php if (isMobileNumberVisibleToVisitor($item)): ?>
+                                <a href="tel:<?php echo sanitizeInput($item['mobile']); ?>" class="btn-call">
+                                    <i class="bi bi-telephone-fill"></i> कॉल करें
+                                </a>
+                            <?php else: ?>
+                                <a href="../login.php?redirect=<?php echo urlencode('hindi/panchayat.php?slug=' . $panchayat['slug']); ?>" class="btn-call text-muted" title="नंबर देखने के लिए लॉग इन करें">
+                                    <i class="bi bi-lock-fill text-warning me-1"></i><?php echo sanitizeInput(maskPhoneNumber($item['mobile'])); ?>
+                                </a>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>

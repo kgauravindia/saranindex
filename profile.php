@@ -5,6 +5,18 @@ $slug = isset($_GET['slug']) ? sanitizeInput($_GET['slug']) : 'sadar-hospital-ch
 $listing = getListingBySlug($slug);
 
 if (!$listing) {
+    // Check if $slug matches a Category (e.g. /classifieds, /doctors-healthcare)
+    $categories = getCategories();
+    if (!empty($categories)) {
+        foreach ($categories as $cat) {
+            if (strcasecmp($cat['slug'], $slug) === 0) {
+                $_GET['slug'] = $cat['slug'];
+                require __DIR__ . '/category.php';
+                exit;
+            }
+        }
+    }
+
     // Fallback to first listing if slug not found
     $listings = getListings('', '', '', 1);
     $listing = !empty($listings) ? $listings[0] : null;
@@ -151,7 +163,7 @@ require_once __DIR__ . '/includes/header.php';
                             </a>
                         <?php endif; ?>
                     <?php else: ?>
-                        <a href="login.php?redirect=<?php echo urlencode('profile.php?slug=' . $listing['slug']); ?>" class="btn btn-primary btn-lg rounded-pill fw-bold shadow" title="Log in to view full mobile number">
+                        <a href="login.php?redirect=<?php echo urlencode(getListingUrl($listing['slug'])); ?>" class="btn btn-primary btn-lg rounded-pill fw-bold shadow" title="Log in to view full mobile number">
                             <i class="bi bi-lock-fill me-2"></i>Call <?php echo sanitizeInput(maskPhoneNumber($listing['mobile'])); ?>
                         </a>
                         <small class="text-white-50 small mt-1">
@@ -290,7 +302,7 @@ require_once __DIR__ . '/includes/header.php';
                                 </a>
                             </div>
                         <?php else: ?>
-                            <form action="profile.php?slug=<?php echo sanitizeInput($listing['slug']); ?>" method="POST" class="bg-light p-4 rounded-4 border mb-4">
+                            <form action="<?php echo getListingUrl($listing['slug']); ?>" method="POST" class="bg-light p-4 rounded-4 border mb-4">
                                 <input type="hidden" name="action" value="<?php echo $is_editing ? 'update_review' : 'add_review'; ?>">
                                 <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
                                     <h6 class="fw-bold text-dark mb-0">
@@ -459,7 +471,7 @@ require_once __DIR__ . '/includes/header.php';
                             </h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <form action="profile.php?slug=<?php echo sanitizeInput($listing['slug']); ?>" method="POST">
+                        <form action="<?php echo getListingUrl($listing['slug']); ?>" method="POST">
                             <input type="hidden" name="action" value="claim_business">
                             <div class="modal-body p-4">
                                 <p class="small text-muted mb-3">Are you the authorized owner, manager, or representative of <strong><?php echo sanitizeInput($listing['title']); ?></strong>? Submit your details to claim ownership of this listing.</p>
@@ -521,7 +533,14 @@ require_once __DIR__ . '/includes/header.php';
                             <i class="bi bi-telephone-fill text-primary fs-5 me-3"></i>
                             <div>
                                 <strong class="d-block text-dark small">Phone Number</strong>
-                                <a href="tel:<?php echo sanitizeInput($listing['mobile']); ?>" class="text-primary fw-bold text-decoration-none small"><?php echo sanitizeInput($listing['mobile']); ?></a>
+                                <?php if (isMobileNumberVisibleToVisitor($listing)): ?>
+                                    <a href="tel:<?php echo sanitizeInput($listing['mobile']); ?>" class="text-primary fw-bold text-decoration-none small"><?php echo sanitizeInput($listing['mobile']); ?></a>
+                                <?php else: ?>
+                                    <span class="text-muted small fw-bold"><i class="bi bi-lock-fill me-1 text-warning"></i><?php echo sanitizeInput(maskPhoneNumber($listing['mobile'])); ?></span>
+                                    <?php if (!isUserLoggedIn()): ?>
+                                        <div class="mt-1"><a href="login.php?redirect=<?php echo urlencode(getListingUrl($listing['slug'])); ?>" class="text-primary small text-decoration-underline">Log in to view</a></div>
+                                    <?php endif; ?>
+                                <?php endif; ?>
                             </div>
                         </li>
 

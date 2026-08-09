@@ -431,8 +431,9 @@ if ($village):
                         <?php foreach ($nearby as $nv): 
                             $nvTitle = !empty($nv['name_hindi']) ? $nv['name_hindi'] : $nv['name'];
                             $nvSubTitle = !empty($nv['name_hindi']) ? $nv['name'] : '';
+                            $nvSlug = !empty($nv['unique_slug']) ? $nv['unique_slug'] : $nv['town_village_code'];
                         ?>
-                            <a href="village/<?php echo sanitizeInput($nv['town_village_code']); ?>" class="list-group-item list-group-item-action px-0 py-2.5 d-flex align-items-center justify-content-between border-bottom">
+                            <a href="<?php echo '../' . getVillageUrl($nvSlug); ?>" class="list-group-item list-group-item-action px-0 py-2.5 d-flex align-items-center justify-content-between border-bottom">
                                 <div>
                                     <div class="fw-semibold text-dark"><?php echo sanitizeInput($nvTitle); ?></div>
                                     <?php if ($nvSubTitle): ?>

@@ -13,7 +13,7 @@ if (!empty($query)) {
             'title' => $item['title'],
             'category_name' => $item['category_name'] ?? 'Directory',
             'block_name' => $item['block_name'] ?? 'Saran',
-            'url' => 'profile.php?slug=' . $item['slug']
+            'url' => getListingUrl($item['slug'])
         ];
     }
 }

@@ -100,6 +100,13 @@ require_once __DIR__ . '/includes/header.php';
                             <p class="text-muted small">अपने खाते तक पहुँचने के लिए अपना विवरण दर्ज करें।</p>
                         </div>
 
+                        <?php if (isset($_GET['msg']) && $_GET['msg'] === 'profile_deleted'): ?>
+                            <div class="alert alert-success alert-dismissible fade show rounded-3 small border-0 shadow-sm mb-4" role="alert">
+                                <i class="bi bi-check-circle-fill me-2 text-success"></i> आपकी उपयोगकर्ता प्रोफ़ाइल और खाता `users` तालिका से सफलतापूर्वक डिलीट कर दिया गया है।
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        <?php endif; ?>
+
                         <?php if (!empty($error)): ?>
                             <div class="alert alert-danger alert-dismissible fade show rounded-3 small border-0 shadow-sm" role="alert">
                                 <i class="bi bi-exclamation-triangle-fill me-2 text-danger"></i> <?php echo $error; ?>

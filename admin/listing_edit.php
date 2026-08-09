@@ -204,7 +204,7 @@ if (!empty($listing['category_id'])) {
     </div>
     <div class="d-flex gap-2">
         <?php if ($editing_id && !empty($listing['slug'])): ?>
-            <a href="../profile.php?slug=<?php echo urlencode($listing['slug']); ?>" target="_blank" class="btn btn-outline-primary btn-sm px-3 rounded-3 fw-semibold">
+            <a href="../<?php echo getListingUrl($listing['slug']); ?>" target="_blank" class="btn btn-outline-primary btn-sm px-3 rounded-3 fw-semibold">
                 <i class="bi bi-box-arrow-up-right me-1"></i> View Public Profile
             </a>
         <?php endif; ?>

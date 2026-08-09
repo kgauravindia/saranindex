@@ -89,13 +89,13 @@ $censusVillages = !empty($q) ? getCensusVillages($block_slug, $q, 6, 0) : [];
                         <div class="p-3 bg-white rounded-3 border h-100 d-flex align-items-center justify-content-between">
                             <div>
                                 <h6 class="fw-bold text-dark mb-0 font-heading">
-                                    <a href="village/<?php echo sanitizeInput($cv['town_village_code']); ?>" class="text-dark text-decoration-none hover-primary">
+                                    <a href="<?php echo '../' . getVillageUrl($cvSlug); ?>" class="text-dark text-decoration-none hover-primary">
                                         <?php echo sanitizeInput($cvTitle); ?>
                                     </a>
                                 </h6>
                                 <span class="text-muted fs-7"><?php echo sanitizeInput($cv['block_name']); ?> प्रखंड • कोड: <?php echo sanitizeInput($cv['town_village_code']); ?></span>
                             </div>
-                            <a href="village/<?php echo sanitizeInput($cv['town_village_code']); ?>" class="btn btn-sm btn-light rounded-circle"><i class="bi bi-chevron-right"></i></a>
+                            <a href="<?php echo '../' . getVillageUrl($cvSlug); ?>" class="btn btn-sm btn-light rounded-circle"><i class="bi bi-chevron-right"></i></a>
                         </div>
                     </div>
                 <?php endforeach; ?>
