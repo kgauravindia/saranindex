@@ -13,7 +13,7 @@ $listings = getListings('', '', '', 20, 0);
     <div class="container">
         <span class="badge bg-warning text-dark fw-bold px-3 py-1 rounded-pill mb-2">Postal Code Directory</span>
         <h1 class="fw-bolder font-heading text-white display-5 mb-2">PIN Code: <?php echo sanitizeInput($code); ?></h1>
-        <p class="text-white-50 lead mb-0">Verified listings, institutions, and emergency services in Saran (Chapra).</p>
+        <p class="text-white-50 lead mb-0">Verified listings, institutions, and emergency services in Saran District.</p>
     </div>
 </div>
 

@@ -41,8 +41,9 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
             $msg = "Updated Email verification status for user #{$target_id}.";
         }
     } elseif ($action === 'delete') {
-        if (deleteUser($target_id)) {
-            $msg = "User #{$target_id} deleted successfully.";
+        $admin_user = $_SESSION['admin_username'] ?? 'ADMIN';
+        if (deleteUser($target_id, $admin_user)) {
+            $msg = "User #{$target_id} deleted and safely archived to deleted_users table.";
             $msg_type = "danger";
         }
     }
@@ -239,7 +240,7 @@ require_once __DIR__ . '/includes/header.php';
                                         </a>
                                     <?php endif; ?>
 
-                                    <a href="users.php?action=delete&id=<?php echo $u['id']; ?>" class="btn btn-outline-danger" onclick="return confirm('Are you sure you want to delete this user account?');" title="Delete User">
+                                    <a href="users.php?action=delete&id=<?php echo $u['id']; ?>" class="btn btn-outline-danger" onclick="return confirm('Are you sure you want to delete user #<?php echo $u['id']; ?>? User data will be archived to deleted_users table.');" title="Delete User (Archive to deleted_users)">
                                         <i class="bi bi-trash"></i>
                                     </a>
                                 </div>

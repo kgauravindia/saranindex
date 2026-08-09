@@ -66,7 +66,7 @@ $meta_description = $meta_description ?? 'Saran Index is the digital directory o
 <!-- Main Navigation Bar -->
 <nav class="navbar navbar-expand-lg sticky-top bg-white border-bottom shadow-sm py-2">
     <div class="container">
-        <a class="navbar-brand d-flex align-items-center me-4" href="index.php">
+        <a class="navbar-brand d-flex align-items-center me-4" href="./">
             <img src="assets/logo.png" alt="Saran Index Logo" height="46" class="me-2 rounded-2 shadow-sm" style="object-fit: contain;">
             <div class="d-none d-sm-block">
                 <div class="fw-bold text-dark lh-1" style="font-size: 0.9rem;">Saran Index</div>
@@ -81,7 +81,7 @@ $meta_description = $meta_description ?? 'Saran Index is the digital directory o
         <div class="collapse navbar-collapse" id="mainNavbar">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0 fw-semibold">
                 <li class="nav-item">
-                    <a class="nav-link text-dark px-3" href="index.php"><i class="bi bi-house-door me-1"></i>Home</a>
+                    <a class="nav-link text-dark px-3" href="./"><i class="bi bi-house-door me-1"></i>Home</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link text-dark px-3" href="blocks"><i class="bi bi-geo-alt me-1"></i>Blocks</a>
@@ -91,7 +91,7 @@ $meta_description = $meta_description ?? 'Saran Index is the digital directory o
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link text-dark px-3" href="pricing.php"><i class="bi bi-star me-1 text-warning"></i>Pricing Plans</a>
+                    <a class="nav-link text-dark px-3" href="pricing"><i class="bi bi-star me-1 text-warning"></i>Pricing Plans</a>
                 </li>
 
             </ul>
@@ -100,11 +100,11 @@ $meta_description = $meta_description ?? 'Saran Index is the digital directory o
                 <?php if (isUserLoggedIn()): 
                     $headerUser = getLoggedInUser();
                 ?>
-                    <a href="dashboard.php" class="btn btn-outline-primary rounded-pill px-3 py-1.5 btn-sm fw-bold" title="My Account Dashboard">
+                    <a href="dashboard" class="btn btn-outline-primary rounded-pill px-3 py-1.5 btn-sm fw-bold" title="My Account Dashboard">
                         <i class="bi bi-person-circle me-1"></i><?php echo htmlspecialchars($headerUser['full_name'] ?? 'Dashboard'); ?>
                     </a>
                 <?php else: ?>
-                    <a href="login.php" class="btn btn-outline-primary rounded-pill px-3 py-1.5 btn-sm fw-bold" title="User Login">
+                    <a href="login" class="btn btn-outline-primary rounded-pill px-3 py-1.5 btn-sm fw-bold" title="User Login">
                         <i class="bi bi-box-arrow-in-right me-1"></i>Login
                     </a>
                 <?php endif; ?>

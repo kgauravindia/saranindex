@@ -61,7 +61,7 @@ $meta_description = $meta_description ?? 'सारण इंडेक्स स
 <!-- Main Navigation Bar -->
 <nav class="navbar navbar-expand-lg sticky-top bg-white border-bottom shadow-sm py-2">
     <div class="container">
-        <a class="navbar-brand d-flex align-items-center me-4" href="index.php">
+        <a class="navbar-brand d-flex align-items-center me-4" href="./">
             <img src="<?php echo BASE_URL; ?>assets/logo.png" alt="Saran Index Logo" height="46" class="me-2 rounded-2 shadow-sm" style="object-fit: contain;">
             <div class="d-none d-sm-block">
                 <div class="fw-bold text-dark lh-1" style="font-size: 0.9rem;">सारण इंडेक्स</div>
@@ -76,7 +76,7 @@ $meta_description = $meta_description ?? 'सारण इंडेक्स स
         <div class="collapse navbar-collapse" id="mainNavbar">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0 fw-semibold">
                 <li class="nav-item">
-                    <a class="nav-link text-dark px-3" href="index.php"><i class="bi bi-house-door me-1"></i>होम</a>
+                    <a class="nav-link text-dark px-3" href="./"><i class="bi bi-house-door me-1"></i>होम</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link text-dark px-3" href="blocks"><i class="bi bi-geo-alt me-1"></i>प्रखंड</a>
@@ -85,7 +85,7 @@ $meta_description = $meta_description ?? 'सारण इंडेक्स स
                     <a class="nav-link text-dark px-3" href="village"><i class="bi bi-houses me-1"></i>गाँव</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-dark px-3" href="pricing.php"><i class="bi bi-star me-1 text-warning"></i>मेंबरशिप प्लान</a>
+                    <a class="nav-link text-dark px-3" href="pricing"><i class="bi bi-star me-1 text-warning"></i>मेंबरशिप प्लान</a>
                 </li>
 
             </ul>
@@ -94,11 +94,11 @@ $meta_description = $meta_description ?? 'सारण इंडेक्स स
                 <?php if (isUserLoggedIn()): 
                     $headerUser = getLoggedInUser();
                 ?>
-                    <a href="dashboard.php" class="btn btn-outline-primary rounded-pill px-3 py-1.5 btn-sm fw-bold" title="मेरा खाता डैशबोर्ड">
+                    <a href="dashboard" class="btn btn-outline-primary rounded-pill px-3 py-1.5 btn-sm fw-bold" title="मेरा खाता डैशबोर्ड">
                         <i class="bi bi-person-circle me-1"></i><?php echo htmlspecialchars($headerUser['full_name'] ?? 'डैशबोर्ड'); ?>
                     </a>
                 <?php else: ?>
-                    <a href="login.php" class="btn btn-outline-primary rounded-pill px-3 py-1.5 btn-sm fw-bold" title="उपयोगकर्ता लॉगिन">
+                    <a href="login" class="btn btn-outline-primary rounded-pill px-3 py-1.5 btn-sm fw-bold" title="उपयोगकर्ता लॉगिन">
                         <i class="bi bi-box-arrow-in-right me-1"></i>लॉगिन
                     </a>
                 <?php endif; ?>

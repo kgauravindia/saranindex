@@ -565,4 +565,14 @@ footer .border-secondary {
     color: #ffffff !important;
 }
 
+/* Social Media Brand Hover States */
+.social-btn-facebook:hover { background-color: #1877F2 !important; border-color: #1877F2 !important; color: #ffffff !important; }
+.social-btn-instagram:hover { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888) !important; border-color: transparent !important; color: #ffffff !important; }
+.social-btn-x:hover { background-color: #000000 !important; border-color: #ffffff !important; color: #ffffff !important; }
+.social-btn-threads:hover { background-color: #101010 !important; border-color: #ffffff !important; color: #ffffff !important; }
+.social-btn-youtube:hover { background-color: #FF0000 !important; border-color: #FF0000 !important; color: #ffffff !important; }
+.social-btn-telegram:hover { background-color: #24A1DE !important; border-color: #24A1DE !important; color: #ffffff !important; }
+.social-btn-whatsapp:hover { background-color: #25D366 !important; border-color: #25D366 !important; color: #ffffff !important; }
+
+
 

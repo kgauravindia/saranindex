@@ -20,31 +20,38 @@ function slugify($text) {
     return strtolower($text);
 }
 
-function getCategoryUrl($cat_slug, $sub_slug = '') {
+function getCategoryUrl($cat_slug = '', $sub_slug = '') {
+    if (empty($cat_slug)) return "categories";
     if (!empty($sub_slug)) {
         return rawurlencode($cat_slug) . "/" . rawurlencode($sub_slug);
     }
     return rawurlencode($cat_slug);
 }
 
-function getListingUrl($slug) {
+function getListingUrl($slug = '') {
+    if (empty($slug)) return "";
     return rawurlencode($slug);
 }
 
 function getBlockUrl($slug = '') {
     if (!empty($slug)) {
-        return "blocks/" . rawurlencode($slug);
+        return "block/" . rawurlencode($slug);
     }
     return "blocks";
 }
 
-function getPanchayatUrl($slug) {
-    return "panchayat/" . rawurlencode($slug);
+function getPanchayatUrl($slug = '') {
+    if (!empty($slug)) {
+        return "panchayat/" . rawurlencode($slug);
+    }
+    return "panchayats";
 }
 
-function getVillageUrl($slug) {
-    if (empty($slug)) return "villages";
-    return "village/" . rawurlencode($slug);
+function getVillageUrl($slug = '') {
+    if (!empty($slug)) {
+        return "village/" . rawurlencode($slug);
+    }
+    return "villages";
 }
 
 
@@ -194,6 +201,30 @@ function getAllSubcategories() {
     }
     return [];
 }
+
+function getDataSources($status = 'ACTIVE') {
+    $db = getDB();
+    if ($db) {
+        try {
+            $sql = "SELECT * FROM sources";
+            if ($status) {
+                $sql .= " WHERE status = :st";
+            }
+            $sql .= " ORDER BY sort_order ASC, id ASC";
+            $stmt = $db->prepare($sql);
+            if ($status) {
+                $stmt->execute(['st' => $status]);
+            } else {
+                $stmt->execute();
+            }
+            return $stmt->fetchAll();
+        } catch (PDOException $e) {
+            error_log("getDataSources error: " . $e->getMessage());
+        }
+    }
+    return [];
+}
+
 
 
 function getListings($search = '', $category_slug = '', $block_slug = '', $limit = 20, $offset = 0, $subcategory_slug = '') {
@@ -1902,7 +1933,7 @@ function generateCategoryParagraph($category, $subcategories, $isHindi = false) 
     }
 
     if (!$isHindi) {
-        $paragraph = "Welcome to the <strong>" . sanitizeInput($catName) . "</strong> directory on Saran Index, your trusted digital guide for Saran District (Chapra). ";
+        $paragraph = "Welcome to the <strong>" . sanitizeInput($catName) . "</strong> directory on Saran Index, your trusted digital guide for Saran District. ";
         
         if (!empty($profNames)) {
             $profStr = implode(', ', array_map('sanitizeInput', array_slice($profNames, 0, 6)));
@@ -2103,18 +2134,89 @@ function updateUserStatus($id, $status) {
     return false;
 }
 
-function deleteUser($id) {
+function ensureDeletedUsersTableExists() {
+    $db = getDB();
+    if ($db) {
+        try {
+            $db->exec("CREATE TABLE IF NOT EXISTS `deleted_users` (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                `original_user_id` INT DEFAULT NULL,
+                `full_name` VARCHAR(100) DEFAULT NULL,
+                `mobile` VARCHAR(20) DEFAULT NULL,
+                `whatsapp` VARCHAR(20) DEFAULT NULL,
+                `email` VARCHAR(100) DEFAULT NULL,
+                `password_hash` VARCHAR(255) DEFAULT NULL,
+                `business_name` VARCHAR(150) DEFAULT NULL,
+                `designation` VARCHAR(100) DEFAULT NULL,
+                `block_id` INT DEFAULT NULL,
+                `panchayat_id` INT DEFAULT NULL,
+                `village_id` INT DEFAULT NULL,
+                `address` TEXT DEFAULT NULL,
+                `pincode` VARCHAR(10) DEFAULT NULL,
+                `profile_image` VARCHAR(255) DEFAULT NULL,
+                `bio` TEXT DEFAULT NULL,
+                `status` VARCHAR(50) DEFAULT NULL,
+                `type` VARCHAR(50) DEFAULT NULL,
+                `wallet` DECIMAL(10,2) DEFAULT 0.00,
+                `user_data_json` LONGTEXT DEFAULT NULL,
+                `deleted_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+                `deleted_by` VARCHAR(100) DEFAULT 'SYSTEM'
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+        } catch (Exception $e) {}
+    }
+}
+
+function deleteUser($id, $deleted_by = 'SYSTEM') {
     $db = getDB();
     if (!$db || empty($id)) return false;
 
+    ensureDeletedUsersTableExists();
     $uid = intval($id);
+
     try {
-        // Fetch user data to clean up profile assets
+        // Fetch user data to move to deleted_users table
         $stmtU = $db->prepare("SELECT * FROM users WHERE id = :id LIMIT 1");
         $stmtU->execute(['id' => $uid]);
         $user = $stmtU->fetch(PDO::FETCH_ASSOC);
 
         if (!$user) return false;
+
+        // Move user record to deleted_users archive table
+        try {
+            $insDeleted = $db->prepare("INSERT INTO deleted_users (
+                original_user_id, full_name, mobile, whatsapp, email, password_hash,
+                business_name, designation, block_id, panchayat_id, village_id, address,
+                pincode, profile_image, bio, status, type, wallet, user_data_json, deleted_by
+            ) VALUES (
+                :orig_id, :full_name, :mobile, :whatsapp, :email, :password_hash,
+                :business_name, :designation, :block_id, :panchayat_id, :village_id, :address,
+                :pincode, :profile_image, :bio, :status, :type, :wallet, :user_data_json, :deleted_by
+            )");
+            $insDeleted->execute([
+                'orig_id'        => $user['id'],
+                'full_name'      => $user['full_name'] ?? $user['name'] ?? '',
+                'mobile'         => $user['mobile'] ?? '',
+                'whatsapp'       => $user['whatsapp'] ?? null,
+                'email'          => $user['email'] ?? null,
+                'password_hash'  => $user['password_hash'] ?? $user['password'] ?? '',
+                'business_name'  => $user['business_name'] ?? null,
+                'designation'    => $user['designation'] ?? null,
+                'block_id'       => $user['block_id'] ?? null,
+                'panchayat_id'   => $user['panchayat_id'] ?? null,
+                'village_id'     => $user['village_id'] ?? null,
+                'address'        => $user['address'] ?? null,
+                'pincode'        => $user['pincode'] ?? null,
+                'profile_image'  => $user['profile_image'] ?? $user['photo'] ?? null,
+                'bio'            => $user['bio'] ?? $user['about'] ?? null,
+                'status'         => $user['status'] ?? 'DELETED',
+                'type'           => $user['type'] ?? 'USER',
+                'wallet'         => $user['wallet'] ?? 0.00,
+                'user_data_json' => json_encode($user, JSON_UNESCAPED_UNICODE),
+                'deleted_by'     => $deleted_by
+            ]);
+        } catch (PDOException $ex) {
+            error_log("Failed to insert into deleted_users: " . $ex->getMessage());
+        }
 
         // Delete profile photo from disk if present
         if (!empty($user['profile_image'])) {

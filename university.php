@@ -20,7 +20,7 @@ require_once __DIR__ . '/includes/header.php';
             जयप्रकाश विश्वविद्यालय (JPU) एवं आर्यभट्ट ज्ञान विश्वविद्यालय (AKU)
         </div>
         <p class="text-white-50 lead mx-auto mb-4" style="max-width: 780px;">
-            Saran District (Chapra) is home to <strong>Jai Prakash University (JPU)</strong> for general & professional education, as well as premier engineering, medical, and technical colleges affiliated with <strong>Aryabhatta Knowledge University (AKU), Patna</strong>.
+            Saran District is home to <strong>Jai Prakash University (JPU)</strong> for general & professional education, as well as premier engineering, medical, and technical colleges affiliated with <strong>Aryabhatta Knowledge University (AKU), Patna</strong>.
         </p>
 
         <div class="d-flex justify-content-center gap-3 flex-wrap">
@@ -114,7 +114,7 @@ require_once __DIR__ . '/includes/header.php';
                     <strong>Aryabhatta Knowledge University (AKU), Patna</strong> was established in 2008 by the Government of Bihar (under Bihar Act 24, 2008) to govern and promote technical, engineering, medical, pharmacy, and professional education across the state of Bihar.
                 </p>
                 <p class="text-secondary" style="line-height: 1.8;">
-                    Several premier government engineering, medical, nursing, and technical colleges located in <strong>Saran District (Chapra)</strong> are affiliated with AKU Patna:
+                    Several premier government engineering, medical, nursing, and technical colleges located in <strong>Saran District</strong> are affiliated with AKU Patna:
                 </p>
 
                 <!-- AKU Colleges Grid -->

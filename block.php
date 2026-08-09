@@ -240,7 +240,7 @@ if ($block) {
 
 // Default: All 20 Blocks Overview Page
 $page_title = "All 20 Blocks of Saran District – Saran Index";
-$meta_description = "Explore official Census 2011 demographic data, population, households, literacy stats, and local directory for all 20 blocks of Saran (Chapra).";
+$meta_description = "Explore official Census 2011 demographic data, population, households, literacy stats, and local directory for all 20 blocks of Saran District.";
 require_once __DIR__ . '/includes/header.php';
 
 $blocks = getBlocks();
@@ -252,7 +252,7 @@ $blocks = getBlocks();
     <div class="container text-center position-relative z-index-1">
         <span class="badge bg-warning text-dark fw-bold px-3 py-1.5 rounded-pill uppercase tracking-wider mb-2">Administrative Directory</span>
         <h1 class="fw-bolder font-heading text-white display-4 mb-2">All 20 Blocks of Saran District</h1>
-        <p class="text-white-50 lead mx-auto mb-0" style="max-width: 650px;">Explore official Census 2011 demographic data, population, literacy stats, businesses, panchayats, and schools in every block of Saran (Chapra).</p>
+        <p class="text-white-50 lead mx-auto mb-0" style="max-width: 650px;">Explore official Census 2011 demographic data, population, literacy stats, businesses, panchayats, and schools in every block of Saran District.</p>
     </div>
 </div>
 

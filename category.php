@@ -42,7 +42,7 @@ foreach ($subcategories as $sc) {
 }
 
 $title_suffix = $selected_subcategory ? " - " . $selected_subcategory['name'] : "";
-$page_title = $selected_category['name'] . $title_suffix . " in Saran District (Chapra) – Saran Index";
+$page_title = $selected_category['name'] . $title_suffix . " in Saran District – Saran Index";
 $meta_description = "Find verified " . $selected_category['name'] . " across Chapra and all 20 blocks of Saran District. Explore top professionals, businesses, contact numbers, addresses, and WhatsApp details.";
 $meta_keywords = getCategoryMetaKeywords($selected_category, $subcategories);
 
@@ -70,7 +70,7 @@ $blocks = getBlocks();
             <i class="bi <?php echo sanitizeInput($selected_category['icon']); ?> me-1.5"></i><?php echo sanitizeInput($selected_category['section']); ?> VERTICAL
         </div>
         <h1 class="fw-bolder font-heading text-white display-6 mb-1 text-wrap"><?php echo sanitizeInput($selected_category['name']); ?></h1>
-        <div class="lead text-white-50 fs-6 mb-0">Browse verified <?php echo sanitizeInput($selected_category['name']); ?> listings in Saran District (Chapra)</div>
+        <div class="lead text-white-50 fs-6 mb-0">Browse verified <?php echo sanitizeInput($selected_category['name']); ?> listings in Saran District</div>
     </div>
 </div>
 

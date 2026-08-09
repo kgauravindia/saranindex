@@ -17,10 +17,10 @@
             </div>
             <div class="col-lg-6 text-lg-end">
                 <div class="d-inline-flex flex-wrap gap-2 justify-content-lg-end">
-                    <a href="add-contact.php" class="btn btn-warning rounded-pill px-4 py-2 fw-bold text-dark shadow-sm">
+                    <a href="add-contact" class="btn btn-warning rounded-pill px-4 py-2 fw-bold text-dark shadow-sm">
                         <i class="bi bi-rocket-takeoff me-1"></i>List Business Free
                     </a>
-                    <a href="emergency.php" class="btn btn-outline-light rounded-pill px-4 py-2 fw-semibold">
+                    <a href="emergency" class="btn btn-outline-light rounded-pill px-4 py-2 fw-semibold">
                         <i class="bi bi-telephone me-1"></i>Emergency Helplines
                     </a>
                 </div>
@@ -31,7 +31,7 @@
             <div class="col-md-4">
                 <h6 class="text-warning text-uppercase fw-bold mb-3 tracking-wide" style="font-size: 0.8rem;">About Saran Index</h6>
                 <p class="text-white-50 small mb-3">
-                    Saran Index is the single trusted digital directory for Saran District (Chapra), empowering citizens, businesses, advocates, doctors, and institutions.
+                    Saran Index is the single trusted digital directory for Saran District, empowering citizens, businesses, advocates, doctors, and institutions.
                 </p>
                 <div class="small text-white-50 mb-3">
                     <i class="bi bi-building me-1 text-warning"></i> An initiative of <strong>OfferPlant Technologies Pvt. Ltd.</strong>
@@ -40,22 +40,25 @@
                 <div class="mt-3">
                     <h6 class="text-warning text-uppercase fw-bold mb-2 tracking-wide" style="font-size: 0.75rem;"><i class="bi bi-share-fill me-1"></i>Follow Us <span class="badge bg-warning text-dark me-1">@saranindex</span></h6>
                     <div class="d-flex flex-wrap gap-2">
-                        <a href="<?php echo SOCIAL_FACEBOOK; ?>" target="_blank" class="btn btn-sm btn-outline-light rounded-circle p-0 text-center" style="width: 34px; height: 34px; line-height: 32px;" title="Facebook @saranindex">
+                        <a href="<?php echo SOCIAL_FACEBOOK; ?>" target="_blank" class="btn btn-sm btn-outline-light rounded-circle p-0 text-center social-btn-facebook" style="width: 34px; height: 34px; line-height: 32px;" title="Facebook @saranindex">
                             <i class="bi bi-facebook"></i>
                         </a>
-                        <a href="<?php echo SOCIAL_INSTAGRAM; ?>" target="_blank" class="btn btn-sm btn-outline-light rounded-circle p-0 text-center" style="width: 34px; height: 34px; line-height: 32px;" title="Instagram @saranindex">
+                        <a href="<?php echo SOCIAL_INSTAGRAM; ?>" target="_blank" class="btn btn-sm btn-outline-light rounded-circle p-0 text-center social-btn-instagram" style="width: 34px; height: 34px; line-height: 32px;" title="Instagram @saranindex">
                             <i class="bi bi-instagram"></i>
                         </a>
-                        <a href="<?php echo SOCIAL_TWITTER; ?>" target="_blank" class="btn btn-sm btn-outline-light rounded-circle p-0 text-center" style="width: 34px; height: 34px; line-height: 32px;" title="Twitter/X @saranindex">
+                        <a href="<?php echo SOCIAL_TWITTER; ?>" target="_blank" class="btn btn-sm btn-outline-light rounded-circle p-0 text-center social-btn-x" style="width: 34px; height: 34px; line-height: 32px;" title="X (Twitter) @saranindex">
                             <i class="bi bi-twitter-x"></i>
                         </a>
-                        <a href="<?php echo SOCIAL_THREADS; ?>" target="_blank" class="btn btn-sm btn-outline-light rounded-circle p-0 text-center" style="width: 34px; height: 34px; line-height: 32px;" title="Threads @saranindex">
+                        <a href="<?php echo SOCIAL_THREADS; ?>" target="_blank" class="btn btn-sm btn-outline-light rounded-circle p-0 text-center social-btn-threads" style="width: 34px; height: 34px; line-height: 32px;" title="Threads @saranindex">
                             <i class="bi bi-threads"></i>
                         </a>
-                        <a href="<?php echo SOCIAL_YOUTUBE; ?>" target="_blank" class="btn btn-sm btn-outline-light rounded-circle p-0 text-center" style="width: 34px; height: 34px; line-height: 32px;" title="YouTube @saranindex">
+                        <a href="<?php echo SOCIAL_YOUTUBE; ?>" target="_blank" class="btn btn-sm btn-outline-light rounded-circle p-0 text-center social-btn-youtube" style="width: 34px; height: 34px; line-height: 32px;" title="YouTube @saranindex">
                             <i class="bi bi-youtube"></i>
                         </a>
-                        <a href="<?php echo SOCIAL_WHATSAPP; ?>" target="_blank" class="btn btn-sm btn-outline-success text-white rounded-circle p-0 text-center" style="width: 34px; height: 34px; line-height: 32px; background-color: #25D366; border-color: #25D366;" title="WhatsApp Channel @saranindex">
+                        <a href="<?php echo SOCIAL_TELEGRAM; ?>" target="_blank" class="btn btn-sm btn-outline-light rounded-circle p-0 text-center social-btn-telegram" style="width: 34px; height: 34px; line-height: 32px;" title="Telegram @saranindex">
+                            <i class="bi bi-telegram"></i>
+                        </a>
+                        <a href="<?php echo SOCIAL_WHATSAPP; ?>" target="_blank" class="btn btn-sm btn-outline-light rounded-circle p-0 text-center social-btn-whatsapp" style="width: 34px; height: 34px; line-height: 32px;" title="WhatsApp Channel @saranindex">
                             <i class="bi bi-whatsapp"></i>
                         </a>
                     </div>
@@ -65,7 +68,7 @@
             <div class="col-md-4">
                 <h6 class="text-warning text-uppercase fw-bold mb-3 tracking-wide" style="font-size: 0.8rem;">Quick Links & Legal</h6>
                 <ul class="list-unstyled small mb-0">
-                    <li class="mb-2"><a href="index.php" class="text-white-50 text-decoration-none hover-white"><i class="bi bi-chevron-right me-1 text-warning"></i>Home Page</a></li>
+                    <li class="mb-2"><a href="./" class="text-white-50 text-decoration-none hover-white"><i class="bi bi-chevron-right me-1 text-warning"></i>Home Page</a></li>
                     <li class="mb-2"><a href="blocks" class="text-white-50 text-decoration-none hover-white"><i class="bi bi-chevron-right me-1 text-warning"></i>All 20 Saran Blocks</a></li>
                     <li class="mb-2"><a href="emergency" class="text-white-50 text-decoration-none hover-white"><i class="bi bi-chevron-right me-1 text-warning"></i>24x7 Emergency Services</a></li>
                     <li class="mb-2"><a href="about" class="text-white-50 text-decoration-none hover-white"><i class="bi bi-chevron-right me-1 text-warning"></i>About OfferPlant & Saran Index</a></li>

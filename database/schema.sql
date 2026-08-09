@@ -170,6 +170,32 @@ CREATE TABLE IF NOT EXISTS `users` (
     FOREIGN KEY (`block_id`) REFERENCES `blocks`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- 7.6. Deleted Users Archive Table
+CREATE TABLE IF NOT EXISTS `deleted_users` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `original_user_id` INT DEFAULT NULL,
+    `full_name` VARCHAR(100) DEFAULT NULL,
+    `mobile` VARCHAR(20) DEFAULT NULL,
+    `whatsapp` VARCHAR(20) DEFAULT NULL,
+    `email` VARCHAR(100) DEFAULT NULL,
+    `password_hash` VARCHAR(255) DEFAULT NULL,
+    `business_name` VARCHAR(150) DEFAULT NULL,
+    `designation` VARCHAR(100) DEFAULT NULL,
+    `block_id` INT DEFAULT NULL,
+    `panchayat_id` INT DEFAULT NULL,
+    `village_id` INT DEFAULT NULL,
+    `address` TEXT DEFAULT NULL,
+    `pincode` VARCHAR(10) DEFAULT NULL,
+    `profile_image` VARCHAR(255) DEFAULT NULL,
+    `bio` TEXT DEFAULT NULL,
+    `status` VARCHAR(50) DEFAULT NULL,
+    `type` VARCHAR(50) DEFAULT NULL,
+    `wallet` DECIMAL(10,2) DEFAULT 0.00,
+    `user_data_json` LONGTEXT DEFAULT NULL,
+    `deleted_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `deleted_by` VARCHAR(100) DEFAULT 'SYSTEM'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- 8. Admins Table
 CREATE TABLE IF NOT EXISTS `admins` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -739,3 +765,39 @@ ON DUPLICATE KEY UPDATE
     `hindi_name`  = VALUES(`hindi_name`),
     `slug`        = VALUES(`slug`),
     `type`        = VALUES(`type`);
+
+-- 14. Data Reference Sources Table
+CREATE TABLE IF NOT EXISTS `sources` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `title` VARCHAR(255) NOT NULL,
+    `title_hindi` VARCHAR(255) DEFAULT NULL,
+    `subtitle` VARCHAR(255) DEFAULT NULL,
+    `subtitle_hindi` VARCHAR(255) DEFAULT NULL,
+    `description` TEXT DEFAULT NULL,
+    `description_hindi` TEXT DEFAULT NULL,
+    `badge_text` VARCHAR(100) DEFAULT NULL,
+    `badge_text_hindi` VARCHAR(100) DEFAULT NULL,
+    `badge_icon` VARCHAR(50) DEFAULT 'bi-link-45deg',
+    `badge_color_class` VARCHAR(100) DEFAULT 'bg-primary-subtle text-primary',
+    `authority_badge` VARCHAR(100) DEFAULT NULL,
+    `authority_badge_hindi` VARCHAR(100) DEFAULT NULL,
+    `domain` VARCHAR(100) NOT NULL,
+    `url` VARCHAR(255) NOT NULL,
+    `sort_order` INT DEFAULT 0,
+    `status` ENUM('ACTIVE', 'INACTIVE') DEFAULT 'ACTIVE',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `sources` (`id`, `title`, `title_hindi`, `subtitle`, `subtitle_hindi`, `description`, `description_hindi`, `badge_text`, `badge_text_hindi`, `badge_icon`, `badge_color_class`, `authority_badge`, `authority_badge_hindi`, `domain`, `url`, `sort_order`, `status`) VALUES
+(1, 'AISHE Portal', 'एआईएसएचई (AISHE) पोर्टल', 'All India Survey on Higher Education (Ministry of Education)', 'उच्च शिक्षा पर अखिल भारतीय सर्वेक्षण (शिक्षा मंत्रालय)', 'Official catalog of higher educational institutions, colleges, and university affiliation directories across Saran District.', 'सारण जिले के उच्च शिक्षण संस्थानों, कॉलेजों और विश्वविद्यालय संबद्धता निर्देशिका का आधिकारिक कैटलॉग।', 'Education & Colleges', 'शिक्षा एवं कॉलेज', 'bi-mortarboard-fill', 'bg-info-subtle text-info-emphasis', 'Government of India', 'भारत सरकार', 'aishe.gov.in', 'https://aishe.gov.in', 1, 'ACTIVE'),
+(2, 'GST Official Portal', 'जीएसटी (GST) आधिकारिक पोर्टल', 'Goods and Services Tax Network (GSTN)', 'माल एवं सेवा कर नेटवर्क (GSTN)', 'Official portal providing public taxpayer entity names, trade names, business classifications, and active registration status for commercial enterprises in Saran.', 'सारण में व्यावसायिक उद्यमों के लिए करदाता संस्था का नाम, व्यापार नाम, व्यावसायिक वर्गीकरण और सक्रिय पंजीकरण स्थिति प्रदान करने वाला आधिकारिक पोर्टल।', 'Business & Tax Registrations', 'व्यापार एवं कर पंजीकरण', 'bi-shop', 'bg-success-subtle text-success', 'GST Council', 'जीएसटी परिषद', 'gst.gov.in', 'https://gst.gov.in', 2, 'ACTIVE'),
+(3, 'LGD Directory Portal', 'एलजीडी (LGD) निर्देशिका पोर्टल', 'Local Government Directory Portal', 'स्थानीय सरकार निर्देशिका पोर्टल', 'Official standardized location codes for all 20 blocks, gram panchayats, and census villages in Saran District.', 'सारण जिले के सभी 20 प्रखंडों, ग्राम पंचायतों और जनगणना गांवों के लिए आधिकारिक मानकीकृत स्थान कोड।', 'Local Administrative Codes', 'स्थानीय प्रशासनिक कोड', 'bi-diagram-3-fill', 'bg-primary-subtle text-primary', 'Panchayati Raj Ministry', 'पंचायती राज मंत्रालय', 'lgdirectory.gov.in', 'https://lgdirectory.gov.in/', 3, 'ACTIVE'),
+(4, 'Bihar Bhumi Portal', 'बिहार भूमि पोर्टल', 'Revenue & Land Reforms Department, Government of Bihar', 'राजस्व एवं भूमि सुधार विभाग, बिहार सरकार', 'Official portal for revenue circle details, Halka numbers, Mauja (Revenue Village) codes, and land reform administrative records in Saran District.', 'सारण जिले में राजस्व अंचल विवरण, हल्का संख्या, मौजा (राजस्व गांव) कोड और भूमि सुधार प्रशासनिक रिकॉर्ड का आधिकारिक पोर्टल।', 'Revenue Circle & Mauja', 'राजस्व अंचल एवं मौजा', 'bi-map-fill', 'bg-warning-subtle text-dark', 'Govt of Bihar', 'बिहार सरकार', 'biharbhumi.bihar.gov.in', 'https://biharbhumi.bihar.gov.in/', 4, 'ACTIVE'),
+(5, 'Census of India Data Portal', 'भारत की जनगणना डेटा पोर्टल', 'Office of the Registrar General & Census Commissioner', 'महारजिस्ट्रार एवं जनगणना आयुक्त का कार्यालय', 'Primary official source for Census 2011 demographics, village population, literacy statistics, household counts, and worker classifications.', 'जनगणना 2011 जनसांख्यिकी, ग्राम जनसंख्या, साक्षरता आंकड़े, गृह संख्या और श्रमिक वर्गीकरण का मुख्य आधिकारिक स्रोत।', 'Census & Demographics', 'जनगणना एवं जनसांख्यिकी', 'bi-people-fill', 'bg-danger-subtle text-danger', 'Ministry of Home Affairs', 'गृह मंत्रालय', 'censusindia.gov.in', 'https://censusindia.gov.in', 5, 'ACTIVE'),
+(6, 'Saran District Official Portal', 'सारण जिला आधिकारिक पोर्टल', 'National Informatics Centre (NIC Saran, Chapra)', 'राष्ट्रीय सूचना विज्ञान केंद्र (एनआईसी सारण, छपरा)', 'Official administration website for Saran District providing key government office directories, public helplines, and officer listings.', 'सारण जिले की आधिकारिक प्रशासन वेबसाइट जो प्रमुख सरकारी कार्यालय निर्देशिकाओं, सार्वजनिक हेल्पलाइन और अधिकारी सूचियों को प्रदान करती है।', 'District Administration', 'जिला प्रशासन', 'bi-building-fill', 'bg-secondary-subtle text-secondary', 'NIC Bihar', 'एनआईसी बिहार', 'saran.nic.in', 'https://saran.nic.in', 6, 'ACTIVE'),
+(7, 'Open Government Data Platform', 'ओपन गवर्नमेंट डेटा प्लेटफॉर्म', 'Open Government Data (OGD) Platform India', 'ओपन गवर्नमेंट डेटा (OGD) प्लेटफॉर्म इंडिया', 'National Open Data Portal providing public civic datasets, spatial data, and regional administrative statistics for Bihar and Saran District.', 'बिहार और सारण जिले के लिए सार्वजनिक नागरिक डेटासेट, स्थानिक डेटा और क्षेत्रीय प्रशासनिक आंकड़े प्रदान करने वाला राष्ट्रीय ओपन डेटा पोर्टल।', 'Open Government Data', 'ओपन गवर्नमेंट डेटा', 'bi-database-fill', 'bg-primary-subtle text-primary', 'MeitY & NIC', 'माइटी एवं एनआईसी', 'data.gov.in', 'https://data.gov.in', 7, 'ACTIVE'),
+(8, 'District Court Saran', 'जिला न्यायालय सारण', 'eCourts Mission Mode Project (Judiciary Portal)', 'ई-कोर्ट्स मिशन मोड प्रोजेक्ट (न्यायपालिका पोर्टल)', 'Official eCourts portal for District & Sessions Court Saran, providing court cause lists, advocate rosters, judicial office directories, and case tracking.', 'जिला एवं सत्र न्यायालय सारण का आधिकारिक ई-कोर्ट्स पोर्टल, जो कॉज लिस्ट, अधिवक्ता सूची, न्यायिक कार्यालय निर्देशिका और केस ट्रैकिंग प्रदान करता है।', 'Legal & Judiciary Services', 'कानूनी एवं न्यायिक सेवाएं', 'bi-bank2', 'bg-warning-subtle text-dark', 'eCourts Services', 'ई-कोर्ट्स सेवाएं', 'saran.dcourts.gov.in', 'https://saran.dcourts.gov.in/', 8, 'ACTIVE'),
+(9, 'Aryabhatta Knowledge University (AKU)', 'आर्यभट्ट ज्ञान विश्वविद्यालय (AKU)', 'AKU Patna (Technical State University of Bihar)', 'एकेयू पटना (बिहार का तकनीकी राज्य विश्वविद्यालय)', 'Official technical state university governing government engineering (LNJPIT Chapra), medical, nursing, and technical colleges in Saran District.', 'सारण जिले में सरकारी इंजीनियरिंग (एलएनजेपीआईटी छपरा), मेडिकल, नर्सिंग और तकनीकी कॉलेजों को संचालित करने वाला आधिकारिक तकनीकी राज्य विश्वविद्यालय।', 'Engineering & Medical Education', 'इंजीनियरिंग एवं मेडिकल शिक्षा', 'bi-cpu-fill', 'bg-info-subtle text-info-emphasis', 'Govt of Bihar', 'बिहार सरकार', 'akubihar.ac.in', 'https://akubihar.ac.in/', 9, 'ACTIVE'),
+(10, 'CBSE Official Portal', 'सीबीएसई (CBSE) आधिकारिक पोर्टल', 'Central Board of Secondary Education (Ministry of Education)', 'केंद्रीय माध्यमिक शिक्षा बोर्ड (शिक्षा मंत्रालय)', 'Official portal for affiliated school directories, school codes, board exam registries, and school accreditation details across Saran District.', 'सारण जिले में संबद्ध स्कूल निर्देशिका, स्कूल कोड, बोर्ड परीक्षा रजिस्ट्री और स्कूल संबद्धता विवरण का आधिकारिक पोर्टल।', 'School Education & Affiliations', 'स्कूल शिक्षा एवं संबद्धता', 'bi-book-fill', 'bg-info-subtle text-info-emphasis', 'Government of India', 'भारत सरकार', 'cbse.gov.in', 'https://cbse.gov.in', 10, 'ACTIVE')
+ON DUPLICATE KEY UPDATE `title` = VALUES(`title`);

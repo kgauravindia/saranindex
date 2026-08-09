@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/includes/functions.php';
-$page_title = "24/7 Emergency Helplines & Emergency Numbers Saran (Chapra) – Saran Index";
-$meta_description = "24x7 Emergency helpline numbers for Police, Sadar Hospital, Ambulance, Blood Bank, DM Control Room, Fire Station, and Women Helpline in Saran (Chapra, Bihar).";
+$page_title = "24/7 Emergency Helplines & Emergency Numbers Saran District – Saran Index";
+$meta_description = "24x7 Emergency helpline numbers for Police, Sadar Hospital, Ambulance, Blood Bank, DM Control Room, Fire Station, and Women Helpline in Saran District, Bihar.";
 
 require_once __DIR__ . '/includes/header.php';
 ?>
@@ -22,7 +22,7 @@ require_once __DIR__ . '/includes/header.php';
                 <i class="bi bi-shield-exclamation me-1"></i> 24x7 Emergency Helpline
             </span>
             <span class="badge px-3 py-1 rounded-pill fs-7 text-white" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.35);">
-                <i class="bi bi-geo-alt-fill me-1"></i> District Saran (Chapra)
+                <i class="bi bi-geo-alt-fill me-1"></i> District Saran
             </span>
         </div>
 

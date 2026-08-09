@@ -22,7 +22,7 @@ $censusVillages = !empty($q) ? getCensusVillages($block_slug, $q, 6, 0) : [];
 <div class="bg-dark text-white py-4">
     <div class="container">
         <h1 class="fw-bold font-heading mb-2 fs-3">Directory Search</h1>
-        <p class="text-white-50 small mb-0">Search local businesses, advocates, doctors, schools, and government offices in Saran District (Chapra).</p>
+        <p class="text-white-50 small mb-0">Search local businesses, advocates, doctors, schools, and government offices in Saran District.</p>
     </div>
 </div>
 

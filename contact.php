@@ -97,6 +97,9 @@ require_once __DIR__ . '/includes/header.php';
                         <a href="<?php echo SOCIAL_YOUTUBE; ?>" target="_blank" class="btn btn-outline-danger btn-sm rounded-pill font-body font-normal px-3">
                             <i class="bi bi-youtube me-1"></i>YouTube
                         </a>
+                        <a href="<?php echo SOCIAL_TELEGRAM; ?>" target="_blank" class="btn btn-outline-info btn-sm rounded-pill font-body font-normal px-3">
+                            <i class="bi bi-telegram me-1"></i>Telegram (t.me/saranindex)
+                        </a>
                         <a href="<?php echo SOCIAL_WHATSAPP; ?>" target="_blank" class="btn btn-success btn-sm rounded-pill font-body font-normal px-3 text-white">
                             <i class="bi bi-whatsapp me-1"></i>WhatsApp Channel
                         </a>

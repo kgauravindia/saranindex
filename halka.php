@@ -15,7 +15,7 @@ $halkaBlocks = getHalkaBlocks();
 $stats = getHalkaStats();
 
 $page_title = "Halka & Revenue Village (Mauja) Directory – Saran Index";
-$meta_description = "Search all 1,807 Halka and Revenue Villages (Mauja) in Saran District (Chapra). View official Halka numbers, Mauja codes, and Block revenue circles.";
+$meta_description = "Search all 1,807 Halka and Revenue Villages (Mauja) in Saran District. View official Halka numbers, Mauja codes, and Block revenue circles.";
 
 require_once __DIR__ . '/includes/header.php';
 ?>
@@ -30,7 +30,7 @@ require_once __DIR__ . '/includes/header.php';
             Halka & Revenue Village Directory
         </h1>
         <p class="text-white-50 lead mx-auto mb-4" style="max-width: 780px;">
-            Search and explore official Halka numbers and Mauja/Revenue Villages across all 20 Sub-Districts in Saran (Chapra), Bihar.
+            Search and explore official Halka numbers and Mauja/Revenue Villages across all 20 Sub-Districts in Saran, Bihar.
         </p>
 
         <!-- Search Form -->
