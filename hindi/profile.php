@@ -5,8 +5,20 @@ $slug = isset($_GET['slug']) ? sanitizeInput($_GET['slug']) : 'sadar-hospital-ch
 $listing = getListingBySlug($slug);
 
 if (!$listing) {
-    $listings = getListings('', '', '', 1);
-    $listing = !empty($listings) ? $listings[0] : null;
+    // Check if $slug matches a Category
+    $categories = getCategories();
+    if (!empty($categories)) {
+        foreach ($categories as $cat) {
+            if (strcasecmp($cat['slug'], $slug) === 0) {
+                $_GET['slug'] = $cat['slug'];
+                require __DIR__ . '/category.php';
+                exit;
+            }
+        }
+    }
+
+    require __DIR__ . '/../404.php';
+    exit;
 }
 
 $review_success = false;

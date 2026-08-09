@@ -63,7 +63,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $msg_type = 'success';
         $user = getLoggedInUser(); // Refresh user data
     } else {
-        $msg = "Failed to update profile details.";
+        $msg = $_SESSION['profile_update_error'] ?? "Failed to update profile details.";
+        unset($_SESSION['profile_update_error']);
         $msg_type = 'danger';
     }
 }
@@ -121,10 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
-$viewAll = isset($_GET['view']) && $_GET['view'] === 'all';
-$myListings = getUserListings($user['mobile']);
-$allListings = getAllListings();
-$userListings = $viewAll ? $allListings : $myListings;
+$userListings = getUserListings($user['id']);
 $userPayments = getUserPayments($user['id']);
 $blocks = getBlocks();
 $all_categories = getCategoriesList();
@@ -148,12 +146,18 @@ require_once __DIR__ . '/includes/header.php';
                 <h2 class="fw-bold font-heading text-dark mb-0">Welcome, <?php echo htmlspecialchars($user['full_name']); ?>!</h2>
                 <small class="text-muted"><i class="bi bi-phone me-1"></i>+91 <?php echo htmlspecialchars($user['mobile']); ?> | User ID: #<?php echo intval($user['id']); ?></small>
             </div>
-            <div class="d-flex gap-2">
-                <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+            <div class="d-flex flex-wrap gap-2 w-100 w-lg-auto mt-2 mt-lg-0">
+                <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold flex-fill flex-lg-grow-0" data-bs-toggle="modal" data-bs-target="#editProfileModal">
                     <i class="bi bi-pencil-square me-1"></i> Edit Profile
                 </button>
-                <a href="add-contact.php" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold text-dark shadow-xs">
+                <a href="change-password.php" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold flex-fill flex-lg-grow-0 text-center">
+                    <i class="bi bi-key me-1"></i> Change Password
+                </a>
+                <a href="add-contact.php" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold text-dark shadow-xs flex-fill flex-lg-grow-0 text-center">
                     <i class="bi bi-plus-circle me-1"></i> Add New Listing
+                </a>
+                <a href="logout.php" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold flex-fill flex-lg-grow-0 text-center">
+                    <i class="bi bi-box-arrow-right me-1"></i> Logout
                 </a>
             </div>
         </div>
@@ -211,6 +215,9 @@ require_once __DIR__ . '/includes/header.php';
                 <hr class="text-secondary opacity-25">
 
                 <div class="d-flex flex-column gap-2">
+                    <button type="button" class="btn btn-primary btn-sm w-100 rounded-pill fw-bold shadow-xs" data-bs-toggle="modal" data-bs-target="#customHandleModal">
+                        <i class="bi bi-at me-1"></i> Custom Profile Handle (@username)
+                    </button>
                     <button type="button" class="btn btn-light btn-sm w-100 rounded-pill fw-semibold text-secondary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
                         <i class="bi bi-gear me-1"></i> Manage Account Settings
                     </button>
@@ -233,18 +240,13 @@ require_once __DIR__ . '/includes/header.php';
             <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
                 <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3 flex-wrap gap-2">
                     <div>
-                        <h4 class="fw-bold font-heading text-dark mb-0"><?php echo $viewAll ? 'All Saran Directory Listings' : 'My Submitted Listings'; ?></h4>
-                        <small class="text-muted"><?php echo $viewAll ? 'Showing all registered directory listings in Saran' : 'Directory listings associated with your registered mobile (+91 ' . htmlspecialchars($user['mobile']) . ')'; ?></small>
+                        <h4 class="fw-bold font-heading text-dark mb-0">My Directory Listings & Claims</h4>
+                        <small class="text-muted">Listings owned or claimed by your user account (+91 <?php echo htmlspecialchars($user['mobile']); ?>)</small>
                     </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="btn-group btn-group-sm rounded-pill p-1 bg-light border">
-                            <a href="dashboard.php" class="btn rounded-pill px-3 fw-bold <?php echo !$viewAll ? 'btn-primary shadow-sm' : 'btn-light text-secondary'; ?>">
-                                My Listings (<?php echo count($myListings); ?>)
-                            </a>
-                            <a href="dashboard.php?view=all" class="btn rounded-pill px-3 fw-bold <?php echo $viewAll ? 'btn-primary shadow-sm' : 'btn-light text-secondary'; ?>">
-                                All Listings (<?php echo count($allListings); ?>)
-                            </a>
-                        </div>
+                    <div>
+                        <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-2 rounded-pill">
+                            Total: <?php echo count($userListings); ?> Listing<?php echo count($userListings) === 1 ? '' : 's'; ?>
+                        </span>
                     </div>
                 </div>
 
@@ -258,7 +260,60 @@ require_once __DIR__ . '/includes/header.php';
                         </a>
                     </div>
                 <?php else: ?>
-                    <div class="table-responsive">
+                    <!-- Mobile Card View (< md screens) -->
+                    <div class="d-block d-md-none">
+                        <?php foreach ($userListings as $l): ?>
+                            <div class="card border rounded-3 p-3 mb-3 shadow-xs bg-white">
+                                <div class="d-flex align-items-start justify-content-between mb-2 gap-2">
+                                    <div>
+                                        <h6 class="fw-bold text-dark mb-1 font-heading"><?php echo htmlspecialchars($l['title']); ?></h6>
+                                        <span class="badge bg-light text-secondary border px-2 py-1 rounded-pill extra-small">
+                                            <i class="bi bi-tag me-1"></i><?php echo htmlspecialchars($l['category_name'] ?? 'General'); ?>
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <?php if ($l['status'] === 'ACTIVE'): ?>
+                                            <span class="badge bg-success-subtle text-success px-2 py-1 rounded-pill small"><i class="bi bi-check-circle me-1"></i>Active</span>
+                                        <?php elseif ($l['status'] === 'PENDING'): ?>
+                                            <span class="badge bg-warning-subtle text-dark px-2 py-1 rounded-pill small"><i class="bi bi-hourglass-split me-1"></i>Review</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-danger-subtle text-danger px-2 py-1 rounded-pill small">Inactive</span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex align-items-center justify-content-between pt-2 border-top mt-2 flex-wrap gap-2">
+                                    <div>
+                                        <?php if (isset($l['plan_type']) && $l['plan_type'] === 'PLATINUM'): ?>
+                                            <span class="badge bg-warning text-dark fw-bold px-2 py-1 rounded-pill extra-small">
+                                                <i class="bi bi-crown-fill me-1 text-danger"></i> VIP Platinum
+                                            </span>
+                                        <?php elseif (isset($l['plan_type']) && $l['plan_type'] === 'GOLD'): ?>
+                                            <span class="badge bg-primary text-white fw-bold px-2 py-1 rounded-pill extra-small">
+                                                <i class="bi bi-patch-check-fill me-1"></i> Gold Business
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="badge bg-light text-secondary border px-2 py-1 rounded-pill extra-small">Basic Free</span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="d-flex gap-1.5 align-items-center ms-auto">
+                                        <a href="<?php echo getListingUrl($l['slug']); ?>" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1 small" title="View Listing">
+                                            <i class="bi bi-eye me-1"></i>View
+                                        </a>
+                                        <a href="edit-listing.php?id=<?php echo sanitizeInput($l['id']); ?>" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 small" title="Edit Listing">
+                                            <i class="bi bi-pencil me-1"></i>Edit
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-warning text-dark rounded-pill px-2.5 py-1 small fw-bold" onclick="openUpgradeModal('<?php echo sanitizeInput($l['id']); ?>', '<?php echo sanitizeInput(addslashes($l['title'])); ?>', '<?php echo sanitizeInput($l['plan_type'] ?? 'FREE'); ?>')">
+                                            <i class="bi bi-rocket-takeoff-fill me-1"></i>Upgrade
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+
+                    <!-- Desktop Table View (>= md screens) -->
+                    <div class="d-none d-md-block table-responsive">
                         <table class="table align-middle table-hover border">
                             <thead class="table-light small text-uppercase">
                                 <tr>
@@ -320,11 +375,16 @@ require_once __DIR__ . '/includes/header.php';
 
             <!-- ONLINE PAYMENTS & TRANSACTION HISTORY TABLE -->
             <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-                <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
-                    <h5 class="fw-bold font-heading text-dark mb-0">
-                        <i class="bi bi-credit-card-2-front-fill text-primary me-2"></i>My Online Payment History
-                    </h5>
-                    <span class="badge bg-primary-subtle text-primary rounded-pill fw-semibold"><?php echo count($userPayments); ?> Payments</span>
+                <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3 flex-wrap gap-2">
+                    <div>
+                        <h4 class="fw-bold font-heading text-dark mb-0">Payment History & Invoices</h4>
+                        <small class="text-muted">Online transactions processed for your listings</small>
+                    </div>
+                    <div>
+                        <span class="badge bg-success-subtle text-success fw-bold px-3 py-2 rounded-pill">
+                            <?php echo count($userPayments); ?> Transaction<?php echo count($userPayments) === 1 ? '' : 's'; ?>
+                        </span>
+                    </div>
                 </div>
 
                 <?php if (empty($userPayments)): ?>
@@ -333,7 +393,35 @@ require_once __DIR__ . '/includes/header.php';
                         No online payment transactions recorded yet.
                     </div>
                 <?php else: ?>
-                    <div class="table-responsive">
+                    <!-- Mobile View Payments (< md screens) -->
+                    <div class="d-block d-md-none">
+                        <?php foreach ($userPayments as $p): ?>
+                            <div class="card border rounded-3 p-3 mb-3 shadow-xs bg-white">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <span class="font-monospace fw-bold text-dark small">ID: <?php echo sanitizeInput($p['transaction_id']); ?></span>
+                                    <span class="fw-bold text-dark">₹<?php echo number_format($p['amount'], 2); ?></span>
+                                </div>
+                                <div class="small fw-medium text-dark mb-2"><?php echo sanitizeInput($p['listing_title'] ?? 'Listing Upgrade'); ?></div>
+                                <div class="d-flex align-items-center justify-content-between pt-2 border-top flex-wrap gap-2">
+                                    <div>
+                                        <?php if ($p['payment_status'] === 'SUCCESS'): ?>
+                                            <span class="badge bg-success-subtle text-success rounded-pill px-2.5"><i class="bi bi-check-circle me-1"></i>SUCCESS</span>
+                                        <?php elseif ($p['payment_status'] === 'PENDING'): ?>
+                                            <span class="badge bg-warning-subtle text-dark rounded-pill px-2.5">PENDING</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-danger-subtle text-danger rounded-pill px-2.5">FAILED</span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <a href="generate_receipt.php?id=<?php echo $p['id']; ?>" target="_blank" class="btn btn-sm btn-outline-secondary py-1 px-3.5 small rounded-pill fw-semibold">
+                                        <i class="bi bi-file-earmark-text me-1"></i>Receipt
+                                    </a>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+
+                    <!-- Desktop Table View Payments (>= md screens) -->
+                    <div class="d-none d-md-block table-responsive">
                         <table class="table align-middle border small mb-0">
                             <thead class="table-light">
                                 <tr>
@@ -367,7 +455,7 @@ require_once __DIR__ . '/includes/header.php';
                                             <?php endif; ?>
                                         </td>
                                         <td class="text-muted small"><?php echo date('d M Y, h:i A', strtotime($p['created_at'])); ?></td>
-                                        <td>
+                                        <td class="text-end">
                                             <a href="generate_receipt.php?id=<?php echo $p['id']; ?>" target="_blank" class="btn btn-sm btn-outline-secondary py-0.5 px-2 small" title="View & Print Tax Invoice / Receipt">
                                                 <i class="bi bi-file-earmark-text me-1"></i>Receipt
                                             </a>
@@ -385,7 +473,7 @@ require_once __DIR__ . '/includes/header.php';
 
 <!-- Edit Profile Modal -->
 <div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="bg-gradient-primary text-white p-4">
                 <div class="d-flex align-items-center justify-content-between">
@@ -404,15 +492,6 @@ require_once __DIR__ . '/includes/header.php';
                             <label class="form-label fw-semibold small text-dark mb-1">Full Name <span class="text-danger">*</span></label>
                             <input type="text" name="full_name" class="form-control rounded-3 py-2" value="<?php echo sanitizeInput($user['full_name']); ?>" required>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold small text-dark mb-1">Custom Profile Handle (@username)</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-white fw-bold">@</span>
-                                <input type="text" name="username_handle" class="form-control rounded-end py-2" value="<?php echo sanitizeInput(ltrim($user['username_handle'] ?? '', '@')); ?>" placeholder="e.g. KumarGaurav">
-                            </div>
-                            <div class="form-text small">Your public URL: <code>saranindex.com/@<?php echo sanitizeInput(ltrim($user['username_handle'] ?? 'username', '@')); ?></code></div>
-                        </div>
-
                         <div class="col-md-6">
                             <label class="form-label fw-semibold small text-dark mb-1">Profile Photo / Avatar Upload</label>
                             <input type="file" name="profile_image_file" class="form-control rounded-3 py-2" accept="image/*">
@@ -475,12 +554,12 @@ require_once __DIR__ . '/includes/header.php';
                             <input type="text" name="education" class="form-control rounded-3 py-2" value="<?php echo sanitizeInput($user['education'] ?? ''); ?>" placeholder="e.g. LL.B (JPU Chapra), MBBS, M.Tech, CA">
                         </div>
 
-                        <div class="col-md-3">
+                        <div class="col-md-6">
                             <label class="form-label fw-semibold small text-dark mb-1">Years of Experience</label>
                             <input type="text" name="experience_years" class="form-control rounded-3 py-2" value="<?php echo sanitizeInput($user['experience_years'] ?? ''); ?>" placeholder="e.g. 10 Years">
                         </div>
 
-                        <div class="col-md-3">
+                        <div class="col-md-6">
                             <label class="form-label fw-semibold small text-dark mb-1">Office / Chamber Timings</label>
                             <input type="text" name="office_hours" class="form-control rounded-3 py-2" value="<?php echo sanitizeInput($user['office_hours'] ?? ''); ?>" placeholder="e.g. 9 AM - 7 PM">
                         </div>
@@ -509,33 +588,16 @@ require_once __DIR__ . '/includes/header.php';
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold small text-dark mb-1">Office / Street Address</label>
-                            <input type="text" name="address" class="form-control rounded-3 py-2" value="<?php echo sanitizeInput($user['address'] ?? ''); ?>" placeholder="e.g. Court Campus, Chapra">
-                        </div>
-                        <div class="col-md-4">
                             <label class="form-label fw-semibold small text-dark mb-1">Pincode</label>
                             <input type="text" name="pincode" class="form-control rounded-3 py-2" value="<?php echo sanitizeInput($user['pincode'] ?? ''); ?>" maxlength="6">
                         </div>
                         <div class="col-12">
+                            <label class="form-label fw-semibold small text-dark mb-1">Office / Street Address</label>
+                            <input type="text" name="address" class="form-control rounded-3 py-2" value="<?php echo sanitizeInput($user['address'] ?? ''); ?>" placeholder="e.g. Court Campus, Chapra">
+                        </div>
+                        <div class="col-12">
                             <label class="form-label fw-semibold small text-dark mb-1">About & Professional Bio</label>
                             <textarea name="about" class="form-control rounded-3" rows="3" placeholder="Describe your professional background, achievements, court/clinic locations, and services..."><?php echo sanitizeInput($user['about'] ?: ($user['bio'] ?? '')); ?></textarea>
-                        </div>
-                        <div class="col-12 border-top pt-3">
-                            <label class="form-label fw-semibold small text-dark mb-1">Change Password <span class="text-muted fw-normal">(Leave blank to keep current)</span></label>
-                            <input type="password" name="new_password" class="form-control rounded-3 py-2" placeholder="Enter new password (min. 6 characters)">
-                        </div>
-                        
-                        <!-- Danger Zone: Delete Account -->
-                        <div class="col-12 border-top pt-3 mt-2">
-                            <div class="p-3 bg-danger-subtle border border-danger-subtle rounded-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
-                                <div>
-                                    <div class="fw-bold text-danger small"><i class="bi bi-exclamation-triangle-fill me-1"></i> Danger Zone: Delete User Profile</div>
-                                    <div class="text-muted" style="font-size: 0.8rem;">Permanently remove your user profile and details from the <code>users</code> table.</div>
-                                </div>
-                                <button type="button" class="btn btn-outline-danger btn-sm rounded-pill fw-bold" data-bs-toggle="modal" data-bs-target="#deleteProfileModal" data-bs-dismiss="modal">
-                                    <i class="bi bi-trash me-1"></i> Delete Profile
-                                </button>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -548,9 +610,65 @@ require_once __DIR__ . '/includes/header.php';
     </div>
 </div>
 
+<!-- Custom Profile Handle (@username) Modal -->
+<div class="modal fade" id="customHandleModal" tabindex="-1" aria-labelledby="customHandleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="bg-primary text-white p-3 p-sm-4">
+                <div class="d-flex align-items-center justify-content-between">
+                    <h5 class="fw-bold font-heading mb-0 text-white fs-6 fs-sm-5"><i class="bi bi-at me-1 me-sm-2"></i> Custom Profile Handle (@username)</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="small text-white-50 mt-1" style="font-size:0.8rem;">Set your custom web address to share your public directory profile</div>
+            </div>
+            <form action="dashboard.php" method="POST">
+                <input type="hidden" name="action" value="update_profile">
+                <input type="hidden" name="full_name" value="<?php echo sanitizeInput($user['full_name']); ?>">
+                <input type="hidden" name="email" value="<?php echo sanitizeInput($user['email'] ?? ''); ?>">
+                <input type="hidden" name="whatsapp" value="<?php echo sanitizeInput($user['whatsapp'] ?? ''); ?>">
+                <input type="hidden" name="business_name" value="<?php echo sanitizeInput($user['business_name'] ?? ''); ?>">
+                <input type="hidden" name="designation" value="<?php echo sanitizeInput($user['designation'] ?? ''); ?>">
+                <input type="hidden" name="profession_category" value="<?php echo sanitizeInput($user['profession_category'] ?? ''); ?>">
+                <input type="hidden" name="category_id" value="<?php echo sanitizeInput($user['category_id'] ?? ''); ?>">
+                <input type="hidden" name="subcategory_id" value="<?php echo sanitizeInput($user['subcategory_id'] ?? ''); ?>">
+                <input type="hidden" name="specialization" value="<?php echo sanitizeInput($user['specialization'] ?? ''); ?>">
+                <input type="hidden" name="education" value="<?php echo sanitizeInput($user['education'] ?? ''); ?>">
+                <input type="hidden" name="experience_years" value="<?php echo sanitizeInput($user['experience_years'] ?? ''); ?>">
+                <input type="hidden" name="office_hours" value="<?php echo sanitizeInput($user['office_hours'] ?? ''); ?>">
+                <input type="hidden" name="block_id" value="<?php echo sanitizeInput($user['block_id'] ?? ''); ?>">
+                <input type="hidden" name="address" value="<?php echo sanitizeInput($user['address'] ?? ''); ?>">
+                <input type="hidden" name="pincode" value="<?php echo sanitizeInput($user['pincode'] ?? ''); ?>">
+                <input type="hidden" name="about" value="<?php echo sanitizeInput($user['about'] ?: ($user['bio'] ?? '')); ?>">
+
+                <div class="modal-body p-3 p-sm-4 bg-light">
+                    <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-1">
+                        <label for="modal_username_handle" class="form-label fw-bold small text-dark mb-0">Choose Username Handle</label>
+                        <span id="modalHandleBadge" class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill small fw-semibold text-wrap">
+                            <i class="bi bi-check-circle-fill me-1"></i> URL Available
+                        </span>
+                    </div>
+
+                    <div class="input-group mb-3">
+                        <span class="input-group-text bg-white fw-bold text-primary fs-6">@</span>
+                        <input type="text" name="username_handle" id="modal_username_handle" class="form-control py-2.5 fw-semibold border-secondary-subtle" value="<?php echo sanitizeInput(ltrim($user['username_handle'] ?? '', '@')); ?>" placeholder="e.g. KumarGaurav" pattern="[a-zA-Z0-9_]{8,24}" title="8 to 24 letters, numbers, or underscores" oninput="checkModalHandleLive(this.value)">
+                    </div>
+
+                    <div class="p-3 bg-white rounded-3 border text-muted small mb-2 text-break">
+                        Your Public URL: <strong class="text-dark font-monospace ms-1 d-inline-block text-break" id="modalPublicUrlPreview">saranindex.com/@<?php echo sanitizeInput(ltrim($user['username_handle'] ?? 'username', '@')); ?></strong>
+                    </div>
+                </div>
+                <div class="modal-footer bg-white p-3 border-top flex-wrap gap-2 justify-content-end">
+                    <button type="button" class="btn btn-light rounded-pill px-4 flex-fill flex-sm-grow-0" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold flex-fill flex-sm-grow-0"><i class="bi bi-check-lg me-1"></i> Save Custom Handle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Delete User Profile Modal -->
 <div class="modal fade" id="deleteProfileModal" tabindex="-1" aria-labelledby="deleteProfileModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="bg-danger text-white p-4">
                 <div class="d-flex align-items-center justify-content-between">
@@ -561,10 +679,10 @@ require_once __DIR__ . '/includes/header.php';
             <form action="dashboard.php" method="POST">
                 <input type="hidden" name="action" value="delete_profile">
                 <div class="modal-body p-4 bg-light">
-                    <div class="alert alert-warning border-warning rounded-3 small mb-3">
-                        <i class="bi bi-shield-exclamation me-1"></i> <strong>Warning:</strong> Deleting your user profile from the <code>users</code> table is <strong>permanent</strong> and cannot be undone.
+                    <div class="alert alert-danger border-danger-subtle rounded-3 small mb-3">
+                        <i class="bi bi-shield-exclamation me-1"></i> <strong>Warning:</strong> Deleting your user profile is <strong>permanent</strong> and cannot be undone.
                     </div>
-                    <p class="small text-muted mb-3">Your profile info, uploaded avatar, and user credentials will be permanently deleted from the database. Any listings associated with your account will remain accessible as guest listings.</p>
+                    <p class="small text-muted mb-3">Your user credentials, profile photo, and personal info will be permanently deleted. Your submitted directory listings will be unlinked from your account.</p>
                     <div class="mb-3">
                         <label for="confirm_delete" class="form-label fw-bold small text-dark">Type <span class="text-danger">DELETE</span> to confirm profile deletion:</label>
                         <input type="text" name="confirm_delete" id="confirm_delete" class="form-control rounded-3" placeholder="Type DELETE in capital letters" required autocomplete="off">
@@ -771,6 +889,161 @@ function loadUserSubcategories(catId, selectedSubId = null) {
             console.error('Failed to load subcategories:', err);
             subSelect.innerHTML = '<option value="">-- Select Sub-Category --</option>';
         });
+}
+
+let pageHandleTimeout = null;
+function checkPageHandleLive(val) {
+    const clean = val.replace(/[^a-zA-Z0-9_]/g, '');
+    const badge = document.getElementById('pageHandleBadge');
+    const urlPreview = document.getElementById('pagePublicUrlPreview');
+    const urlLink = document.getElementById('pagePublicUrlLink');
+    const userId = <?php echo intval($user['id']); ?>;
+
+    if (urlPreview) {
+        urlPreview.textContent = 'saranindex.com/@' + (clean || 'username');
+    }
+    if (urlLink) {
+        urlLink.href = '@' + (clean || 'username');
+    }
+
+    if (!clean || clean.length < 3) {
+        if (badge) {
+            badge.className = 'badge bg-warning-subtle text-dark border border-warning-subtle px-3 py-1.5 rounded-pill small fw-semibold';
+            badge.innerHTML = '<i class="bi bi-exclamation-circle me-1"></i> Min 3 chars required';
+        }
+        return;
+    }
+
+    if (badge) {
+        badge.className = 'badge bg-light text-secondary border px-3 py-1.5 rounded-pill small fw-semibold';
+        badge.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Checking URL...';
+    }
+
+    clearTimeout(pageHandleTimeout);
+    pageHandleTimeout = setTimeout(() => {
+        fetch('api/check_username.php?handle=' + encodeURIComponent(clean) + '&user_id=' + userId)
+            .then(res => res.json())
+            .then(data => {
+                if (data.available) {
+                    if (badge) {
+                        badge.className = 'badge bg-success-subtle text-success border border-success-subtle px-3 py-1.5 rounded-pill small fw-semibold';
+                        badge.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> URL Available!';
+                    }
+                } else {
+                    if (badge) {
+                        badge.className = 'badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-1.5 rounded-pill small fw-semibold';
+                        badge.innerHTML = '<i class="bi bi-x-circle-fill me-1"></i> Handle Taken';
+                    }
+                }
+            }).catch(() => {
+                if (badge) {
+                    badge.className = 'badge bg-success-subtle text-success border border-success-subtle px-3 py-1.5 rounded-pill small fw-semibold';
+                    badge.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> URL Available';
+                }
+            });
+    }, 300);
+}
+
+let modalHandleTimeout = null;
+function checkModalHandleLive(val) {
+    const clean = val.replace(/[^a-zA-Z0-9_]/g, '');
+    const badge = document.getElementById('modalHandleBadge');
+    const urlPreview = document.getElementById('modalPublicUrlPreview');
+    const userId = <?php echo intval($user['id']); ?>;
+
+    if (urlPreview) {
+        urlPreview.textContent = 'saranindex.com/@' + (clean || 'username');
+    }
+
+    if (!clean || clean.length < 8 || clean.length > 24) {
+        if (badge) {
+            badge.className = 'badge bg-warning-subtle text-dark border border-warning-subtle px-2.5 py-1 rounded-pill small fw-semibold';
+            badge.innerHTML = '<i class="bi bi-exclamation-circle me-1"></i> 8 to 24 chars required';
+        }
+        return;
+    }
+
+    if (badge) {
+        badge.className = 'badge bg-light text-secondary border px-2.5 py-1 rounded-pill small fw-semibold';
+        badge.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Checking URL...';
+    }
+
+    clearTimeout(modalHandleTimeout);
+    modalHandleTimeout = setTimeout(() => {
+        fetch('api/check_username.php?handle=' + encodeURIComponent(clean) + '&user_id=' + userId)
+            .then(res => res.json())
+            .then(data => {
+                if (data.available) {
+                    if (badge) {
+                        badge.className = 'badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill small fw-semibold';
+                        badge.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> URL Available!';
+                    }
+                } else {
+                    if (badge) {
+                        badge.className = 'badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1 rounded-pill small fw-semibold';
+                        badge.innerHTML = '<i class="bi bi-x-circle-fill me-1"></i> Handle Taken';
+                    }
+                }
+            }).catch(() => {
+                if (badge) {
+                    badge.className = 'badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill small fw-semibold';
+                    badge.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> URL Available';
+                }
+            });
+    }, 300);
+}
+
+let handleCheckTimeout = null;
+function checkDashboardHandleLive(val) {
+    const clean = val.replace(/[^a-zA-Z0-9_]/g, '');
+    const badge = document.getElementById('handleAvailabilityBadge');
+    const urlPreview = document.getElementById('dashPublicUrlPreview');
+    const urlLink = document.getElementById('dashPublicUrlLink');
+    const userId = <?php echo intval($user['id']); ?>;
+
+    if (urlPreview) {
+        urlPreview.textContent = 'saranindex.com/@' + (clean || 'username');
+    }
+    if (urlLink) {
+        urlLink.href = '@' + (clean || 'username');
+    }
+
+    if (!clean || clean.length < 3) {
+        if (badge) {
+            badge.className = 'badge bg-warning-subtle text-dark border border-warning-subtle px-2.5 py-1 rounded-pill small fw-semibold';
+            badge.innerHTML = '<i class="bi bi-exclamation-circle me-1"></i> Min 3 chars required';
+        }
+        return;
+    }
+
+    if (badge) {
+        badge.className = 'badge bg-light text-secondary border px-2.5 py-1 rounded-pill small fw-semibold';
+        badge.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Checking URL...';
+    }
+
+    clearTimeout(handleCheckTimeout);
+    handleCheckTimeout = setTimeout(() => {
+        fetch('api/check_username.php?handle=' + encodeURIComponent(clean) + '&user_id=' + userId)
+            .then(res => res.json())
+            .then(data => {
+                if (data.available) {
+                    if (badge) {
+                        badge.className = 'badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill small fw-semibold';
+                        badge.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> URL Available!';
+                    }
+                } else {
+                    if (badge) {
+                        badge.className = 'badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1 rounded-pill small fw-semibold';
+                        badge.innerHTML = '<i class="bi bi-x-circle-fill me-1"></i> Handle Taken';
+                    }
+                }
+            }).catch(() => {
+                if (badge) {
+                    badge.className = 'badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill small fw-semibold';
+                    badge.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> URL Available';
+                }
+            });
+    }, 300);
 }
 
 document.addEventListener('DOMContentLoaded', function() {

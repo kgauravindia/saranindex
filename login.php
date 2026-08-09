@@ -127,13 +127,13 @@ require_once __DIR__ . '/includes/header.php';
                         <?php endif; ?>
 
                         <form action="" method="POST" class="mt-2">
-                            <!-- Mobile / Email Field -->
+                            <!-- Mobile / Email / Username Field -->
                             <div class="form-floating mb-3">
                                 <input type="text" name="mobile" id="mobile" class="form-control border-secondary-subtle rounded-3"
-                                       placeholder="10-digit Mobile Number or Email"
+                                       placeholder="Mobile Number, Email, or @username"
                                        required autofocus
                                        value="<?php echo isset($_POST['mobile']) ? htmlspecialchars($_POST['mobile']) : ''; ?>">
-                                <label for="mobile" class="text-muted"><i class="bi bi-person me-2"></i>Mobile Number or Email</label>
+                                <label for="mobile" class="text-muted"><i class="bi bi-person-badge me-2"></i>Mobile No., Email, or @username</label>
                             </div>
                             
                             <!-- Password Field -->

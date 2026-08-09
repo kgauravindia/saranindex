@@ -18,6 +18,7 @@ $categories = getCategories();
 $allSubcategories = getAllSubcategories();
 $listings = getListings($q, $category_slug, $block_slug, 50, 0, $sub_slug);
 $censusVillages = !empty($q) ? getCensusVillages($block_slug, $q, 6, 0) : [];
+$userResults = !empty($q) ? searchUsersByHandleOrName($q, 6) : [];
 ?>
 
 <div class="bg-dark text-white py-4">
@@ -124,6 +125,45 @@ $censusVillages = !empty($q) ? getCensusVillages($block_slug, $q, 6, 0) : [];
         <a href="search.php" class="btn btn-sm btn-link text-muted text-decoration-none">Clear Filters</a>
     </div>
 
+    <!-- User Profile Matches (@username) -->
+    <?php if (!empty($userResults)): ?>
+        <div class="mb-4 p-4 bg-white rounded-4 border shadow-sm">
+            <h5 class="fw-bold text-dark mb-3 font-heading">
+                <i class="bi bi-person-badge-fill text-primary me-2"></i> User Profile Matches (<?php echo count($userResults); ?>)
+            </h5>
+            <div class="row g-3">
+                <?php foreach ($userResults as $uRes): 
+                    $uHandle = !empty($uRes['username_handle']) ? $uRes['username_handle'] : ('@user' . $uRes['id']);
+                    $uProfileUrl = (strpos($uHandle, '@') === 0) ? strtolower($uHandle) : ('@' . strtolower($uHandle));
+                ?>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="p-3 bg-light rounded-3 border d-flex align-items-center justify-content-between gap-3 h-100">
+                            <div class="d-flex align-items-center gap-2.5 overflow-hidden">
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold fs-5 flex-shrink-0" style="width: 44px; height: 44px;">
+                                    <?php echo strtoupper(substr($uRes['full_name'], 0, 1)); ?>
+                                </div>
+                                <div class="overflow-hidden">
+                                    <a href="<?php echo htmlspecialchars($uProfileUrl); ?>" class="fw-bold text-dark text-decoration-none d-block text-truncate">
+                                        <?php echo htmlspecialchars($uRes['full_name']); ?>
+                                    </a>
+                                    <div class="badge bg-primary-subtle text-primary fw-semibold small px-2 py-0.5 rounded-pill mb-1">
+                                        <?php echo htmlspecialchars($uHandle); ?>
+                                    </div>
+                                    <small class="text-muted d-block text-truncate">
+                                        <?php echo htmlspecialchars($uRes['designation'] ?: ($uRes['business_name'] ?: 'Verified Professional')); ?>
+                                    </small>
+                                </div>
+                            </div>
+                            <a href="<?php echo htmlspecialchars($uProfileUrl); ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3 flex-shrink-0 fw-semibold">
+                                View Profile
+                            </a>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    <?php endif; ?>
+
     <!-- Census 2011 Villages Match Section -->
     <?php if (!empty($censusVillages)): ?>
         <div class="mb-5 p-4 bg-primary-subtle rounded-4 border border-primary-subtle">
@@ -173,7 +213,7 @@ $censusVillages = !empty($q) ? getCensusVillages($block_slug, $q, 6, 0) : [];
                     <div class="listing-card p-4 h-100 d-flex flex-column justify-content-between">
                         <div>
                             <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
-                                <div class="d-flex align-items-center gap-1">
+                                <div class="d-flex align-items-center gap-1 flex-wrap">
                                     <span class="badge bg-primary-subtle text-primary fw-semibold px-2.5 py-1 rounded-pill small">
                                         <?php echo sanitizeInput($item['category_name']); ?>
                                     </span>
@@ -181,6 +221,11 @@ $censusVillages = !empty($q) ? getCensusVillages($block_slug, $q, 6, 0) : [];
                                         <span class="badge bg-secondary-subtle text-secondary fw-medium px-2 py-1 rounded-pill small">
                                             <?php echo sanitizeInput($item['subcategory_name']); ?>
                                         </span>
+                                    <?php endif; ?>
+                                    <?php if (!empty($item['owner_handle'])): ?>
+                                        <a href="@<?php echo rawurlencode(ltrim($item['owner_handle'], '@')); ?>" class="badge bg-light text-primary border border-primary-subtle text-decoration-none fw-medium px-2 py-1 rounded-pill small" title="View Profile">
+                                            <i class="bi bi-person-circle me-1"></i><?php echo sanitizeInput($item['owner_handle']); ?>
+                                        </a>
                                     <?php endif; ?>
                                 </div>
                                 <?php if ($item['is_verified'] === 'YES'): ?>

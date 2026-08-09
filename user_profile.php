@@ -10,17 +10,7 @@ if (empty($handle)) {
 $user = getUserByHandle($handle);
 
 if (!$user) {
-    $page_title = "Profile Not Found – Saran Index";
-    require_once __DIR__ . '/includes/header.php';
-    echo '<div class="container py-5 text-center">
-            <div class="card border-0 shadow-sm p-5 rounded-4 max-w-lg mx-auto">
-                <i class="bi bi-person-x fs-1 text-muted mb-3 d-block"></i>
-                <h3 class="fw-bold text-dark">Professional Profile Not Found</h3>
-                <p class="text-muted">The user handle "@' . sanitizeInput(ltrim($handle, '@')) . '" does not exist or has been updated.</p>
-                <div><a href="index.php" class="btn btn-primary rounded-3 px-4 fw-bold">Return to Homepage</a></div>
-            </div>
-          </div>';
-    require_once __DIR__ . '/includes/footer.php';
+    require __DIR__ . '/404.php';
     exit;
 }
 

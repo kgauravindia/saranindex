@@ -148,7 +148,12 @@ require_once __DIR__ . '/includes/header.php';
                         <tr>
                             <td class="fw-bold text-muted">#<?php echo $u['id']; ?></td>
                             <td>
-                                <div class="fw-bold text-dark"><?php echo sanitizeInput($u['full_name']); ?></div>
+                                <div class="fw-bold text-dark d-flex align-items-center gap-1 flex-wrap">
+                                    <span><?php echo sanitizeInput($u['full_name']); ?></span>
+                                    <?php if (!empty($u['username_handle'])): ?>
+                                        <span class="badge bg-light text-primary border rounded-pill small fw-normal"><?php echo sanitizeInput($u['username_handle']); ?></span>
+                                    <?php endif; ?>
+                                </div>
                                 <div class="small text-muted">
                                     <i class="bi bi-telephone me-1 text-primary"></i><?php echo sanitizeInput($u['mobile']); ?>
                                     <?php if (!empty($u['email'])): ?>

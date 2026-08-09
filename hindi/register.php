@@ -13,6 +13,7 @@ $prefillMobile = $_GET['mobile'] ?? '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fullName = $_POST['full_name'] ?? '';
+    $usernameHandle = $_POST['username_handle'] ?? '';
     $mobile = $_POST['mobile'] ?? '';
     $email = $_POST['email'] ?? '';
     $password = $_POST['password'] ?? '';
@@ -52,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
         }
-        $result = registerPublicUser($fullName, $mobile, $password, $email, $blockId, $finalAddress, $otherState, $otherDistrict, $villageId ?? null);
+        $result = registerPublicUser($fullName, $mobile, $password, $email, $blockId, $finalAddress, $otherState, $otherDistrict, $villageId ?? null, $usernameHandle);
         if ($result['success']) {
             header("Location: dashboard.php");
             exit;
@@ -133,11 +134,14 @@ require_once __DIR__ . '/includes/header.php';
                         <?php endif; ?>
 
                         <form action="" method="POST" class="mt-2">
-                            <!-- Full Name -->
-                            <div class="form-floating mb-3">
-                                <input type="text" name="full_name" id="full_name" class="form-control border-secondary-subtle rounded-3" placeholder="उदा. रमेश कुमार" required value="<?php echo isset($_POST['full_name']) ? htmlspecialchars($_POST['full_name']) : ''; ?>">
-                                <label for="full_name" class="text-muted"><i class="bi bi-person me-2"></i>पूरा नाम <span class="text-danger">*</span></label>
-                            </div>
+                            <div class="row g-3 mb-3">
+                                <!-- Full Name -->
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="text" name="full_name" id="full_name" class="form-control border-secondary-subtle rounded-3" placeholder="उदा. रमेश कुमार" required value="<?php echo isset($_POST['full_name']) ? htmlspecialchars($_POST['full_name']) : ''; ?>">
+                                        <label for="full_name" class="text-muted"><i class="bi bi-person me-2"></i>पूरा नाम <span class="text-danger">*</span></label>
+                                    </div>
+                                </div>
 
                             <div class="row g-3 mb-3">
                                 <!-- Mobile Number -->
@@ -333,12 +337,13 @@ function loadSaranMaujas(blockId, selectedMaujaCode = '') {
 
     fetch('<?php echo BASE_URL; ?>api/villages_api.php?block_id=' + encodeURIComponent(blockId))
         .then(res => res.json())
-        .then(maujas => {
+        .then(data => {
+            const maujas = Array.isArray(data) ? data : (data.villages || data.data || []);
             maujas.forEach(v => {
                 const opt = document.createElement('option');
                 opt.value = v.code || v.mauja_code;
-                opt.textContent = v.name_hindi || v.display_name;
-                opt.setAttribute('data-name', v.name_hindi || v.display_name);
+                opt.textContent = v.name_hindi || v.name || v.display_name || v.mauja_name;
+                opt.setAttribute('data-name', v.name_hindi || v.name || v.mauja_name);
                 if (selectedMaujaCode && opt.value == selectedMaujaCode) {
                     opt.selected = true;
                     document.getElementById('mauja_name').value = opt.getAttribute('data-name');
@@ -423,6 +428,54 @@ function loadOtherBlocks(stateCode, districtCode, selectedBlockName = '') {
                 blockSelect.appendChild(opt);
             });
         }).catch(err => console.error(err));
+}
+
+let regHandleTimeout = null;
+function checkRegisterHandleLive(val) {
+    const clean = val.replace(/[^a-zA-Z0-9_]/g, '');
+    const badge = document.getElementById('regHandleBadge');
+    const urlPreview = document.getElementById('regPublicUrlPreview');
+
+    if (urlPreview) {
+        urlPreview.textContent = 'saranindex.com/@' + (clean || 'username');
+    }
+
+    if (!clean || clean.length < 3) {
+        if (badge) {
+            badge.className = 'badge bg-warning-subtle text-dark border border-warning-subtle px-2.5 py-1 rounded-pill small fw-semibold';
+            badge.innerHTML = '<i class="bi bi-exclamation-circle me-1"></i> न्यूनतम 3 अक्षर आवश्यक';
+        }
+        return;
+    }
+
+    if (badge) {
+        badge.className = 'badge bg-light text-secondary border px-2.5 py-1 rounded-pill small fw-semibold';
+        badge.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> जांच की जा रही है...';
+    }
+
+    clearTimeout(regHandleTimeout);
+    regHandleTimeout = setTimeout(() => {
+        fetch('<?php echo BASE_URL; ?>api/check_username.php?handle=' + encodeURIComponent(clean))
+            .then(res => res.json())
+            .then(data => {
+                if (data.available) {
+                    if (badge) {
+                        badge.className = 'badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill small fw-semibold';
+                        badge.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> URL उपलब्ध है!';
+                    }
+                } else {
+                    if (badge) {
+                        badge.className = 'badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1 rounded-pill small fw-semibold';
+                        badge.innerHTML = '<i class="bi bi-x-circle-fill me-1"></i> यूज़रनेम लिया जा चुका है';
+                    }
+                }
+            }).catch(() => {
+                if (badge) {
+                    badge.className = 'badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill small fw-semibold';
+                    badge.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> URL उपलब्ध है';
+                }
+            });
+    }, 300);
 }
 
 document.addEventListener('DOMContentLoaded', function() {

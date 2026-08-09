@@ -17,9 +17,9 @@ if (!$listing) {
         }
     }
 
-    // Fallback to first listing if slug not found
-    $listings = getListings('', '', '', 1);
-    $listing = !empty($listings) ? $listings[0] : null;
+    // Show 404 Page if invalid slug / non-existent URL
+    require __DIR__ . '/404.php';
+    exit;
 }
 
 $review_success = false;

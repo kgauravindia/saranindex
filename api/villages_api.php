@@ -20,6 +20,7 @@ if ($db) {
             if ($b) {
                 if (!empty($b['name_english'])) $bNames[] = $b['name_english'];
                 if (!empty($b['name'])) $bNames[] = $b['name'];
+                if (!empty($b['hindi_name'])) $bNames[] = $b['hindi_name'];
             }
         } elseif (!empty($block_name)) {
             $bNames[] = $block_name;

@@ -292,12 +292,13 @@ function getListings($search = '', $category_slug = '', $block_slug = '', $limit
     $db = getDB();
     if ($db) {
         try {
-            $sql = "SELECT l.*, c.name as category_name, sc.name as subcategory_name, sc.hindi_name as subcategory_hindi_name, b.name as block_name 
+            $sql = "SELECT l.*, c.name as category_name, sc.name as subcategory_name, sc.hindi_name as subcategory_hindi_name, b.name as block_name, u.username_handle as owner_handle, u.full_name as owner_full_name 
                     FROM listings l 
                     LEFT JOIN categories c ON l.category_id = c.id 
                     LEFT JOIN subcategories sc ON l.subcategory_id = sc.id
                     LEFT JOIN blocks b ON l.block_id = b.id 
                     LEFT JOIN panchayats p ON l.panchayat_id = p.id
+                    LEFT JOIN users u ON l.user_id = u.id
                     WHERE l.status='ACTIVE'";
             $params = [];
 
@@ -327,7 +328,8 @@ function getListings($search = '', $category_slug = '', $block_slug = '', $limit
                     'l.services', 'l.products', 'l.address', 'l.mobile',
                     'c.name', 'c.hindi_name', 'sc.name', 'sc.hindi_name', 
                     'b.name', 'b.hindi_name', 'b.name_english', 
-                    'p.panchayat_name', 'p.hindi_name', 'p.village', 'p.village_hindi'
+                    'p.panchayat_name', 'p.hindi_name', 'p.village', 'p.village_hindi',
+                    'u.username_handle', 'u.full_name'
                 ];
                 
                 $phrase_or = [];
@@ -1718,7 +1720,7 @@ function getLoggedInUser() {
 }
 
 
-function registerPublicUser($fullName, $mobile, $password, $email = '', $blockId = null, $address = '', $stateCode = null, $districtCode = null, $villageId = null) {
+function registerPublicUser($fullName, $mobile, $password, $email = '', $blockId = null, $address = '', $stateCode = null, $districtCode = null, $villageId = null, $usernameHandle = '') {
     $db = getDB();
     if (!$db) {
         return ['success' => false, 'message' => 'Database connection failed.'];
@@ -1745,6 +1747,39 @@ function registerPublicUser($fullName, $mobile, $password, $email = '', $blockId
         return ['success' => false, 'message' => 'Password must be at least 6 characters long.'];
     }
 
+    // Process & validate Username / Handle (@username)
+    $cleanHandle = ltrim(trim($usernameHandle), '@');
+    if (!empty($cleanHandle)) {
+        if (!preg_match('/^[a-zA-Z0-9_]{3,30}$/', $cleanHandle)) {
+            return ['success' => false, 'message' => 'Username handle must be 3-30 characters long and contain only letters, numbers, and underscores.'];
+        }
+        $chkHandle = $db->prepare("SELECT id FROM users WHERE LOWER(username_handle) = LOWER(:h1) OR LOWER(username_handle) = LOWER(:h2) LIMIT 1");
+        $chkHandle->execute([
+            'h1' => $cleanHandle,
+            'h2' => '@' . $cleanHandle
+        ]);
+        if ($chkHandle->fetch()) {
+            return ['success' => false, 'message' => 'The username @' . htmlspecialchars($cleanHandle) . ' is already taken. Please choose another username.'];
+        }
+        $finalHandle = '@' . strtolower($cleanHandle);
+    } else {
+        // Auto-generate candidate handle from full name
+        $baseHandle = preg_replace('/[^a-zA-Z0-9_]/', '', str_replace(' ', '_', strtolower($fullName)));
+        if (empty($baseHandle)) {
+            $baseHandle = 'user';
+        }
+        $candidate = substr($baseHandle, 0, 20);
+        $chkHandle = $db->prepare("SELECT id FROM users WHERE LOWER(username_handle) = LOWER(:h1) OR LOWER(username_handle) = LOWER(:h2) LIMIT 1");
+        $chkHandle->execute([
+            'h1' => $candidate,
+            'h2' => '@' . $candidate
+        ]);
+        if ($chkHandle->fetch()) {
+            $candidate .= rand(100, 999);
+        }
+        $finalHandle = '@' . strtolower($candidate);
+    }
+
     try {
         // Check if mobile already exists
         $stmt = $db->prepare("SELECT id FROM users WHERE mobile = :mobile LIMIT 1");
@@ -1758,9 +1793,11 @@ function registerPublicUser($fullName, $mobile, $password, $email = '', $blockId
         $numericBlockId = (is_numeric($blockId) && intval($blockId) > 0) ? intval($blockId) : null;
         $numericVillageId = (is_numeric($villageId) && intval($villageId) > 0) ? intval($villageId) : null;
 
-        $stmt = $db->prepare("INSERT INTO users (full_name, mobile, email, password_hash, block_id, village_id, address, state_code, district_code) VALUES (:name, :mobile, :email, :pass, :block, :village, :address, :state, :district)");
+        $stmt = $db->prepare("INSERT INTO users (full_name, name, username_handle, mobile, email, password_hash, block_id, village_id, address, state_code, district_code) VALUES (:name, :name_val, :handle, :mobile, :email, :pass, :block, :village, :address, :state, :district)");
         $stmt->execute([
             'name' => $fullName,
+            'name_val' => $fullName,
+            'handle' => $finalHandle,
             'mobile' => $mobile,
             'email' => !empty($email) ? $email : null,
             'pass' => $passwordHash,
@@ -1788,6 +1825,7 @@ function registerPublicUser($fullName, $mobile, $password, $email = '', $blockId
         $_SESSION['user_id'] = $userId;
         $_SESSION['user_name'] = $fullName;
         $_SESSION['user_mobile'] = $mobile;
+        $_SESSION['user_handle'] = $finalHandle;
 
         return ['success' => true, 'message' => 'Registration successful! Welcome to Saran Index.', 'user_id' => $userId];
     } catch (PDOException $e) {
@@ -1807,23 +1845,48 @@ function loginPublicUser($mobileOrEmail, $password) {
     $input = sanitizeInput($mobileOrEmail);
     $cleanMobile = preg_replace('/[^0-9]/', '', $input);
     $mobile10 = (strlen($cleanMobile) >= 10) ? substr($cleanMobile, -10) : $cleanMobile;
+    $cleanHandle = ltrim($input, '@');
 
     if (empty($input) || empty($password)) {
-        return ['success' => false, 'message' => 'Please enter your mobile number and password.'];
+        return ['success' => false, 'message' => 'Please enter your mobile number, email, or username and password.'];
     }
 
     try {
-        $stmt = $db->prepare("SELECT * FROM users WHERE (mobile = :mobile OR mobile = :m10_1 OR RIGHT(mobile, 10) = :m10_2 OR email = :email) LIMIT 1");
-        $stmt->execute([
-            'mobile' => $cleanMobile,
-            'm10_1'  => $mobile10,
-            'm10_2'  => $mobile10,
-            'email'  => $input
-        ]);
-        $user = $stmt->fetch();
+        $sql = "SELECT * FROM users WHERE ";
+        $where = [];
+        $params = [];
+
+        if (!empty($cleanMobile) && strlen($cleanMobile) >= 10) {
+            $where[] = "mobile = :m_raw";
+            $params['m_raw'] = $cleanMobile;
+
+            $where[] = "mobile = :m_10";
+            $params['m_10'] = $mobile10;
+
+            $where[] = "RIGHT(mobile, 10) = :m_right";
+            $params['m_right'] = $mobile10;
+        }
+
+        $where[] = "email = :email";
+        $params['email'] = $input;
+
+        $where[] = "LOWER(username_handle) = LOWER(:h_raw)";
+        $params['h_raw'] = $input;
+
+        $where[] = "LOWER(username_handle) = LOWER(:h_clean)";
+        $params['h_clean'] = $cleanHandle;
+
+        $where[] = "LOWER(username_handle) = LOWER(:h_at)";
+        $params['h_at'] = '@' . $cleanHandle;
+
+        $sql .= "(" . implode(" OR ", $where) . ") LIMIT 1";
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$user) {
-            return ['success' => false, 'message' => 'No account found with this mobile number or email.'];
+            return ['success' => false, 'message' => 'No account found with this mobile number, email, or username.'];
         }
 
         if (isset($user['status']) && strtoupper($user['status']) !== 'ACTIVE') {
@@ -1887,22 +1950,59 @@ function getUserListings($mobileOrUserId) {
     $db = getDB();
     if (!$db) return [];
 
-    try {
-        if (is_numeric($mobileOrUserId) && strlen($mobileOrUserId) < 10) {
-            // Find mobile first
-            $stmt = $db->prepare("SELECT mobile FROM users WHERE id = :id");
-            $stmt->execute(['id' => $mobileOrUserId]);
-            $mobile = $stmt->fetchColumn();
-        } else {
-            $mobile = $mobileOrUserId;
+    $userId = 0;
+    $mobile = '';
+
+    if (is_numeric($mobileOrUserId) && intval($mobileOrUserId) > 0 && strlen((string)$mobileOrUserId) < 10) {
+        $userId = intval($mobileOrUserId);
+        $uStmt = $db->prepare("SELECT mobile FROM users WHERE id = :id LIMIT 1");
+        $uStmt->execute(['id' => $userId]);
+        $mobile = $uStmt->fetchColumn() ?: '';
+    } else {
+        $mobile = preg_replace('/[^0-9]/', '', (string)$mobileOrUserId);
+        if (!empty($mobile)) {
+            $uStmt = $db->prepare("SELECT id FROM users WHERE mobile = :m OR RIGHT(mobile, 10) = :m10 LIMIT 1");
+            $uStmt->execute([
+                'm' => $mobile,
+                'm10' => (strlen($mobile) >= 10) ? substr($mobile, -10) : $mobile
+            ]);
+            $userId = intval($uStmt->fetchColumn() ?: 0);
         }
+    }
 
-        if (empty($mobile)) return [];
+    $cleanMobile = (strlen($mobile) >= 10) ? substr($mobile, -10) : $mobile;
+    if (empty($mobile) && $userId <= 0) return [];
 
-        $stmt = $db->prepare("SELECT l.*, c.name as category_name, b.name as block_name FROM listings l LEFT JOIN categories c ON l.category_id = c.id LEFT JOIN blocks b ON l.block_id = b.id WHERE l.mobile = :mobile ORDER BY l.id DESC");
-        $stmt->execute(['mobile' => $mobile]);
-        return $stmt->fetchAll();
+    try {
+        ensureClaimsTable();
+        $sql = "SELECT DISTINCT l.*, c.name as category_name, b.name as block_name 
+                FROM listings l 
+                LEFT JOIN categories c ON l.category_id = c.id 
+                LEFT JOIN blocks b ON l.block_id = b.id 
+                LEFT JOIN claims cl ON l.id = cl.listing_id
+                WHERE 
+                (
+                    (:uid1 > 0 AND l.user_id = :uid2) OR
+                    (!empty(:mob1) AND (l.mobile = :mob2 OR RIGHT(l.mobile, 10) = :mob3)) OR
+                    (cl.id IS NOT NULL AND cl.status IN ('APPROVED', 'PENDING') AND ((:uid4 > 0 AND cl.user_id = :uid5) OR (!empty(:mob4) AND (cl.claimant_mobile = :mob5 OR RIGHT(cl.claimant_mobile, 10) = :mob6))))
+                )
+                ORDER BY l.id DESC";
+        $stmt = $db->prepare($sql);
+        $stmt->execute([
+            'uid1' => $userId,
+            'uid2' => $userId,
+            'mob1' => $cleanMobile,
+            'mob2' => $mobile,
+            'mob3' => $cleanMobile,
+            'uid4' => $userId,
+            'uid5' => $userId,
+            'mob4' => $cleanMobile,
+            'mob5' => $mobile,
+            'mob6' => $cleanMobile
+        ]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
+        error_log("getUserListings error: " . $e->getMessage());
         return [];
     }
 }
@@ -2268,33 +2368,34 @@ function updateUserStatus($id, $status) {
 
 function ensureDeletedUsersTableExists() {
     $db = getDB();
-    if ($db) {
-        try {
-            $db->exec("CREATE TABLE IF NOT EXISTS `deleted_users` (
-                `id` INT AUTO_INCREMENT PRIMARY KEY,
-                `original_user_id` INT DEFAULT NULL,
-                `full_name` VARCHAR(100) DEFAULT NULL,
-                `mobile` VARCHAR(20) DEFAULT NULL,
-                `whatsapp` VARCHAR(20) DEFAULT NULL,
-                `email` VARCHAR(100) DEFAULT NULL,
-                `password_hash` VARCHAR(255) DEFAULT NULL,
-                `business_name` VARCHAR(150) DEFAULT NULL,
-                `designation` VARCHAR(100) DEFAULT NULL,
-                `block_id` INT DEFAULT NULL,
-                `panchayat_id` INT DEFAULT NULL,
-                `village_id` INT DEFAULT NULL,
-                `address` TEXT DEFAULT NULL,
-                `pincode` VARCHAR(10) DEFAULT NULL,
-                `profile_image` VARCHAR(255) DEFAULT NULL,
-                `bio` TEXT DEFAULT NULL,
-                `status` VARCHAR(50) DEFAULT NULL,
-                `type` VARCHAR(50) DEFAULT NULL,
-                `wallet` DECIMAL(10,2) DEFAULT 0.00,
-                `user_data_json` LONGTEXT DEFAULT NULL,
-                `deleted_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
-                `deleted_by` VARCHAR(100) DEFAULT 'SYSTEM'
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
-        } catch (Exception $e) {}
+    if (!$db) return;
+    try {
+        $db->exec("CREATE TABLE IF NOT EXISTS `deleted_users` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `original_user_id` INT DEFAULT NULL,
+            `full_name` VARCHAR(100) DEFAULT NULL,
+            `mobile` VARCHAR(20) DEFAULT NULL,
+            `whatsapp` VARCHAR(20) DEFAULT NULL,
+            `email` VARCHAR(100) DEFAULT NULL,
+            `password_hash` VARCHAR(255) DEFAULT NULL,
+            `business_name` VARCHAR(150) DEFAULT NULL,
+            `designation` VARCHAR(100) DEFAULT NULL,
+            `block_id` INT DEFAULT NULL,
+            `panchayat_id` INT DEFAULT NULL,
+            `village_id` INT DEFAULT NULL,
+            `address` TEXT DEFAULT NULL,
+            `pincode` VARCHAR(10) DEFAULT NULL,
+            `profile_image` VARCHAR(255) DEFAULT NULL,
+            `bio` TEXT DEFAULT NULL,
+            `status` VARCHAR(50) DEFAULT NULL,
+            `type` VARCHAR(50) DEFAULT NULL,
+            `wallet` DECIMAL(10,2) DEFAULT 0.00,
+            `user_data_json` LONGTEXT DEFAULT NULL,
+            `deleted_by` VARCHAR(100) DEFAULT 'SYSTEM',
+            `deleted_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    } catch (PDOException $e) {
+        error_log("ensureDeletedUsersTableExists error: " . $e->getMessage());
     }
 }
 
@@ -2826,12 +2927,55 @@ function getUserByHandle($handle) {
     return null;
 }
 
+function searchUsersByHandleOrName($query, $limit = 5) {
+    $db = getDB();
+    if (!$db || empty(trim($query))) return [];
+    
+    $cleanQ = ltrim(trim($query), '@');
+    if (empty($cleanQ)) return [];
+
+    try {
+        $stmt = $db->prepare("SELECT id, full_name, username_handle, business_name, designation, profile_image, block_id, profile_visibility 
+                              FROM users 
+                              WHERE (username_handle LIKE :q1 OR username_handle LIKE :q2 OR full_name LIKE :q3 OR business_name LIKE :q4) 
+                              AND (profile_visibility IS NULL OR profile_visibility = 'PUBLIC')
+                              ORDER BY id DESC LIMIT :lim");
+        $stmt->bindValue(':q1', '@' . $cleanQ . '%', PDO::PARAM_STR);
+        $stmt->bindValue(':q2', '%' . $cleanQ . '%', PDO::PARAM_STR);
+        $stmt->bindValue(':q3', '%' . $cleanQ . '%', PDO::PARAM_STR);
+        $stmt->bindValue(':q4', '%' . $cleanQ . '%', PDO::PARAM_STR);
+        $stmt->bindValue(':lim', intval($limit), PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("searchUsersByHandleOrName error: " . $e->getMessage());
+        return [];
+    }
+}
+
 function updateProfessionalUserProfile($userId, $data) {
     ensureUsersTable();
     $db = getDB();
     if (!$db || empty($userId)) return false;
 
     $cleanHandle = !empty($data['username_handle']) ? ltrim(trim($data['username_handle']), '@') : null;
+
+    // Check handle length (8 to 24 chars) & uniqueness if provided
+    if (!empty($cleanHandle)) {
+        if (strlen($cleanHandle) < 8 || strlen($cleanHandle) > 24) {
+            if (session_status() === PHP_SESSION_NONE) session_start();
+            $_SESSION['profile_update_error'] = "Username handle must be between 8 and 24 characters long.";
+            return false;
+        }
+        $formattedHandle = '@' . $cleanHandle;
+        $chkHandle = $db->prepare("SELECT id FROM users WHERE (LOWER(username_handle) = :h1 OR LOWER(username_handle) = :h2) AND id != :uid LIMIT 1");
+        $chkHandle->execute(['h1' => strtolower($formattedHandle), 'h2' => strtolower($cleanHandle), 'uid' => $userId]);
+        if ($chkHandle->fetch()) {
+            if (session_status() === PHP_SESSION_NONE) session_start();
+            $_SESSION['profile_update_error'] = "The username handle '@" . htmlspecialchars($cleanHandle) . "' is already taken by another user.";
+            return false;
+        }
+    }
 
     // Preserve existing mobile & email if omitted
     $existingUser = getUserById($userId);

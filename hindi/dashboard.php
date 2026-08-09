@@ -94,10 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
-$viewAll = isset($_GET['view']) && $_GET['view'] === 'all';
-$myListings = getUserListings($user['mobile']);
-$allListings = getAllListings();
-$userListings = $viewAll ? $allListings : $myListings;
+$userListings = getUserListings($user['id']);
 $userPayments = getUserPayments($user['id']);
 $blocks = getBlocks();
 
@@ -124,8 +121,11 @@ require_once __DIR__ . '/includes/header.php';
                 <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#editProfileModal">
                     <i class="bi bi-pencil-square me-1"></i> प्रोफ़ाइल अपडेट करें
                 </button>
-                <a href="add-contact.php" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold text-dark shadow-xs">
+                <a href="../add-contact.php" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold text-dark shadow-xs">
                     <i class="bi bi-plus-circle me-1"></i> नई लिस्टिंग जोड़ें
+                </a>
+                <a href="../logout.php" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold">
+                    <i class="bi bi-box-arrow-right me-1"></i> लॉगआउट (Logout)
                 </a>
             </div>
         </div>
@@ -205,18 +205,13 @@ require_once __DIR__ . '/includes/header.php';
             <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
                 <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3 flex-wrap gap-2">
                     <div>
-                        <h4 class="fw-bold font-heading text-dark mb-0"><?php echo $viewAll ? 'सारण डायरेक्टरी की सभी सूचियां' : 'मेरी सबमिट की गई सूचियां'; ?></h4>
-                        <small class="text-muted"><?php echo $viewAll ? 'सारण जिले में पंजीकृत सभी डायरेक्टरी सूचियां दिखाई जा रही हैं' : 'आपके मोबाइल (+91 ' . htmlspecialchars($user['mobile']) . ') से जुड़ी सूचियां'; ?></small>
+                        <h4 class="fw-bold font-heading text-dark mb-0">मेरी डायरेक्टरी सूचियां और दावों की स्थिति</h4>
+                        <small class="text-muted">आपके खाते (+91 <?php echo htmlspecialchars($user['mobile']); ?>) से जुड़े दावे और लिस्टिंग</small>
                     </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="btn-group btn-group-sm rounded-pill p-1 bg-light border">
-                            <a href="dashboard.php" class="btn rounded-pill px-3 fw-bold <?php echo !$viewAll ? 'btn-primary shadow-sm' : 'btn-light text-secondary'; ?>">
-                                मेरी सूचियां (<?php echo count($myListings); ?>)
-                            </a>
-                            <a href="dashboard.php?view=all" class="btn rounded-pill px-3 fw-bold <?php echo $viewAll ? 'btn-primary shadow-sm' : 'btn-light text-secondary'; ?>">
-                                सभी सूचियां (<?php echo count($allListings); ?>)
-                            </a>
-                        </div>
+                    <div>
+                        <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-2 rounded-pill">
+                            कुल: <?php echo count($userListings); ?> लिस्टिंग
+                        </span>
                     </div>
                 </div>
 
@@ -394,34 +389,17 @@ require_once __DIR__ . '/includes/header.php';
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="col-md-8">
-                            <label class="form-label fw-semibold small text-dark mb-1">पता</label>
-                            <input type="text" name="address" class="form-control rounded-3 py-2" value="<?php echo htmlspecialchars($user['address'] ?? ''); ?>">
-                        </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="form-label fw-semibold small text-dark mb-1">पिनकोड</label>
                             <input type="text" name="pincode" class="form-control rounded-3 py-2" value="<?php echo htmlspecialchars($user['pincode'] ?? ''); ?>" maxlength="6">
                         </div>
                         <div class="col-12">
+                            <label class="form-label fw-semibold small text-dark mb-1">पता</label>
+                            <input type="text" name="address" class="form-control rounded-3 py-2" value="<?php echo htmlspecialchars($user['address'] ?? ''); ?>">
+                        </div>
+                        <div class="col-12">
                             <label class="form-label fw-semibold small text-dark mb-1">परिचय / विवरण</label>
                             <textarea name="bio" class="form-control rounded-3" rows="2"><?php echo htmlspecialchars($user['bio'] ?? ''); ?></textarea>
-                        </div>
-                        <div class="col-12 border-top pt-3">
-                            <label class="form-label fw-semibold small text-dark mb-1">पासवर्ड बदलें <span class="text-muted fw-normal">(वर्तमान पासवर्ड रखने के लिए खाली छोड़ें)</span></label>
-                            <input type="password" name="new_password" class="form-control rounded-3 py-2" placeholder="नया पासवर्ड दर्ज करें (न्यूनतम 6 अक्षर)">
-                        </div>
-
-                        <!-- Danger Zone: Delete Account -->
-                        <div class="col-12 border-top pt-3 mt-2">
-                            <div class="p-3 bg-danger-subtle border border-danger-subtle rounded-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
-                                <div>
-                                    <div class="fw-bold text-danger small"><i class="bi bi-exclamation-triangle-fill me-1"></i> खतरा क्षेत्र: प्रोफ़ाइल हटाएं (Delete Profile)</div>
-                                    <div class="text-muted" style="font-size: 0.8rem;"><code>users</code> तालिका से अपनी उपयोगकर्ता प्रोफ़ाइल हमेशा के लिए डिलीट करें।</div>
-                                </div>
-                                <button type="button" class="btn btn-outline-danger btn-sm rounded-pill fw-bold" data-bs-toggle="modal" data-bs-target="#deleteProfileModal" data-bs-dismiss="modal">
-                                    <i class="bi bi-trash me-1"></i> प्रोफ़ाइल डिलीट करें
-                                </button>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -447,12 +425,12 @@ require_once __DIR__ . '/includes/header.php';
             <form action="dashboard.php" method="POST">
                 <input type="hidden" name="action" value="delete_profile">
                 <div class="modal-body p-4 bg-light">
-                    <div class="alert alert-warning border-warning rounded-3 small mb-3">
-                        <i class="bi bi-shield-exclamation me-1"></i> <strong>चेतावनी:</strong> <code>users</code> तालिका से अपनी उपयोगकर्ता प्रोफ़ाइल हटाना <strong>स्थायी</strong> है और इसे पूर्ववत नहीं किया जा सकता है।
+                    <div class="alert alert-danger border-danger-subtle rounded-3 small mb-3">
+                        <i class="bi bi-shield-exclamation me-1"></i> <strong>चेतावनी:</strong> प्रोफ़ाइल हटाना <strong>स्थायी</strong> है।
                     </div>
                     <p class="small text-muted mb-3">आपकी प्रोफ़ाइल जानकारी, फोटो और खाता क्रेडेंशियल्स डेटाबेस से हमेशा के लिए डिलीट हो जाएंगे।</p>
                     <div class="mb-3">
-                        <label for="confirm_delete_hi" class="form-label fw-bold small text-dark">प्रोफ़ाइल हटाने की पुष्टि के लिए <span class="text-danger">DELETE</span> टाइप करें:</label>
+                        <label for="confirm_delete_hi" class="form-label fw-bold small text-dark">पुष्टि के लिए <span class="text-danger">DELETE</span> टाइप करें:</label>
                         <input type="text" name="confirm_delete" id="confirm_delete_hi" class="form-control rounded-3" placeholder="बड़े अक्षरों में DELETE टाइप करें" required autocomplete="off">
                     </div>
                 </div>

@@ -1,4 +1,6 @@
 # SaranIndex.com Apache Rewrite Engine
+ErrorDocument 404 /saranindex/404.php
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
     
@@ -31,6 +33,7 @@
     RewriteRule ^forgot-password/?$ forgot-password.php [L,QSA]
     RewriteRule ^reset-password/?$ forgot-password.php [L,QSA]
     RewriteRule ^dashboard/?$ dashboard.php [L,QSA]
+    RewriteRule ^change-password/?$ change-password.php [L,QSA]
     RewriteRule ^logout/?$ logout.php [L,QSA]
     RewriteRule ^university/?$ university.php [L,QSA]
     RewriteRule ^jpu/?$ university.php [L,QSA]
@@ -63,4 +66,9 @@
 
     # Direct 1-Segment SEO Listing / Category Slug Rewrite (e.g. /classifieds or /vivekanand-international-public-school-65688)
     RewriteRule ^([a-zA-Z0-9_-]+)/?$ profile.php?slug=$1 [L,QSA]
+
+    # Universal Fallback for any non-existent file/URL (e.g. /haha7.php)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ 404.php [L,QSA]
 </IfModule>
