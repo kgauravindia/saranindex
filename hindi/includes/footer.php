@@ -90,12 +90,11 @@
                     <a href="category/doctors-healthcare" class="btn btn-sm btn-dark text-white-50 border-secondary">डॉक्टर एवं अस्पताल</a>
                     <a href="category/schools-education" class="btn btn-sm btn-dark text-white-50 border-secondary">स्कूल एवं शिक्षा</a>
                     <a href="category/government-offices" class="btn btn-sm btn-dark text-white-50 border-secondary">सरकारी कार्यालय</a>
-                </div>
+                    <a href="category/hotels-restaurants" class="btn btn-sm btn-dark text-white-50 border-secondary">होटल एवं रेस्टोरेंट</a>
             </div>
         </div>
-    </div>
 
-    <div class="row pt-4 mt-3 border-top border-secondary">
+        <div class="row pt-4 mt-3 border-top border-secondary">
             <div class="col-12">
                 <h6 class="text-warning text-uppercase fw-bold mb-3 tracking-wide" style="font-size: 0.8rem;">
                     <i class="bi bi-geo-alt-fill me-1"></i>Business by Block

@@ -90,12 +90,11 @@
                     <a href="category/doctors-healthcare" class="btn btn-sm btn-dark text-white-50 border-secondary">Doctors</a>
                     <a href="category/schools-education" class="btn btn-sm btn-dark text-white-50 border-secondary">Schools</a>
                     <a href="category/government-offices" class="btn btn-sm btn-dark text-white-50 border-secondary">Govt Offices</a>
-                </div>
+                    <a href="category/hotels-restaurants" class="btn btn-sm btn-dark text-white-50 border-secondary">Hotels</a>
             </div>
         </div>
-    </div>
 
-    <div class="row pt-4 mt-3 border-top border-secondary">
+        <div class="row pt-4 mt-3 border-top border-secondary">
             <div class="col-12">
                 <h6 class="text-warning text-uppercase fw-bold mb-3 tracking-wide" style="font-size: 0.8rem;">
                     <i class="bi bi-geo-alt-fill me-1"></i>Business by Block
