@@ -36,13 +36,12 @@ $staticPages = [
     'panchayats'        => ['freq' => 'weekly',  'prio' => '0.9'],
     'villages'          => ['freq' => 'daily',   'prio' => '0.8'],
     'categories'        => ['freq' => 'weekly',  'prio' => '0.8'],
-    'category/politics' => ['freq' => 'daily',   'prio' => '0.9'],
     'emergency'         => ['freq' => 'monthly', 'prio' => '0.8'],
     'university'        => ['freq' => 'monthly', 'prio' => '0.7'],
     'add-listing'       => ['freq' => 'monthly', 'prio' => '0.7'],
-    'pricing.php'       => ['freq' => 'monthly', 'prio' => '0.7'],
-    'login.php'         => ['freq' => 'monthly', 'prio' => '0.5'],
-    'register.php'      => ['freq' => 'monthly', 'prio' => '0.5'],
+    'pricing'           => ['freq' => 'monthly', 'prio' => '0.7'],
+    'login'             => ['freq' => 'monthly', 'prio' => '0.5'],
+    'register'          => ['freq' => 'monthly', 'prio' => '0.5'],
     'sources'           => ['freq' => 'monthly', 'prio' => '0.6'],
     'about'             => ['freq' => 'monthly', 'prio' => '0.5'],
     'contact'           => ['freq' => 'monthly', 'prio' => '0.5'],
@@ -51,15 +50,14 @@ $staticPages = [
     'refund-policy'     => ['freq' => 'yearly',  'prio' => '0.3'],
 
     // Hindi equivalents
-    'hindi/'                  => ['freq' => 'daily',   'prio' => '1.0'],
-    'hindi/search'            => ['freq' => 'daily',   'prio' => '0.9'],
-    'hindi/blocks'            => ['freq' => 'weekly',  'prio' => '0.8'],
-    'hindi/panchayats'        => ['freq' => 'weekly',  'prio' => '0.8'],
-    'hindi/villages'          => ['freq' => 'daily',   'prio' => '0.8'],
-    'hindi/categories'        => ['freq' => 'weekly',  'prio' => '0.8'],
-    'hindi/category/politics' => ['freq' => 'daily',   'prio' => '0.9'],
-    'hindi/emergency'         => ['freq' => 'monthly', 'prio' => '0.7'],
-    'hindi/add-listing'       => ['freq' => 'monthly', 'prio' => '0.6'],
+    'hindi/'            => ['freq' => 'daily',   'prio' => '1.0'],
+    'hindi/search'      => ['freq' => 'daily',   'prio' => '0.9'],
+    'hindi/blocks'      => ['freq' => 'weekly',  'prio' => '0.8'],
+    'hindi/panchayats'  => ['freq' => 'weekly',  'prio' => '0.8'],
+    'hindi/villages'    => ['freq' => 'daily',   'prio' => '0.8'],
+    'hindi/categories'  => ['freq' => 'weekly',  'prio' => '0.8'],
+    'hindi/emergency'   => ['freq' => 'monthly', 'prio' => '0.7'],
+    'hindi/add-listing' => ['freq' => 'monthly', 'prio' => '0.6'],
 ];
 
 foreach ($staticPages as $path => $meta) {
@@ -76,8 +74,8 @@ if ($db) {
     try {
         $stmt = $db->query("SELECT slug FROM blocks WHERE slug IS NOT NULL AND slug != '' ORDER BY name ASC");
         while ($row = $stmt->fetch()) {
-            addSitemapUrl($baseUrl . 'blocks/' . rawurlencode($row['slug']), $today, 'weekly', '0.9');
-            addSitemapUrl($baseUrl . 'hindi/blocks/' . rawurlencode($row['slug']), $today, 'weekly', '0.8');
+            addSitemapUrl($baseUrl . 'block/' . rawurlencode($row['slug']), $today, 'weekly', '0.9');
+            addSitemapUrl($baseUrl . 'hindi/block/' . rawurlencode($row['slug']), $today, 'weekly', '0.8');
         }
     } catch (Exception $e) {}
 
@@ -93,14 +91,14 @@ if ($db) {
     } catch (Exception $e) {}
 
     // ─────────────────────────────────────────────
-    // 4. Villages
+    // 4. Villages (English + Hindi)
     // ─────────────────────────────────────────────
     try {
         $stmt = $db->query("SELECT name, town_village_code FROM census WHERE level = 'VILLAGE' AND name IS NOT NULL AND name != '' ORDER BY name ASC");
         while ($row = $stmt->fetch()) {
             $vSlug = getVillageUniqueSlug($row['name'], $row['town_village_code']);
-            addSitemapUrl($baseUrl . 'villages/' . rawurlencode($vSlug), $today, 'weekly', '0.7');
-            addSitemapUrl($baseUrl . 'hindi/villages/' . rawurlencode($vSlug), $today, 'weekly', '0.7');
+            addSitemapUrl($baseUrl . 'village/' . rawurlencode($vSlug), $today, 'weekly', '0.7');
+            addSitemapUrl($baseUrl . 'hindi/village/' . rawurlencode($vSlug), $today, 'weekly', '0.7');
         }
     } catch (Exception $e) {}
 
@@ -120,8 +118,8 @@ if ($db) {
     try {
         $stmt = $db->query("SELECT slug FROM categories WHERE status='ACTIVE' AND slug IS NOT NULL AND slug != '' ORDER BY name ASC");
         while ($row = $stmt->fetch()) {
-            addSitemapUrl($baseUrl . 'category/' . rawurlencode($row['slug']), $today, 'weekly', '0.8');
-            addSitemapUrl($baseUrl . 'hindi/category/' . rawurlencode($row['slug']), $today, 'weekly', '0.8');
+            addSitemapUrl($baseUrl . rawurlencode($row['slug']), $today, 'weekly', '0.8');
+            addSitemapUrl($baseUrl . 'hindi/' . rawurlencode($row['slug']), $today, 'weekly', '0.8');
         }
     } catch (Exception $e) {}
 
@@ -139,8 +137,8 @@ if ($db) {
             ORDER BY c.name ASC, s.name ASC
         ");
         while ($row = $stmt->fetch()) {
-            addSitemapUrl($baseUrl . 'category/' . rawurlencode($row['cat_slug']) . '/' . rawurlencode($row['sub_slug']), $today, 'weekly', '0.7');
-            addSitemapUrl($baseUrl . 'hindi/category/' . rawurlencode($row['cat_slug']) . '/' . rawurlencode($row['sub_slug']), $today, 'weekly', '0.7');
+            addSitemapUrl($baseUrl . rawurlencode($row['cat_slug']) . '/' . rawurlencode($row['sub_slug']), $today, 'weekly', '0.7');
+            addSitemapUrl($baseUrl . 'hindi/' . rawurlencode($row['cat_slug']) . '/' . rawurlencode($row['sub_slug']), $today, 'weekly', '0.7');
         }
     } catch (Exception $e) {}
 
@@ -157,7 +155,7 @@ if ($db) {
         ");
         while ($row = $stmt->fetch()) {
             $mod = !empty($row['updated_at']) ? $row['updated_at'] : $row['created_at'];
-            addSitemapUrl($baseUrl . 'profile/' . rawurlencode($row['slug']), $mod, 'weekly', '0.9');
+            addSitemapUrl($baseUrl . rawurlencode($row['slug']), $mod, 'weekly', '0.9');
         }
     } catch (Exception $e) {}
 
@@ -175,7 +173,7 @@ if ($db) {
         ");
         while ($row = $stmt->fetch()) {
             $mod = !empty($row['updated_at']) ? $row['updated_at'] : $row['created_at'];
-            addSitemapUrl($baseUrl . 'u/' . rawurlencode($row['username_handle']), $mod, 'weekly', '0.7');
+            addSitemapUrl($baseUrl . '@' . rawurlencode($row['username_handle']), $mod, 'weekly', '0.7');
         }
     } catch (Exception $e) {}
 }
