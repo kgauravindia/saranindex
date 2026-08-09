@@ -78,13 +78,13 @@ if ($village):
 <div class="bg-gradient-primary text-white py-5 position-relative overflow-hidden">
     <div class="container position-relative z-1 py-3">
         <nav aria-label="breadcrumb" class="mb-3">
-            <ol class="breadcrumb mb-0 small text-white-50">
-                <li class="breadcrumb-item"><a href="index.php" class="text-white-50 text-decoration-none"><i class="bi bi-house-door-fill"></i> Home</a></li>
-                <li class="breadcrumb-item"><a href="village.php" class="text-white-50 text-decoration-none">Villages</a></li>
+            <ol class="breadcrumb mb-0 small text-white-50 breadcrumb-white">
+                <li class="breadcrumb-item"><a href="<?php echo BASE_URL; ?>" class="text-white-50 text-decoration-none"><i class="bi bi-house-door-fill"></i> Home</a></li>
+                <li class="breadcrumb-item"><a href="<?php echo getVillageUrl(); ?>" class="text-white-50 text-decoration-none">Villages</a></li>
                 <?php if ($blockSlug): ?>
-                    <li class="breadcrumb-item"><a href="block.php?slug=<?php echo $blockSlug; ?>" class="text-white-50 text-decoration-none"><?php echo $blockName; ?> Block</a></li>
+                    <li class="breadcrumb-item"><a href="<?php echo getBlockUrl($blockSlug); ?>" class="text-white-50 text-decoration-none"><?php echo $blockName; ?> Block</a></li>
                 <?php else: ?>
-                    <li class="breadcrumb-item text-white-50"><?php echo $blockName; ?></li>
+                    <li class="breadcrumb-item text-white-50"><?php echo $blockName; ?> Block</li>
                 <?php endif; ?>
                 <li class="breadcrumb-item active text-white fw-semibold" aria-current="page"><?php echo $vName; ?></li>
             </ol>

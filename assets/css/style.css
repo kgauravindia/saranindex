@@ -547,3 +547,22 @@ footer .border-secondary {
     border-color: rgba(255, 255, 255, 0.15) !important;
 }
 
+/* Hero & Dark Breadcrumb Dividers */
+.bg-gradient-primary .breadcrumb,
+.bg-dark .breadcrumb,
+.bg-primary .breadcrumb,
+.hero-wrapper .breadcrumb,
+.breadcrumb-white {
+    --bs-breadcrumb-divider: '/';
+    --bs-breadcrumb-divider-color: #ffffff;
+}
+
+.bg-gradient-primary .breadcrumb-item + .breadcrumb-item::before,
+.bg-dark .breadcrumb-item + .breadcrumb-item::before,
+.bg-primary .breadcrumb-item + .breadcrumb-item::before,
+.hero-wrapper .breadcrumb-item + .breadcrumb-item::before,
+.breadcrumb-white .breadcrumb-item + .breadcrumb-item::before {
+    color: #ffffff !important;
+}
+
+
