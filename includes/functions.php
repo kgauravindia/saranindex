@@ -195,7 +195,12 @@ function getAllSubcategories() {
     $db = getDB();
     if ($db) {
         try {
-            $stmt = $db->query("SELECT s.*, c.name as category_name, c.slug as category_slug FROM subcategories s LEFT JOIN categories c ON s.category_id = c.id ORDER BY c.name ASC, CASE WHEN s.type = 'PROFESSIONAL' THEN 1 ELSE 2 END ASC, s.name ASC");
+            $stmt = $db->query("SELECT s.*, c.name as category_name, c.slug as category_slug, COUNT(l.id) as listing_count 
+                                FROM subcategories s 
+                                LEFT JOIN categories c ON s.category_id = c.id 
+                                LEFT JOIN listings l ON s.id = l.subcategory_id 
+                                GROUP BY s.id 
+                                ORDER BY c.name ASC, CASE WHEN s.type = 'PROFESSIONAL' THEN 1 ELSE 2 END ASC, s.name ASC");
             return $stmt->fetchAll();
         } catch (PDOException $e) {}
     }
@@ -1078,7 +1083,11 @@ function getAllAdminCategories() {
     $db = getDB();
     if ($db) {
         try {
-            $stmt = $db->query("SELECT * FROM categories ORDER BY name ASC");
+            $stmt = $db->query("SELECT c.*, COUNT(l.id) as listing_count 
+                                FROM categories c 
+                                LEFT JOIN listings l ON c.id = l.category_id 
+                                GROUP BY c.id 
+                                ORDER BY c.name ASC");
             return $stmt->fetchAll();
         } catch (PDOException $e) {}
     }

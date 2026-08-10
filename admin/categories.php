@@ -76,18 +76,49 @@ foreach ($all_subcategories as $sub) {
     </div>
 <?php endif; ?>
 
-<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
-    <div>
-        <h4 class="fw-bold mb-1">Directory Categories & Subcategories</h4>
-        <p class="text-muted small mb-0">Organize all Saran District items, verticals, and subcategories (13 Categories, 121 Subcategories).</p>
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+    <div class="col-12 col-sm-4">
+        <div class="stat-card p-3">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-muted small fw-semibold text-uppercase">Core Verticals</div>
+                    <h3 class="fw-bold text-dark my-1"><?php echo number_format(count($categories)); ?></h3>
+                    <small class="text-muted">Main Categories</small>
+                </div>
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                    <i class="bi bi-grid-fill"></i>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="d-flex gap-2">
-        <button type="button" class="btn btn-outline-primary fw-bold px-3 py-2 rounded-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#addSubcategoryModal">
-            <i class="bi bi-diagram-3 me-1"></i> Add Subcategory
-        </button>
-        <button type="button" class="btn btn-primary fw-bold px-3 py-2 rounded-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
-            <i class="bi bi-plus-lg me-1"></i> Add Category
-        </button>
+    <div class="col-12 col-sm-4">
+        <div class="stat-card p-3">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-muted small fw-semibold text-uppercase">Subcategories</div>
+                    <h3 class="fw-bold text-info my-1"><?php echo number_format(count($all_subcategories)); ?></h3>
+                    <small class="text-info fw-medium"><i class="bi bi-diagram-3 me-1"></i>Detailed Niche Verticals</small>
+                </div>
+                <div class="stat-icon bg-info bg-opacity-10 text-info">
+                    <i class="bi bi-diagram-3-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-4">
+        <div class="stat-card p-3">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-muted small fw-semibold text-uppercase">Directory Listings</div>
+                    <h3 class="fw-bold text-success my-1"><?php echo number_format(array_sum(array_column($categories, 'listing_count'))); ?></h3>
+                    <small class="text-success fw-medium"><i class="bi bi-collection me-1"></i>Mapped to categories</small>
+                </div>
+                <div class="stat-icon bg-success bg-opacity-10 text-success">
+                    <i class="bi bi-collection-fill"></i>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -101,7 +132,8 @@ foreach ($all_subcategories as $sub) {
                     <th style="width: 50px;">Icon</th>
                     <th>Category Name</th>
                     <th>Hindi Name</th>
-                    <th>Subcategories Count</th>
+                    <th>Listings Count</th>
+                    <th>Subcategories</th>
                     <th>Section</th>
                     <th>URL Slug</th>
                     <th class="text-end">Actions</th>
@@ -111,6 +143,7 @@ foreach ($all_subcategories as $sub) {
                 <?php foreach ($categories as $cat): 
                     $subs = $sub_by_cat[$cat['id']] ?? [];
                     $sub_count = count($subs);
+                    $cat_listings = intval($cat['listing_count'] ?? 0);
                 ?>
                     <tr>
                         <td class="fw-bold text-muted">#<?php echo $cat['id']; ?></td>
@@ -124,6 +157,11 @@ foreach ($all_subcategories as $sub) {
                             <span class="badge bg-light text-secondary border small ms-1" title="Category ID">ID: #<?php echo $cat['id']; ?></span>
                         </td>
                         <td class="text-muted"><?php echo sanitizeInput($cat['hindi_name'] ?? ''); ?></td>
+                        <td>
+                            <a href="listings.php?search=<?php echo urlencode($cat['name']); ?>" class="badge bg-success-subtle text-success border border-success-subtle fw-bold px-2.5 py-1.5 text-decoration-none" title="Click to view all listings in <?php echo sanitizeInput($cat['name']); ?>">
+                                <i class="bi bi-collection-fill me-1"></i><?php echo number_format($cat_listings); ?> Listings
+                            </a>
+                        </td>
                         <td>
                             <button class="btn btn-sm btn-light border rounded-pill fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#subs-cat-<?php echo $cat['id']; ?>">
                                 <i class="bi bi-diagram-3 text-primary me-1"></i><?php echo $sub_count; ?> Subcategories <i class="bi bi-chevron-down ms-1 small"></i>
@@ -139,7 +177,7 @@ foreach ($all_subcategories as $sub) {
                     </tr>
                     <!-- Expandable Subcategory List Row -->
                     <tr class="collapse bg-light" id="subs-cat-<?php echo $cat['id']; ?>">
-                        <td colspan="8" class="p-3">
+                        <td colspan="9" class="p-3">
                             <div class="p-3 bg-white rounded-3 border">
                                 <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
                                     <span class="fw-bold text-primary small text-uppercase"><i class="bi bi-diagram-3-fill me-1"></i>Subcategories in <?php echo sanitizeInput($cat['name']); ?> (Cat ID: #<?php echo $cat['id']; ?>):</span>
@@ -149,12 +187,17 @@ foreach ($all_subcategories as $sub) {
                                 </div>
                                 <?php if (!empty($subs)): ?>
                                     <div class="d-flex flex-wrap gap-2">
-                                        <?php foreach ($subs as $s): ?>
-                                            <span class="badge bg-light text-dark border p-2 d-inline-flex align-items-center gap-2 rounded-2 font-body font-normal">
+                                        <?php foreach ($subs as $s): 
+                                            $sub_listings = intval($s['listing_count'] ?? 0);
+                                        ?>
+                                            <div class="badge bg-light text-dark border p-2 d-inline-flex align-items-center gap-2 rounded-2 font-body font-normal shadow-sm">
                                                 <span class="badge bg-primary text-white">Sub ID: #<?php echo $s['id']; ?></span>
                                                 <span><strong><?php echo sanitizeInput($s['name']); ?></strong> <?php if (!empty($s['hindi_name'])): ?><span class="text-muted">(<?php echo sanitizeInput($s['hindi_name']); ?>)</span><?php endif; ?></span>
-                                                <a href="categories.php?action=delete_sub&sub_id=<?php echo $s['id']; ?>" class="text-danger text-decoration-none" onclick="return confirm('Delete subcategory <?php echo sanitizeInput($s['name']); ?>?');"><i class="bi bi-x-circle-fill"></i></a>
-                                            </span>
+                                                <a href="listings.php?search=<?php echo urlencode($s['name']); ?>" class="badge bg-warning text-dark text-decoration-none ms-1" title="View listings in subcategory">
+                                                    <i class="bi bi-collection me-1"></i><?php echo number_format($sub_listings); ?> Listings
+                                                </a>
+                                                <a href="categories.php?action=delete_sub&sub_id=<?php echo $s['id']; ?>" class="text-danger text-decoration-none ms-1" onclick="return confirm('Delete subcategory <?php echo sanitizeInput($s['name']); ?>?');"><i class="bi bi-x-circle-fill"></i></a>
+                                            </div>
                                         <?php endforeach; ?>
                                     </div>
                                 <?php else: ?>
