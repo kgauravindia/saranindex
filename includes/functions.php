@@ -3300,6 +3300,129 @@ function checkDuplicateListing($title, $mobile, $excludeId = null) {
     }
 }
 
+function getAllAdminBlocks($search = null) {
+    $db = getDB();
+    if (!$db) return [];
+    try {
+        $sql = "SELECT b.*, COUNT(l.id) as listing_count 
+                FROM blocks b 
+                LEFT JOIN listings l ON b.id = l.block_id";
+        $params = [];
+        if (!empty($search)) {
+            $sql .= " WHERE (b.name LIKE :s1 OR b.hindi_name LIKE :s2 OR b.name_english LIKE :s3 OR b.slug LIKE :s4 OR b.pincode LIKE :s5)";
+            $params['s1'] = "%$search%";
+            $params['s2'] = "%$search%";
+            $params['s3'] = "%$search%";
+            $params['s4'] = "%$search%";
+            $params['s5'] = "%$search%";
+        }
+        $sql .= " GROUP BY b.id ORDER BY b.name ASC";
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("getAllAdminBlocks error: " . $e->getMessage());
+        return [];
+    }
+}
+
+function saveBlock($name, $hindi_name = '', $name_english = '', $slug = '', $pincode = '', $total_panchayats = 0, $id = null) {
+    $db = getDB();
+    if (!$db || empty($name)) return false;
+
+    if (empty($slug)) {
+        $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $name)));
+    }
+
+    try {
+        if (!empty($id)) {
+            $stmt = $db->prepare("UPDATE blocks SET name = :name, hindi_name = :hindi_name, name_english = :name_english, slug = :slug, pincode = :pincode, total_panchayats = :total_panchayats WHERE id = :id");
+            return $stmt->execute([
+                'name' => $name,
+                'hindi_name' => $hindi_name,
+                'name_english' => !empty($name_english) ? $name_english : $name,
+                'slug' => $slug,
+                'pincode' => $pincode,
+                'total_panchayats' => intval($total_panchayats),
+                'id' => intval($id)
+            ]);
+        } else {
+            $stmt = $db->prepare("INSERT INTO blocks (name, hindi_name, name_english, slug, pincode, total_panchayats) VALUES (:name, :hindi_name, :name_english, :slug, :pincode, :total_panchayats)");
+            return $stmt->execute([
+                'name' => $name,
+                'hindi_name' => $hindi_name,
+                'name_english' => !empty($name_english) ? $name_english : $name,
+                'slug' => $slug,
+                'pincode' => $pincode,
+                'total_panchayats' => intval($total_panchayats)
+            ]);
+        }
+    } catch (PDOException $e) {
+        error_log("saveBlock error: " . $e->getMessage());
+        return false;
+    }
+}
+
+function deleteBlock($id) {
+    $db = getDB();
+    if (!$db || empty($id)) return false;
+    try {
+        $stmt = $db->prepare("DELETE FROM blocks WHERE id = :id");
+        return $stmt->execute(['id' => intval($id)]);
+    } catch (PDOException $e) {
+        error_log("deleteBlock error: " . $e->getMessage());
+        return false;
+    }
+}
+
+function saveHalka($block, $halka_code, $halka_name, $halka_english = '', $mauja_code = '', $mauja_name = '', $mauja_english = '', $id = null) {
+    $db = getDB();
+    if (!$db || empty($block) || empty($halka_name)) return false;
+
+    try {
+        if (!empty($id)) {
+            $stmt = $db->prepare("UPDATE halka SET block = :block, halka_code = :halka_code, halka_name = :halka_name, halka_english = :halka_english, mauja_code = :mauja_code, mauja_name = :mauja_name, mauja_english = :mauja_english WHERE id = :id");
+            return $stmt->execute([
+                'block' => $block,
+                'halka_code' => $halka_code,
+                'halka_name' => $halka_name,
+                'halka_english' => $halka_english,
+                'mauja_code' => $mauja_code,
+                'mauja_name' => $mauja_name,
+                'mauja_english' => $mauja_english,
+                'id' => intval($id)
+            ]);
+        } else {
+            $stmt = $db->prepare("INSERT INTO halka (block, halka_code, halka_name, halka_english, mauja_code, mauja_name, mauja_english) VALUES (:block, :halka_code, :halka_name, :halka_english, :mauja_code, :mauja_name, :mauja_english)");
+            return $stmt->execute([
+                'block' => $block,
+                'halka_code' => $halka_code,
+                'halka_name' => $halka_name,
+                'halka_english' => $halka_english,
+                'mauja_code' => $mauja_code,
+                'mauja_name' => $mauja_name,
+                'mauja_english' => $mauja_english
+            ]);
+        }
+    } catch (PDOException $e) {
+        error_log("saveHalka error: " . $e->getMessage());
+        return false;
+    }
+}
+
+function deleteHalka($id) {
+    $db = getDB();
+    if (!$db || empty($id)) return false;
+    try {
+        $stmt = $db->prepare("DELETE FROM halka WHERE id = :id");
+        return $stmt->execute(['id' => intval($id)]);
+    } catch (PDOException $e) {
+        error_log("deleteHalka error: " . $e->getMessage());
+        return false;
+    }
+}
+
+
 
 
 

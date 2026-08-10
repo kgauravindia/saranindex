@@ -227,6 +227,16 @@ $admin_name = $_SESSION['admin_full_name'] ?? 'Administrator';
                 </a>
             </li>
             <li class="nav-item">
+                <a class="nav-link <?php echo $current_page === 'blocks.php' ? 'active' : ''; ?>" href="blocks.php">
+                    <i class="bi bi-geo-alt-fill text-danger"></i> Saran Blocks
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <?php echo $current_page === 'halka.php' ? 'active' : ''; ?>" href="halka.php">
+                    <i class="bi bi-houses-fill text-warning"></i> Halka & Mouzas
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link <?php echo $current_page === 'categories.php' ? 'active' : ''; ?>" href="categories.php">
                     <i class="bi bi-grid-fill"></i> Categories
                 </a>

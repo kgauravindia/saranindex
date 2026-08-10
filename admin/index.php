@@ -199,7 +199,7 @@ $recentListings = array_slice($recentListings, 0, 8);
 
     <!-- Card 8: District Geographic Coverage -->
     <div class="col-12 col-sm-6 col-xl-3">
-        <a href="../blocks" target="_blank" class="text-decoration-none">
+        <a href="blocks.php" class="text-decoration-none">
             <div class="stat-card p-3 h-100 shadow-sm border-0">
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="text-muted small fw-bold text-uppercase">Saran Blocks</span>
