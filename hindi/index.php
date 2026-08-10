@@ -8,28 +8,97 @@ $categories = getCategories();
 $listings = getListings('', '', '', 6, 0);
 ?>
 
-<!-- Hero Section -->
-<section class="hero-wrapper position-relative text-center">
-    <div class="container position-relative z-1">
-        <div class="d-inline-flex align-items-center mb-3 brand-badge">
-            <i class="bi bi-patch-check-fill text-warning me-2 fs-6"></i>
-            <span>शुभारंभ 26 जुलाई 2026 • ऑफ़रप्लांट का 9वां स्थापना दिवस</span>
+<!-- Top Hero Work-Related Photo Slider Section (Hindi) -->
+<section class="hero-slider-wrapper position-relative text-center">
+    <div id="heroWorkCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000">
+        <!-- Carousel Indicators -->
+        <div class="carousel-indicators hero-carousel-indicators">
+            <button type="button" data-bs-target="#heroWorkCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+            <button type="button" data-bs-target="#heroWorkCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+            <button type="button" data-bs-target="#heroWorkCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
         </div>
 
-        <h1 class="display-4 fw-bolder font-heading text-white mb-2 tracking-tight">
-            सारण इंडेक्स
-        </h1>
-        <p class="lead text-white-50 font-heading fw-semibold mb-4 fs-3" style="color: #cbd5e1 !important;">
-            सारण को डिजिटली जोड़ते हुए
-        </p>
-        <p class="text-white-50 mx-auto mb-4" style="max-width: 680px; font-size: 1.05rem;">
-            <strong>सारण जिला (बिहार)</strong> की एकीकृत डिजिटल निर्देशिका। सभी 20 प्रखंडों में व्यवसायों, डॉक्टरों, वकीलों, स्कूलों, सरकारी कार्यालयों एवं आपातकालीन सेवाओं की खोज करें।
-        </p>
+        <div class="carousel-inner">
+            <!-- Slide 1: Businesses & Commerce -->
+            <div class="carousel-item active" style="background-image: url('<?php echo BASE_URL; ?>assets/img/slider1.png');">
+                <div class="hero-slider-overlay"></div>
+                <div class="container hero-slider-content">
+                    <div class="d-inline-flex align-items-center mb-3 hero-badge-pill">
+                        <i class="bi bi-shop text-warning me-2 fs-6"></i>
+                        <span>व्यापार, दुकानें एवं रिटेल स्टोर निर्देशिका • सारण जिला</span>
+                    </div>
 
-        <!-- Search Bar Component -->
+                    <h1 class="display-4 fw-bolder font-heading text-white mb-2 tracking-tight">
+                        सारण इंडेक्स
+                    </h1>
+                    <p class="lead text-white-50 font-heading fw-semibold mb-3 fs-3" style="color: #cbd5e1 !important;">
+                        सारण को डिजिटली जोड़ते हुए
+                    </p>
+                    <p class="text-white-50 mx-auto mb-4" style="max-width: 700px; font-size: 1.05rem; line-height: 1.6;">
+                        <strong>सारण जिला (बिहार)</strong> की एकीकृत डिजिटल निर्देशिका। सभी 20 प्रखंडों में व्यवसायों, व्यापारियों, डॉक्टरों, वकीलों, स्कूलों एवं सरकारी कार्यालयों की खोज करें।
+                    </p>
+                </div>
+            </div>
+
+            <!-- Slide 2: Healthcare & Emergency Services -->
+            <div class="carousel-item" style="background-image: url('<?php echo BASE_URL; ?>assets/img/slider2.png');">
+                <div class="hero-slider-overlay"></div>
+                <div class="container hero-slider-content">
+                    <div class="d-inline-flex align-items-center mb-3 hero-badge-pill">
+                        <i class="bi bi-hospital-fill text-warning me-2 fs-6"></i>
+                        <span>24/7 स्वास्थ्य सेवाएं, डॉक्टर एवं आपातकालीन हेल्पलाइन</span>
+                    </div>
+
+                    <h1 class="display-4 fw-bolder font-heading text-white mb-2 tracking-tight">
+                        स्वास्थ्य एवं आपातकालीन सेवाएं
+                    </h1>
+                    <p class="lead text-white-50 font-heading fw-semibold mb-3 fs-3" style="color: #cbd5e1 !important;">
+                        छपरा एवं सारण में त्वरित चिकित्सा निर्देशिका
+                    </p>
+                    <p class="text-white-50 mx-auto mb-4" style="max-width: 700px; font-size: 1.05rem; line-height: 1.6;">
+                        सत्यापित अस्पताल, विशेषज्ञ डॉक्टर, ब्लड बैंक, थाना, फायर ब्रिगेड एवं 24x7 आपातकालीन हेल्पलाइन नंबर अपने प्रखंड में तुरंत खोजें।
+                    </p>
+                </div>
+            </div>
+
+            <!-- Slide 3: Advocates, Education & Administration -->
+            <div class="carousel-item" style="background-image: url('<?php echo BASE_URL; ?>assets/img/slider3.png');">
+                <div class="hero-slider-overlay"></div>
+                <div class="container hero-slider-content">
+                    <div class="d-inline-flex align-items-center mb-3 hero-badge-pill">
+                        <i class="bi bi-briefcase-fill text-warning me-2 fs-6"></i>
+                        <span>वकील, स्कूल, कोचिंग एवं सरकारी कार्यालय</span>
+                    </div>
+
+                    <h1 class="display-4 fw-bolder font-heading text-white mb-2 tracking-tight">
+                        पेशेवर सेवाएं एवं प्रशासन निर्देशिका
+                    </h1>
+                    <p class="lead text-white-50 font-heading fw-semibold mb-3 fs-3" style="color: #cbd5e1 !important;">
+                        सारण के नागरिकों एवं संस्थानों का सशक्तिकरण
+                    </p>
+                    <p class="text-white-50 mx-auto mb-4" style="max-width: 700px; font-size: 1.05rem; line-height: 1.6;">
+                        कानूनी वकीलों, शैक्षणिक संस्थानों, कोचिंग सेंटर, राजस्व कार्यालयों (हलका/पंचायत) एवं जिला प्रशासन से सीधे जुड़ें।
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carousel Prev/Next Buttons -->
+        <button class="carousel-control-prev hero-carousel-control ms-3" type="button" data-bs-target="#heroWorkCarousel" data-bs-slide="prev">
+            <i class="bi bi-chevron-left text-white fs-5"></i>
+            <span class="visually-hidden">पिछला</span>
+        </button>
+        <button class="carousel-control-next hero-carousel-control me-3" type="button" data-bs-target="#heroWorkCarousel" data-bs-slide="next">
+            <i class="bi bi-chevron-right text-white fs-5"></i>
+            <span class="visually-hidden">अगला</span>
+        </button>
+    </div>
+
+    <!-- Search Bar Component Overlay (Floats Over Hero Slider) -->
+    <div class="container position-relative z-3" style="margin-top: -55px; margin-bottom: 25px;">
         <div class="row justify-content-center">
             <div class="col-lg-9 col-md-11 position-relative">
-                <form action="search.php" method="GET" class="search-card d-flex align-items-center gap-2">
+                <form action="search.php" method="GET" class="search-card d-flex align-items-center gap-2 shadow-lg">
                     <button type="button" class="btn mic-btn flex-shrink-0" id="micButton" title="वॉइस सर्च">
                         <i class="bi bi-mic-fill fs-5"></i>
                     </button>

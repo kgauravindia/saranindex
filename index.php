@@ -8,28 +8,97 @@ $categories = getCategories();
 $listings = getListings('', '', '', 6, 0);
 ?>
 
-<!-- Hero Section -->
-<section class="hero-wrapper position-relative text-center">
-    <div class="container position-relative z-1">
-        <div class="d-inline-flex align-items-center mb-3 brand-badge">
-            <i class="bi bi-patch-check-fill text-warning me-2 fs-6"></i>
-            <span>Launching 26 July 2026 • OfferPlant 9th Incorporation Anniversary</span>
+<!-- Top Hero Work-Related Photo Slider Section -->
+<section class="hero-slider-wrapper position-relative text-center">
+    <div id="heroWorkCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000">
+        <!-- Carousel Indicators -->
+        <div class="carousel-indicators hero-carousel-indicators">
+            <button type="button" data-bs-target="#heroWorkCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+            <button type="button" data-bs-target="#heroWorkCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+            <button type="button" data-bs-target="#heroWorkCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
         </div>
 
-        <h1 class="display-4 fw-bolder font-heading text-white mb-2 tracking-tight">
-            Saran Index
-        </h1>
-        <p class="lead text-white-50 font-heading fw-semibold mb-4 fs-3" style="color: #cbd5e1 !important;">
-            Connecting Saran Digitally
-        </p>
-        <p class="text-white-50 mx-auto mb-4" style="max-width: 680px; font-size: 1.05rem;">
-            The unified digital directory for <strong>Saran District, Bihar</strong>. Discover businesses, advocates, doctors, schools, government offices, and emergency services across all 20 blocks.
-        </p>
+        <div class="carousel-inner">
+            <!-- Slide 1: Businesses & Commerce -->
+            <div class="carousel-item active" style="background-image: url('assets/img/slider1.png');">
+                <div class="hero-slider-overlay"></div>
+                <div class="container hero-slider-content">
+                    <div class="d-inline-flex align-items-center mb-3 hero-badge-pill">
+                        <i class="bi bi-shop text-warning me-2 fs-6"></i>
+                        <span>Connecting Businesses, Shops & Retail Stores • Saran District</span>
+                    </div>
 
-        <!-- Search Bar Component -->
+                    <h1 class="display-4 fw-bolder font-heading text-white mb-2 tracking-tight">
+                        Saran Index
+                    </h1>
+                    <p class="lead text-white-50 font-heading fw-semibold mb-3 fs-3" style="color: #cbd5e1 !important;">
+                        Connecting Saran Digitally
+                    </p>
+                    <p class="text-white-50 mx-auto mb-4" style="max-width: 700px; font-size: 1.05rem; line-height: 1.6;">
+                        The single trusted digital directory for <strong>Saran District, Bihar</strong>. Discover verified local businesses, merchants, advocates, doctors, schools, and government offices across all 20 blocks.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Slide 2: Healthcare & Emergency Services -->
+            <div class="carousel-item" style="background-image: url('assets/img/slider2.png');">
+                <div class="hero-slider-overlay"></div>
+                <div class="container hero-slider-content">
+                    <div class="d-inline-flex align-items-center mb-3 hero-badge-pill">
+                        <i class="bi bi-hospital-fill text-warning me-2 fs-6"></i>
+                        <span>24/7 Healthcare, Doctors & Emergency Helplines</span>
+                    </div>
+
+                    <h1 class="display-4 fw-bolder font-heading text-white mb-2 tracking-tight">
+                        Healthcare & Emergency Services
+                    </h1>
+                    <p class="lead text-white-50 font-heading fw-semibold mb-3 fs-3" style="color: #cbd5e1 !important;">
+                        Instant Access to Medical Directory in Chapra & Saran
+                    </p>
+                    <p class="text-white-50 mx-auto mb-4" style="max-width: 700px; font-size: 1.05rem; line-height: 1.6;">
+                        Find verified hospital contacts, specialist doctors, blood banks, town police stations, fire services, and emergency 24x7 helplines in your block.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Slide 3: Advocates, Education & Administration -->
+            <div class="carousel-item" style="background-image: url('assets/img/slider3.png');">
+                <div class="hero-slider-overlay"></div>
+                <div class="container hero-slider-content">
+                    <div class="d-inline-flex align-items-center mb-3 hero-badge-pill">
+                        <i class="bi bi-briefcase-fill text-warning me-2 fs-6"></i>
+                        <span>Verified Advocates, Schools & Government Offices</span>
+                    </div>
+
+                    <h1 class="display-4 fw-bolder font-heading text-white mb-2 tracking-tight">
+                        Professional Services Directory
+                    </h1>
+                    <p class="lead text-white-50 font-heading fw-semibold mb-3 fs-3" style="color: #cbd5e1 !important;">
+                        Empowering Citizens & Institutions across Chapra & Saran
+                    </p>
+                    <p class="text-white-50 mx-auto mb-4" style="max-width: 700px; font-size: 1.05rem; line-height: 1.6;">
+                        Connect with legal advocates, educational institutes, coaching centers, revenue offices (Halka/Panchayat), and district administration.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carousel Prev/Next Buttons -->
+        <button class="carousel-control-prev hero-carousel-control ms-3" type="button" data-bs-target="#heroWorkCarousel" data-bs-slide="prev">
+            <i class="bi bi-chevron-left text-white fs-5"></i>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next hero-carousel-control me-3" type="button" data-bs-target="#heroWorkCarousel" data-bs-slide="next">
+            <i class="bi bi-chevron-right text-white fs-5"></i>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+
+    <!-- Search Bar Component Overlay (Floats Over Hero Slider) -->
+    <div class="container position-relative z-3" style="margin-top: -55px; margin-bottom: 25px;">
         <div class="row justify-content-center">
             <div class="col-lg-9 col-md-11 position-relative">
-                <form action="search.php" method="GET" class="search-card d-flex align-items-center gap-2">
+                <form action="search.php" method="GET" class="search-card d-flex align-items-center gap-2 shadow-lg">
                     <button type="button" class="btn mic-btn flex-shrink-0" id="micButton" title="Voice Search">
                         <i class="bi bi-mic-fill fs-5"></i>
                     </button>
