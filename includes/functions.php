@@ -771,26 +771,99 @@ function getAdminStats() {
     $db = getDB();
     $stats = [
         'total_listings' => 0,
+        'active_listings' => 0,
         'pending_listings' => 0,
+        'rejected_listings' => 0,
         'verified_listings' => 0,
+        'featured_listings' => 0,
+        'platinum_listings' => 0,
+        'gold_listings' => 0,
+        'total_users' => 0,
         'total_categories' => 0,
+        'total_subcategories' => 0,
         'total_blocks' => 0,
-        'total_reviews' => 0
+        'total_panchayats' => 0,
+        'total_halkas' => 0,
+        'total_reviews' => 0,
+        'pending_claims' => 0,
+        'total_payments' => 0,
+        'successful_payments' => 0,
+        'total_revenue' => 0,
+        'block_breakdown' => [],
+        'category_breakdown' => []
     ];
 
     if ($db) {
         try {
             $stats['total_listings'] = (int)$db->query("SELECT COUNT(*) FROM listings")->fetchColumn();
+            $stats['active_listings'] = (int)$db->query("SELECT COUNT(*) FROM listings WHERE status = 'ACTIVE'")->fetchColumn();
             $stats['pending_listings'] = (int)$db->query("SELECT COUNT(*) FROM listings WHERE status = 'PENDING'")->fetchColumn();
+            $stats['rejected_listings'] = (int)$db->query("SELECT COUNT(*) FROM listings WHERE status = 'REJECTED'")->fetchColumn();
             $stats['verified_listings'] = (int)$db->query("SELECT COUNT(*) FROM listings WHERE is_verified = 'YES'")->fetchColumn();
+            $stats['featured_listings'] = (int)$db->query("SELECT COUNT(*) FROM listings WHERE is_featured = 'YES'")->fetchColumn();
+        } catch (PDOException $e) {}
+
+        try {
+            $stats['platinum_listings'] = (int)$db->query("SELECT COUNT(*) FROM listings WHERE plan_type = 'PLATINUM'")->fetchColumn();
+            $stats['gold_listings'] = (int)$db->query("SELECT COUNT(*) FROM listings WHERE plan_type = 'GOLD'")->fetchColumn();
+        } catch (PDOException $e) {}
+
+        try {
             $stats['total_categories'] = (int)$db->query("SELECT COUNT(*) FROM categories")->fetchColumn();
+        } catch (PDOException $e) {}
+
+        try {
+            $stats['total_subcategories'] = (int)$db->query("SELECT COUNT(*) FROM subcategories")->fetchColumn();
+        } catch (PDOException $e) {}
+
+        try {
             $stats['total_blocks'] = (int)$db->query("SELECT COUNT(*) FROM blocks")->fetchColumn();
+        } catch (PDOException $e) {}
+
+        try {
+            $stats['total_panchayats'] = (int)$db->query("SELECT COUNT(*) FROM panchayats")->fetchColumn();
+        } catch (PDOException $e) {}
+
+        try {
+            $stats['total_halkas'] = (int)$db->query("SELECT COUNT(*) FROM halka")->fetchColumn();
+        } catch (PDOException $e) {}
+
+        try {
+            $stats['total_users'] = (int)$db->query("SELECT COUNT(*) FROM users")->fetchColumn();
+        } catch (PDOException $e) {}
+
+        try {
             $stats['total_reviews'] = (int)$db->query("SELECT COUNT(*) FROM reviews")->fetchColumn();
-            return $stats;
+        } catch (PDOException $e) {}
+
+        try {
+            $stats['pending_claims'] = (int)$db->query("SELECT COUNT(*) FROM claims WHERE status = 'PENDING'")->fetchColumn();
+        } catch (PDOException $e) {}
+
+        try {
+            $stats['successful_payments'] = (int)$db->query("SELECT COUNT(*) FROM payments WHERE payment_status = 'SUCCESS'")->fetchColumn();
+            $stats['total_revenue'] = (float)$db->query("SELECT SUM(amount) FROM payments WHERE payment_status = 'SUCCESS'")->fetchColumn();
+        } catch (PDOException $e) {}
+
+        try {
+            $stmtB = $db->query("SELECT b.name as block_name, b.slug, COUNT(l.id) as listing_count 
+                                 FROM blocks b 
+                                 LEFT JOIN listings l ON b.id = l.block_id 
+                                 GROUP BY b.id 
+                                 ORDER BY listing_count DESC");
+            $stats['block_breakdown'] = $stmtB->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {}
+
+        try {
+            $stmtC = $db->query("SELECT c.name as category_name, c.icon, c.slug, COUNT(l.id) as listing_count 
+                                 FROM categories c 
+                                 LEFT JOIN listings l ON c.id = l.category_id 
+                                 GROUP BY c.id 
+                                 ORDER BY listing_count DESC");
+            $stats['category_breakdown'] = $stmtC->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {}
     }
 
-    // Fallback metrics if DB fails
     return $stats;
 }
 
