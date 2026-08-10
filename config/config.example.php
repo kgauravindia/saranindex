@@ -48,8 +48,9 @@ define('SMS_REGISTRATION_TEMPLATE', "Dear {#var#}, \n Your Application / Website
 define('SOCIAL_HANDLE', '@saranindex');
 define('SOCIAL_FACEBOOK', 'https://facebook.com/saranindex');
 define('SOCIAL_INSTAGRAM', 'https://instagram.com/saranindex');
-define('SOCIAL_TWITTER', 'https://twitter.com/saranindex');
+define('SOCIAL_TWITTER', 'https://x.com/saranindex');
 define('SOCIAL_THREADS', 'https://threads.net/@saranindex');
 define('SOCIAL_YOUTUBE', 'https://youtube.com/@saranindex');
+define('SOCIAL_TELEGRAM', 'https://t.me/saranindex');
 define('SOCIAL_WHATSAPP', 'https://whatsapp.com/channel/0029VbDJKIS4CrfaodCTmw1c');
 ?>

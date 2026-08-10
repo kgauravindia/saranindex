@@ -1,3 +1,12 @@
+<?php
+$social_fb = defined('SOCIAL_FACEBOOK') ? SOCIAL_FACEBOOK : 'https://facebook.com/saranindex';
+$social_insta = defined('SOCIAL_INSTAGRAM') ? SOCIAL_INSTAGRAM : 'https://instagram.com/saranindex';
+$social_twitter = defined('SOCIAL_TWITTER') ? SOCIAL_TWITTER : 'https://x.com/saranindex';
+$social_threads = defined('SOCIAL_THREADS') ? SOCIAL_THREADS : 'https://threads.net/@saranindex';
+$social_yt = defined('SOCIAL_YOUTUBE') ? SOCIAL_YOUTUBE : 'https://youtube.com/@saranindex';
+$social_tele = defined('SOCIAL_TELEGRAM') ? SOCIAL_TELEGRAM : 'https://t.me/saranindex';
+$social_wa = defined('SOCIAL_WHATSAPP') ? SOCIAL_WHATSAPP : 'https://whatsapp.com/channel/0029VbDJKIS4CrfaodCTmw1c';
+?>
 <!-- OfferPlant 9th Anniversary Footer Banner & Redesigned Footer -->
 <footer class="anniversary-badge text-white mt-5">
     <div class="container relative-z">
@@ -53,25 +62,25 @@
                 <div>
                     <h6 class="footer-heading">Follow Us <span class="badge bg-warning text-dark me-1" style="text-transform: none;">@saranindex</span></h6>
                     <div class="d-flex flex-wrap gap-2">
-                        <a href="<?php echo SOCIAL_FACEBOOK; ?>" target="_blank" class="footer-social-btn social-btn-facebook" title="Facebook @saranindex" aria-label="Facebook">
+                        <a href="<?php echo $social_fb; ?>" target="_blank" class="footer-social-btn social-btn-facebook" title="Facebook @saranindex" aria-label="Facebook">
                             <i class="bi bi-facebook"></i>
                         </a>
-                        <a href="<?php echo SOCIAL_INSTAGRAM; ?>" target="_blank" class="footer-social-btn social-btn-instagram" title="Instagram @saranindex" aria-label="Instagram">
+                        <a href="<?php echo $social_insta; ?>" target="_blank" class="footer-social-btn social-btn-instagram" title="Instagram @saranindex" aria-label="Instagram">
                             <i class="bi bi-instagram"></i>
                         </a>
-                        <a href="<?php echo SOCIAL_TWITTER; ?>" target="_blank" class="footer-social-btn social-btn-x" title="X (Twitter) @saranindex" aria-label="X Twitter">
+                        <a href="<?php echo $social_twitter; ?>" target="_blank" class="footer-social-btn social-btn-x" title="X (Twitter) @saranindex" aria-label="X Twitter">
                             <i class="bi bi-twitter-x"></i>
                         </a>
-                        <a href="<?php echo SOCIAL_THREADS; ?>" target="_blank" class="footer-social-btn social-btn-threads" title="Threads @saranindex" aria-label="Threads">
+                        <a href="<?php echo $social_threads; ?>" target="_blank" class="footer-social-btn social-btn-threads" title="Threads @saranindex" aria-label="Threads">
                             <i class="bi bi-threads"></i>
                         </a>
-                        <a href="<?php echo SOCIAL_YOUTUBE; ?>" target="_blank" class="footer-social-btn social-btn-youtube" title="YouTube @saranindex" aria-label="YouTube">
+                        <a href="<?php echo $social_yt; ?>" target="_blank" class="footer-social-btn social-btn-youtube" title="YouTube @saranindex" aria-label="YouTube">
                             <i class="bi bi-youtube"></i>
                         </a>
-                        <a href="<?php echo SOCIAL_TELEGRAM; ?>" target="_blank" class="footer-social-btn social-btn-telegram" title="Telegram @saranindex" aria-label="Telegram">
+                        <a href="<?php echo $social_tele; ?>" target="_blank" class="footer-social-btn social-btn-telegram" title="Telegram @saranindex" aria-label="Telegram">
                             <i class="bi bi-telegram"></i>
                         </a>
-                        <a href="<?php echo SOCIAL_WHATSAPP; ?>" target="_blank" class="footer-social-btn social-btn-whatsapp" title="WhatsApp Channel @saranindex" aria-label="WhatsApp">
+                        <a href="<?php echo $social_wa; ?>" target="_blank" class="footer-social-btn social-btn-whatsapp" title="WhatsApp Channel @saranindex" aria-label="WhatsApp">
                             <i class="bi bi-whatsapp"></i>
                         </a>
                     </div>
@@ -151,7 +160,7 @@
                             <span>Mon – Sat: 9:00 AM – 7:00 PM</span>
                         </div>
                     </div>
-                    <a href="<?php echo SOCIAL_WHATSAPP; ?>" target="_blank" class="btn btn-sm btn-success rounded-pill px-3 py-2 w-100 fw-bold shadow-sm d-inline-flex align-items-center justify-content-center gap-2 mt-1">
+                    <a href="<?php echo $social_wa; ?>" target="_blank" class="btn btn-sm btn-success rounded-pill px-3 py-2 w-100 fw-bold shadow-sm d-inline-flex align-items-center justify-content-center gap-2 mt-1">
                         <i class="bi bi-whatsapp fs-6"></i> Official WhatsApp Channel
                     </a>
                     <div class="mt-3 text-center">
