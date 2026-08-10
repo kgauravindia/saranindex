@@ -158,7 +158,7 @@ foreach ($all_subcategories as $sub) {
                         </td>
                         <td class="text-muted"><?php echo sanitizeInput($cat['hindi_name'] ?? ''); ?></td>
                         <td>
-                            <a href="listings.php?search=<?php echo urlencode($cat['name']); ?>" class="badge bg-success-subtle text-success border border-success-subtle fw-bold px-2.5 py-1.5 text-decoration-none" title="Click to view all listings in <?php echo sanitizeInput($cat['name']); ?>">
+                            <a href="listings.php?category=<?php echo $cat['id']; ?>&search=<?php echo urlencode($cat['name']); ?>" class="badge bg-success-subtle text-success border border-success-subtle fw-bold px-2.5 py-1.5 text-decoration-none" title="Click to view all listings in <?php echo sanitizeInput($cat['name']); ?>">
                                 <i class="bi bi-collection-fill me-1"></i><?php echo number_format($cat_listings); ?> Listings
                             </a>
                         </td>
@@ -193,7 +193,7 @@ foreach ($all_subcategories as $sub) {
                                             <div class="badge bg-light text-dark border p-2 d-inline-flex align-items-center gap-2 rounded-2 font-body font-normal shadow-sm">
                                                 <span class="badge bg-primary text-white">Sub ID: #<?php echo $s['id']; ?></span>
                                                 <span><strong><?php echo sanitizeInput($s['name']); ?></strong> <?php if (!empty($s['hindi_name'])): ?><span class="text-muted">(<?php echo sanitizeInput($s['hindi_name']); ?>)</span><?php endif; ?></span>
-                                                <a href="listings.php?search=<?php echo urlencode($s['name']); ?>" class="badge bg-warning text-dark text-decoration-none ms-1" title="View listings in subcategory">
+                                                <a href="listings.php?subcategory=<?php echo $s['id']; ?>&search=<?php echo urlencode($s['name']); ?>" class="badge bg-warning text-dark text-decoration-none ms-1" title="View listings in subcategory">
                                                     <i class="bi bi-collection me-1"></i><?php echo number_format($sub_listings); ?> Listings
                                                 </a>
                                                 <a href="categories.php?action=delete_sub&sub_id=<?php echo $s['id']; ?>" class="text-danger text-decoration-none ms-1" onclick="return confirm('Delete subcategory <?php echo sanitizeInput($s['name']); ?>?');"><i class="bi bi-x-circle-fill"></i></a>

@@ -44,8 +44,11 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
 
 $status_filter = $_GET['status'] ?? null;
 $search_query = trim($_GET['search'] ?? '');
+$category_filter = !empty($_GET['category']) ? intval($_GET['category']) : null;
+$subcategory_filter = !empty($_GET['subcategory']) ? intval($_GET['subcategory']) : null;
+$block_filter = !empty($_GET['block']) ? intval($_GET['block']) : null;
 
-$listings = getAllAdminListings($status_filter, $search_query);
+$listings = getAllAdminListings($status_filter, $search_query, $category_filter, $subcategory_filter, $block_filter);
 ?>
 
 <?php if (!empty($msg)): ?>
@@ -94,11 +97,20 @@ $listings = getAllAdminListings($status_filter, $search_query);
                 <?php if ($status_filter): ?>
                     <input type="hidden" name="status" value="<?php echo sanitizeInput($status_filter); ?>">
                 <?php endif; ?>
+                <?php if ($category_filter): ?>
+                    <input type="hidden" name="category" value="<?php echo sanitizeInput($category_filter); ?>">
+                <?php endif; ?>
+                <?php if ($subcategory_filter): ?>
+                    <input type="hidden" name="subcategory" value="<?php echo sanitizeInput($subcategory_filter); ?>">
+                <?php endif; ?>
+                <?php if ($block_filter): ?>
+                    <input type="hidden" name="block" value="<?php echo sanitizeInput($block_filter); ?>">
+                <?php endif; ?>
                 <div class="input-group">
-                    <input type="text" name="search" class="form-control form-control-sm bg-light" placeholder="Search by title, mobile, contact person..." value="<?php echo sanitizeInput($search_query); ?>">
+                    <input type="text" name="search" class="form-control form-control-sm bg-light" placeholder="Search by title, category, subcategory, block, mobile, address..." value="<?php echo sanitizeInput($search_query); ?>">
                     <button class="btn btn-primary btn-sm px-3" type="submit"><i class="bi bi-search"></i> Search</button>
-                    <?php if ($search_query): ?>
-                        <a href="listings.php<?php echo $status_filter ? '?status='.$status_filter : ''; ?>" class="btn btn-outline-secondary btn-sm"><i class="bi bi-x-circle"></i> Clear</a>
+                    <?php if ($search_query || $category_filter || $subcategory_filter || $block_filter): ?>
+                        <a href="listings.php<?php echo $status_filter ? '?status='.$status_filter : ''; ?>" class="btn btn-outline-secondary btn-sm"><i class="bi bi-x-circle"></i> Clear Filters</a>
                     <?php endif; ?>
                 </div>
             </form>

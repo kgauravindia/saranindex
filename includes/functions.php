@@ -872,7 +872,7 @@ function getAdminStats() {
     return $stats;
 }
 
-function getAllAdminListings($status = null, $search = null) {
+function getAllAdminListings($status = null, $search = null, $category_id = null, $subcategory_id = null, $block_id = null) {
     $db = getDB();
     if ($db) {
         try {
@@ -883,21 +883,70 @@ function getAllAdminListings($status = null, $search = null) {
                     LEFT JOIN blocks b ON l.block_id = b.id WHERE 1=1";
             $params = [];
 
-            if ($status) {
+            if (!empty($status)) {
                 $sql .= " AND l.status = :status";
                 $params['status'] = $status;
             }
 
-            if ($search) {
-                $sql .= " AND (l.title LIKE :search OR l.hindi_title LIKE :search OR l.mobile LIKE :search OR l.contact_person LIKE :search)";
-                $params['search'] = '%' . $search . '%';
+            if (!empty($category_id)) {
+                $sql .= " AND l.category_id = :category_id";
+                $params['category_id'] = intval($category_id);
+            }
+
+            if (!empty($subcategory_id)) {
+                $sql .= " AND l.subcategory_id = :subcategory_id";
+                $params['subcategory_id'] = intval($subcategory_id);
+            }
+
+            if (!empty($block_id)) {
+                $sql .= " AND l.block_id = :block_id";
+                $params['block_id'] = intval($block_id);
+            }
+
+            if (!empty($search)) {
+                $cleanSearch = trim($search);
+                if (strtolower($cleanSearch) === 'verified') {
+                    $sql .= " AND l.is_verified = 'YES'";
+                } else {
+                    $sql .= " AND (
+                        l.title LIKE :s1 
+                        OR l.hindi_title LIKE :s2 
+                        OR l.mobile LIKE :s3 
+                        OR l.whatsapp LIKE :s4
+                        OR l.contact_person LIKE :s5
+                        OR l.address LIKE :s6
+                        OR l.designation LIKE :s7
+                        OR c.name LIKE :s8
+                        OR c.hindi_name LIKE :s9
+                        OR sc.name LIKE :s10
+                        OR sc.hindi_name LIKE :s11
+                        OR b.name LIKE :s12
+                        OR b.hindi_name LIKE :s13
+                    )";
+                    $sVal = '%' . $cleanSearch . '%';
+                    $params['s1'] = $sVal;
+                    $params['s2'] = $sVal;
+                    $params['s3'] = $sVal;
+                    $params['s4'] = $sVal;
+                    $params['s5'] = $sVal;
+                    $params['s6'] = $sVal;
+                    $params['s7'] = $sVal;
+                    $params['s8'] = $sVal;
+                    $params['s9'] = $sVal;
+                    $params['s10'] = $sVal;
+                    $params['s11'] = $sVal;
+                    $params['s12'] = $sVal;
+                    $params['s13'] = $sVal;
+                }
             }
 
             $sql .= " ORDER BY l.id DESC";
             $stmt = $db->prepare($sql);
             $stmt->execute($params);
-            return $stmt->fetchAll();
-        } catch (PDOException $e) {}
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("getAllAdminListings error: " . $e->getMessage());
+        }
     }
     return [];
 }
