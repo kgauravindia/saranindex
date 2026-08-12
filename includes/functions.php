@@ -406,6 +406,28 @@ function getListings($search = '', $category_slug = '', $block_slug = '', $limit
     return [];
 }
 
+function getRecentListings($limit = 6) {
+    $db = getDB();
+    if ($db) {
+        try {
+            $sql = "SELECT l.*, c.name as category_name, sc.name as subcategory_name, sc.hindi_name as subcategory_hindi_name, b.name as block_name, u.username_handle as owner_handle, u.full_name as owner_full_name 
+                    FROM listings l 
+                    LEFT JOIN categories c ON l.category_id = c.id 
+                    LEFT JOIN subcategories sc ON l.subcategory_id = sc.id
+                    LEFT JOIN blocks b ON l.block_id = b.id 
+                    LEFT JOIN users u ON l.user_id = u.id
+                    WHERE l.status='ACTIVE'
+                    ORDER BY l.id DESC LIMIT " . intval($limit);
+            $stmt = $db->query($sql);
+            return $stmt->fetchAll() ?: [];
+        } catch (PDOException $e) {
+            error_log("getRecentListings error: " . $e->getMessage());
+        }
+    }
+    return [];
+}
+
+
 function getListingBySlug($slug) {
     $db = getDB();
     if ($db) {

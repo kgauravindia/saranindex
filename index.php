@@ -6,6 +6,7 @@ require_once __DIR__ . '/includes/header.php';
 $blocks = getBlocks();
 $categories = getCategories();
 $listings = getListings('', '', '', 6, 0);
+$recent_listings = getRecentListings(6);
 ?>
 
 <!-- Top Hero Work-Related Photo Slider Section -->
@@ -118,6 +119,38 @@ $listings = getListings('', '', '', 6, 0);
                 
                 <!-- Live Autocomplete Suggest Container -->
                 <div id="autocomplete_results" class="position-absolute start-0 end-0 text-start z-3 px-3" style="display: none; top: 100%; margin-top: 6px;"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Live Directory Statistics Counter Strip -->
+<section class="py-4 bg-dark text-white shadow-sm border-top border-bottom border-secondary">
+    <div class="container">
+        <div class="row g-3 text-center align-items-center">
+            <div class="col-6 col-md-3">
+                <div class="p-3 rounded-4 bg-white bg-opacity-10 border border-white border-opacity-10 backdrop-blur">
+                    <div class="h2 fw-bolder text-warning mb-0 font-heading">550+</div>
+                    <div class="text-white-50 small fw-semibold">Verified Listings</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-3 rounded-4 bg-white bg-opacity-10 border border-white border-opacity-10 backdrop-blur">
+                    <div class="h2 fw-bolder text-info mb-0 font-heading">58</div>
+                    <div class="text-white-50 small fw-semibold">Jan Aushadhi Kendras</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-3 rounded-4 bg-white bg-opacity-10 border border-white border-opacity-10 backdrop-blur">
+                    <div class="h2 fw-bolder text-success mb-0 font-heading">20</div>
+                    <div class="text-white-50 small fw-semibold">Saran Blocks Covered</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-3 rounded-4 bg-white bg-opacity-10 border border-white border-opacity-10 backdrop-blur">
+                    <div class="h2 fw-bolder text-light mb-0 font-heading">322+</div>
+                    <div class="text-white-50 small fw-semibold">Gram Panchayats</div>
+                </div>
             </div>
         </div>
     </div>
@@ -240,6 +273,87 @@ $listings = getListings('', '', '', 6, 0);
                                 </a>
                             </h4>
 
+
+                            <div class="text-muted small mb-3">
+                                <i class="bi bi-geo-alt me-1 text-primary"></i><?php echo sanitizeInput(formatListingLocation($item)); ?>
+                            </div>
+
+                            <p class="small text-secondary mb-3" style="line-height: 1.5;">
+                                <?php echo sanitizeInput($item['description']); ?>
+                            </p>
+                        </div>
+
+                        <div class="border-top pt-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                            <div>
+                                <?php echo renderStarRating($item['star_rating']); ?>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <?php if (isMobileNumberVisibleToVisitor($item)): ?>
+                                    <?php if (!empty($item['whatsapp'])): ?>
+                                        <a href="https://wa.me/91<?php echo sanitizeInput($item['whatsapp']); ?>" target="_blank" class="btn-whatsapp">
+                                            <i class="bi bi-whatsapp"></i> Chat
+                                        </a>
+                                    <?php endif; ?>
+                                    <a href="tel:<?php echo sanitizeInput($item['mobile']); ?>" class="btn-call">
+                                        <i class="bi bi-telephone-fill"></i> Call
+                                    </a>
+                                <?php else: ?>
+                                    <a href="login.php?redirect=<?php echo urlencode('listing/' . $item['slug']); ?>" class="btn-call bg-warning-subtle text-dark border-warning-subtle text-decoration-none" title="Log in to view full mobile number">
+                                        <i class="bi bi-lock-fill text-warning me-1"></i><?php echo sanitizeInput(maskPhoneNumber($item['mobile'])); ?>
+                                    </a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+
+<!-- Recently Registered Listings Section (Below Popular) -->
+<section class="py-5 bg-white border-top border-bottom">
+    <div class="container">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-2">
+            <div>
+                <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-1.5 rounded-pill small">Newly Registered</span>
+                <h2 class="fw-bold font-heading text-dark mt-2 mb-0 fs-3">Recently Added Listings</h2>
+                <p class="text-muted small mb-0">Latest verified businesses, healthcare Kendras, and public offices in Saran.</p>
+            </div>
+            <a href="search.php" class="btn btn-outline-primary rounded-pill px-4 btn-sm fw-semibold">Browse All Directory Listings <i class="bi bi-arrow-right ms-1"></i></a>
+        </div>
+
+        <div class="row g-4">
+            <?php foreach ($recent_listings as $item): ?>
+                <div class="col-lg-6">
+                    <div class="listing-card p-4 h-100 d-flex flex-column justify-content-between shadow-sm rounded-4 border">
+                        <div>
+                            <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="badge bg-primary-subtle text-primary fw-semibold px-2.5 py-1 rounded-pill small">
+                                        <?php echo sanitizeInput($item['category_name']); ?>
+                                    </span>
+                                    <?php if (!empty($item['subcategory_name'])): ?>
+                                        <span class="badge bg-secondary-subtle text-secondary fw-medium px-2 py-1 rounded-pill small">
+                                            <?php echo sanitizeInput($item['subcategory_name']); ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                                    <span class="badge bg-info-subtle text-info-emphasis fw-semibold px-2.5 py-1 rounded-pill small">
+                                        <i class="bi bi-clock-history me-1"></i>Newly Registered
+                                    </span>
+                                    <?php if ($item['is_verified'] === 'YES'): ?>
+                                        <span class="verified-badge"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+
+                            <h4 class="fw-bold text-dark mb-1 font-heading fs-5">
+                                <a href="<?php echo getListingUrl($item['slug']); ?>" class="text-dark text-decoration-none hover-primary">
+                                    <?php echo sanitizeInput($item['title']); ?>
+                                </a>
+                            </h4>
 
                             <div class="text-muted small mb-3">
                                 <i class="bi bi-geo-alt me-1 text-primary"></i><?php echo sanitizeInput(formatListingLocation($item)); ?>
