@@ -7,6 +7,11 @@ $blocks = getBlocks();
 $categories = getCategories();
 $listings = getListings('', '', '', 6, 0);
 $recent_listings = getRecentListings(6);
+
+$db_stat = getDB();
+$total_listings_count = $db_stat ? intval($db_stat->query("SELECT COUNT(*) FROM listings WHERE status = 'ACTIVE'")->fetchColumn() ?: 1500) : 1500;
+$kendra_count = $db_stat ? intval($db_stat->query("SELECT COUNT(*) FROM listings WHERE title LIKE '%Jan Aushadhi%' OR title LIKE '%PMBJK%'")->fetchColumn() ?: 58) : 58;
+$panchayat_count = $db_stat ? intval($db_stat->query("SELECT COUNT(*) FROM panchayats")->fetchColumn() ?: 322) : 322;
 ?>
 
 <!-- Top Hero Work-Related Photo Slider Section -->
@@ -130,25 +135,25 @@ $recent_listings = getRecentListings(6);
         <div class="row g-3 text-center align-items-center">
             <div class="col-6 col-md-3">
                 <div class="p-3 rounded-4 bg-white bg-opacity-10 border border-white border-opacity-10 backdrop-blur">
-                    <div class="h2 fw-bolder text-warning mb-0 font-heading">550+</div>
-                    <div class="text-white-50 small fw-semibold">Verified Listings</div>
+                    <div class="h2 fw-bolder text-warning mb-0 font-heading"><?php echo number_format($total_listings_count); ?>+</div>
+                    <div class="text-white-50 small fw-semibold">Verified Directory Listings</div>
                 </div>
             </div>
             <div class="col-6 col-md-3">
                 <div class="p-3 rounded-4 bg-white bg-opacity-10 border border-white border-opacity-10 backdrop-blur">
-                    <div class="h2 fw-bolder text-info mb-0 font-heading">58</div>
+                    <div class="h2 fw-bolder text-info mb-0 font-heading"><?php echo intval($kendra_count); ?></div>
                     <div class="text-white-50 small fw-semibold">Jan Aushadhi Kendras</div>
                 </div>
             </div>
             <div class="col-6 col-md-3">
                 <div class="p-3 rounded-4 bg-white bg-opacity-10 border border-white border-opacity-10 backdrop-blur">
-                    <div class="h2 fw-bolder text-success mb-0 font-heading">20</div>
+                    <div class="h2 fw-bolder text-success mb-0 font-heading"><?php echo count($blocks); ?></div>
                     <div class="text-white-50 small fw-semibold">Saran Blocks Covered</div>
                 </div>
             </div>
             <div class="col-6 col-md-3">
                 <div class="p-3 rounded-4 bg-white bg-opacity-10 border border-white border-opacity-10 backdrop-blur">
-                    <div class="h2 fw-bolder text-light mb-0 font-heading">322+</div>
+                    <div class="h2 fw-bolder text-light mb-0 font-heading"><?php echo intval($panchayat_count); ?>+</div>
                     <div class="text-white-50 small fw-semibold">Gram Panchayats</div>
                 </div>
             </div>
@@ -404,10 +409,15 @@ $recent_listings = getRecentListings(6);
                         List your business, clinic, school, or legal practice on <strong>Saran Index</strong> for free. Reach thousands of local customers in Chapra, Marhaura, Sonepur, and all 20 blocks.
                     </p>
                 </div>
-                <div class="col-lg-4 text-lg-end">
-                    <a href="add-listing" class="btn btn-warning btn-lg rounded-pill px-5 py-3 fw-bold text-dark shadow">
-                        <i class="bi bi-plus-circle-fill me-2"></i>Add Listing Free
-                    </a>
+                <div class="col-lg-5 text-lg-end">
+                    <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+                        <a href="dashboard.php" class="btn btn-warning btn-lg rounded-pill px-4 py-3 fw-bold text-dark shadow">
+                            <i class="bi bi-shield-check me-1"></i>Claim Business
+                        </a>
+                        <a href="add-contact.php" class="btn btn-outline-light btn-lg rounded-pill px-4 py-3 fw-bold shadow">
+                            <i class="bi bi-plus-circle-fill me-1"></i>Add Listing Free
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
