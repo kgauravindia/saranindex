@@ -25,6 +25,15 @@ $admin_name = $_SESSION['admin_full_name'] ?? 'Administrator';
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
+    <!-- Instant Sidebar State Initialization Script -->
+    <script>
+        (function() {
+            if (localStorage.getItem('adminSidebarCollapsed') === 'true') {
+                document.documentElement.classList.add('sidebar-collapsed');
+            }
+        })();
+    </script>
+
     <style>
         :root {
             --admin-sidebar-width: 260px;
@@ -51,7 +60,7 @@ $admin_name = $_SESSION['admin_full_name'] ?? 'Administrator';
             background: #0F172A;
             color: #94A3B8;
             z-index: 1000;
-            transition: all 0.3s ease;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             overflow-y: auto;
         }
 
@@ -91,12 +100,51 @@ $admin_name = $_SESSION['admin_full_name'] ?? 'Administrator';
             text-align: center;
         }
 
+        /* Sidebar Minimise / Collapsed Mode */
+        html.sidebar-collapsed body,
+        body.sidebar-collapsed {
+            --admin-sidebar-width: 76px;
+        }
+        html.sidebar-collapsed #admin-sidebar,
+        body.sidebar-collapsed #admin-sidebar {
+            width: 76px;
+        }
+        html.sidebar-collapsed #admin-main,
+        body.sidebar-collapsed #admin-main {
+            margin-left: 76px;
+        }
+        html.sidebar-collapsed #admin-sidebar .nav-text,
+        html.sidebar-collapsed #admin-sidebar .sidebar-brand-text,
+        html.sidebar-collapsed #admin-sidebar .nav-section-title,
+        body.sidebar-collapsed #admin-sidebar .nav-text,
+        body.sidebar-collapsed #admin-sidebar .sidebar-brand-text,
+        body.sidebar-collapsed #admin-sidebar .nav-section-title {
+            display: none !important;
+        }
+        html.sidebar-collapsed #admin-sidebar .nav-link,
+        body.sidebar-collapsed #admin-sidebar .nav-link {
+            justify-content: center;
+            padding: 0.8rem 0;
+            margin: 0.25rem 0.4rem;
+        }
+        html.sidebar-collapsed #admin-sidebar .nav-link i,
+        body.sidebar-collapsed #admin-sidebar .nav-link i {
+            margin-right: 0 !important;
+            font-size: 1.3rem;
+        }
+        html.sidebar-collapsed #admin-sidebar .sidebar-brand,
+        body.sidebar-collapsed #admin-sidebar .sidebar-brand {
+            justify-content: center !important;
+            padding: 1.25rem 0.5rem;
+        }
+
         /* Main Content Wrapper */
         #admin-main {
             margin-left: var(--admin-sidebar-width);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         /* Top Navbar Header */
@@ -175,8 +223,8 @@ $admin_name = $_SESSION['admin_full_name'] ?? 'Administrator';
 <aside id="admin-sidebar">
     <div class="sidebar-brand d-flex align-items-center justify-content-between">
         <a href="index.php" class="d-flex align-items-center text-white text-decoration-none">
-            <span class="bg-primary text-white fw-bold rounded-2 px-2 py-1 me-2 shadow-sm fs-5">SI</span>
-            <div>
+            <span class="bg-primary text-white fw-bold rounded-2 px-2 py-1 me-2 shadow-sm fs-5 flex-shrink-0">SI</span>
+            <div class="sidebar-brand-text">
                 <div class="fw-bold fs-6 lh-1">Saran Index</div>
                 <small class="text-white-50" style="font-size: 0.75rem;">Control Panel</small>
             </div>
@@ -184,93 +232,100 @@ $admin_name = $_SESSION['admin_full_name'] ?? 'Administrator';
     </div>
 
     <div class="py-3">
-        <div class="px-3 mb-2 text-uppercase text-white-50 fw-bold" style="font-size: 0.68rem; letter-spacing: 0.08em;">Main Navigation</div>
+        <div class="px-3 mb-2 text-uppercase text-white-50 fw-bold nav-section-title" style="font-size: 0.68rem; letter-spacing: 0.08em;">Main Navigation</div>
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="nav-link <?php echo $current_page === 'index.php' ? 'active' : ''; ?>" href="index.php">
-                    <i class="bi bi-speedometer2"></i> Dashboard
+                <a class="nav-link <?php echo $current_page === 'index.php' ? 'active' : ''; ?>" href="index.php" title="Dashboard">
+                    <i class="bi bi-speedometer2"></i> <span class="nav-text">Dashboard</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link <?php echo ($current_page === 'listings.php' || $current_page === 'listing_edit.php') ? 'active' : ''; ?>" href="listings.php">
-                    <i class="bi bi-list-stars"></i> Manage Listings
+                <a class="nav-link <?php echo ($current_page === 'listings.php' || $current_page === 'listing_edit.php') ? 'active' : ''; ?>" href="listings.php" title="Manage Listings">
+                    <i class="bi bi-list-stars"></i> <span class="nav-text">Manage Listings</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link <?php echo $current_page === 'bulk_upload.php' ? 'active' : ''; ?>" href="bulk_upload.php">
-                    <i class="bi bi-cloud-upload-fill"></i> Bulk Upload CSV
+                <a class="nav-link <?php echo $current_page === 'bulk_upload.php' ? 'active' : ''; ?>" href="bulk_upload.php" title="Bulk Upload CSV">
+                    <i class="bi bi-cloud-upload-fill"></i> <span class="nav-text">Bulk Upload CSV</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link <?php echo ($current_page === 'users.php' || $current_page === 'users_bulk_upload.php') ? 'active' : ''; ?>" href="users.php">
-                    <i class="bi bi-people-fill"></i> Manage Users
+                <a class="nav-link <?php echo ($current_page === 'users.php' || $current_page === 'users_bulk_upload.php') ? 'active' : ''; ?>" href="users.php" title="Manage Users">
+                    <i class="bi bi-people-fill"></i> <span class="nav-text">Manage Users</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link <?php echo $current_page === 'payments.php' ? 'active' : ''; ?>" href="payments.php">
-                    <i class="bi bi-credit-card-fill"></i> Payments & Revenue
+                <a class="nav-link <?php echo $current_page === 'payments.php' ? 'active' : ''; ?>" href="payments.php" title="Payments & Revenue">
+                    <i class="bi bi-credit-card-fill"></i> <span class="nav-text">Payments & Revenue</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link <?php echo $current_page === 'claims.php' ? 'active' : ''; ?>" href="claims.php">
-                    <i class="bi bi-shield-lock-fill"></i> Business Claims
+                <a class="nav-link <?php echo $current_page === 'claims.php' ? 'active' : ''; ?>" href="claims.php" title="Business Claims">
+                    <i class="bi bi-shield-lock-fill"></i> <span class="nav-text">Business Claims</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link <?php echo $current_page === 'admins.php' ? 'active' : ''; ?>" href="admins.php">
-                    <i class="bi bi-person-badge-fill"></i> Admin Accounts
+                <a class="nav-link <?php echo $current_page === 'admins.php' ? 'active' : ''; ?>" href="admins.php" title="Admin Accounts">
+                    <i class="bi bi-person-badge-fill"></i> <span class="nav-text">Admin Accounts</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link <?php echo $current_page === 'verification_settings.php' ? 'active' : ''; ?>" href="verification_settings.php">
-                    <i class="bi bi-shield-check"></i> OTP & Verification
+                <a class="nav-link <?php echo $current_page === 'verification_settings.php' ? 'active' : ''; ?>" href="verification_settings.php" title="OTP & Verification">
+                    <i class="bi bi-shield-check"></i> <span class="nav-text">OTP & Verification</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link <?php echo $current_page === 'blocks.php' ? 'active' : ''; ?>" href="blocks.php">
-                    <i class="bi bi-geo-alt-fill text-danger"></i> Saran Blocks
+                <a class="nav-link <?php echo $current_page === 'blocks.php' ? 'active' : ''; ?>" href="blocks.php" title="Saran Blocks">
+                    <i class="bi bi-geo-alt-fill text-danger"></i> <span class="nav-text">Saran Blocks</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link <?php echo $current_page === 'halka.php' ? 'active' : ''; ?>" href="halka.php">
-                    <i class="bi bi-houses-fill text-warning"></i> Halka & Mouzas
+                <a class="nav-link <?php echo $current_page === 'halka.php' ? 'active' : ''; ?>" href="halka.php" title="Halka & Mouzas">
+                    <i class="bi bi-houses-fill text-warning"></i> <span class="nav-text">Halka & Mouzas</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link <?php echo $current_page === 'categories.php' ? 'active' : ''; ?>" href="categories.php">
-                    <i class="bi bi-grid-fill"></i> Categories
+                <a class="nav-link <?php echo $current_page === 'categories.php' ? 'active' : ''; ?>" href="categories.php" title="Categories">
+                    <i class="bi bi-grid-fill"></i> <span class="nav-text">Categories</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link <?php echo $current_page === 'reviews.php' ? 'active' : ''; ?>" href="reviews.php">
-                    <i class="bi bi-star-half"></i> Moderation / Reviews
+                <a class="nav-link <?php echo $current_page === 'reviews.php' ? 'active' : ''; ?>" href="reviews.php" title="Moderation / Reviews">
+                    <i class="bi bi-star-half"></i> <span class="nav-text">Moderation / Reviews</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link <?php echo $current_page === 'messages.php' ? 'active' : ''; ?>" href="messages.php">
-                    <i class="bi bi-envelope"></i> Contact Messages
+                <a class="nav-link <?php echo $current_page === 'messages.php' ? 'active' : ''; ?>" href="messages.php" title="Contact Messages">
+                    <i class="bi bi-envelope"></i> <span class="nav-text">Contact Messages</span>
                 </a>
             </li>
         </ul>
 
-        <div class="px-3 mt-4 mb-2 text-uppercase text-white-50 fw-bold" style="font-size: 0.68rem; letter-spacing: 0.08em;">Quick Actions</div>
+        <div class="px-3 mt-4 mb-2 text-uppercase text-white-50 fw-bold nav-section-title" style="font-size: 0.68rem; letter-spacing: 0.08em;">Quick Actions</div>
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="nav-link text-white-50" href="listing_edit.php">
-                    <i class="bi bi-plus-circle"></i> Add New Listing
+                <a class="nav-link text-white-50" href="listing_edit.php" title="Add New Listing">
+                    <i class="bi bi-plus-circle"></i> <span class="nav-text">Add New Listing</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link text-white-50" href="../index.php" target="_blank">
-                    <i class="bi bi-box-arrow-up-right"></i> View Public Site
+                <a class="nav-link text-white-50" href="../index.php" target="_blank" title="View Public Site">
+                    <i class="bi bi-box-arrow-up-right"></i> <span class="nav-text">View Public Site</span>
                 </a>
             </li>
             <li class="nav-item mt-3">
-                <a class="nav-link text-danger" href="logout.php">
-                    <i class="bi bi-box-arrow-right"></i> Logout
+                <a class="nav-link text-danger" href="logout.php" title="Logout">
+                    <i class="bi bi-box-arrow-right"></i> <span class="nav-text">Logout</span>
                 </a>
             </li>
         </ul>
+
+        <!-- Minimise Menu Toggle Button in Sidebar -->
+        <div class="px-3 mt-4 mb-3">
+            <button type="button" id="sidebarCollapseBtn" class="btn btn-outline-secondary btn-sm w-100 rounded-pill text-white border-secondary opacity-75 d-flex align-items-center justify-content-center py-2" title="Minimise / Expand Menu">
+                <i class="bi bi-layout-sidebar-inset me-2"></i><span class="nav-text">Minimise Menu</span>
+            </button>
+        </div>
     </div>
 </aside>
 
@@ -281,6 +336,9 @@ $admin_name = $_SESSION['admin_full_name'] ?? 'Administrator';
         <div class="d-flex align-items-center">
             <button class="btn btn-light d-lg-none me-3" type="button" onclick="document.getElementById('admin-sidebar').classList.toggle('show')">
                 <i class="bi bi-list fs-4"></i>
+            </button>
+            <button class="btn btn-light btn-sm rounded-circle border me-3 d-none d-lg-inline-flex align-items-center justify-content-center" type="button" id="headerSidebarToggle" style="width: 36px; height: 36px;" title="Minimise / Expand Menu">
+                <i class="bi bi-layout-sidebar-inset text-dark fs-6"></i>
             </button>
             <h5 class="mb-0 fw-bold text-dark"><?php echo isset($header_title) ? sanitizeInput($header_title) : 'Dashboard Overview'; ?></h5>
         </div>

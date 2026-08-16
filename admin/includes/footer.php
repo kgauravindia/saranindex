@@ -19,5 +19,27 @@
 <!-- Bootstrap 5 JS Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
+<!-- Sidebar Minimise Toggle Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleBtns = [
+            document.getElementById('headerSidebarToggle'),
+            document.getElementById('sidebarCollapseBtn')
+        ];
+
+        toggleBtns.forEach(function(btn) {
+            if (btn) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    document.documentElement.classList.toggle('sidebar-collapsed');
+                    document.body.classList.toggle('sidebar-collapsed');
+                    const isCollapsed = document.documentElement.classList.contains('sidebar-collapsed');
+                    localStorage.setItem('adminSidebarCollapsed', isCollapsed ? 'true' : 'false');
+                });
+            }
+        });
+    });
+</script>
+
 </body>
 </html>
