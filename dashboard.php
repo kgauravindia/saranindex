@@ -476,13 +476,9 @@ require_once __DIR__ . '/includes/header.php';
                                             <span class="badge bg-danger-subtle text-danger rounded-pill px-2.5">FAILED</span>
                                         <?php endif; ?>
                                     </div>
-                                    <?php if ($p['payment_status'] === 'SUCCESS'): ?>
-                                        <a href="generate_receipt.php?id=<?php echo $p['id']; ?>" target="_blank" class="btn btn-sm btn-outline-secondary py-1 px-3.5 small rounded-pill fw-semibold">
-                                            <i class="bi bi-file-earmark-text me-1"></i>Receipt
-                                        </a>
-                                    <?php else: ?>
-                                        <span class="badge bg-light text-muted border px-2 py-1 extra-small"><i class="bi bi-slash-circle me-1"></i>No Receipt</span>
-                                    <?php endif; ?>
+                                    <a href="generate_receipt.php?id=<?php echo $p['id']; ?>" target="_blank" class="btn btn-sm btn-outline-secondary py-1 px-3.5 small rounded-pill fw-semibold">
+                                        <i class="bi bi-file-earmark-text me-1"></i>Receipt
+                                    </a>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -524,13 +520,9 @@ require_once __DIR__ . '/includes/header.php';
                                         </td>
                                         <td class="text-muted small"><?php echo date('d M Y, h:i A', strtotime($p['created_at'])); ?></td>
                                         <td class="text-end">
-                                            <?php if ($p['payment_status'] === 'SUCCESS'): ?>
-                                                <a href="generate_receipt.php?id=<?php echo $p['id']; ?>" target="_blank" class="btn btn-sm btn-outline-secondary py-0.5 px-2 small" title="View & Print Tax Invoice / Receipt">
-                                                    <i class="bi bi-file-earmark-text me-1"></i>Receipt
-                                                </a>
-                                            <?php else: ?>
-                                                <span class="badge bg-light text-muted border px-2 py-1 extra-small"><i class="bi bi-slash-circle me-1"></i>N/A</span>
-                                            <?php endif; ?>
+                                            <a href="generate_receipt.php?id=<?php echo $p['id']; ?>" target="_blank" class="btn btn-sm btn-outline-secondary py-0.5 px-2 small" title="View & Print Tax Invoice / Receipt">
+                                                <i class="bi bi-file-earmark-text me-1"></i>Receipt
+                                            </a>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>

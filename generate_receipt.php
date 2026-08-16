@@ -37,32 +37,8 @@ if (!$is_admin && !$is_owner) {
     die("Unauthorized access to this receipt.");
 }
 
-// Check payment status: Do NOT generate receipt if payment status is NOT SUCCESS
-$status = strtoupper($payment['payment_status'] ?? '');
-if ($status !== 'SUCCESS') {
-    die("<!DOCTYPE html>
-<html lang='en'>
-<head>
-    <meta charset='UTF-8'>
-    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <title>Receipt Not Available – Saran Index</title>
-    <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css' rel='stylesheet'>
-    <link href='https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css' rel='stylesheet'>
-    <link href='https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap' rel='stylesheet'>
-</head>
-<body class='bg-light d-flex align-items-center justify-content-center min-vh-100 p-3' style=\"font-family: 'Plus Jakarta Sans', sans-serif;\">
-    <div class='card border-0 shadow-lg rounded-4 p-4 text-center' style='max-width: 480px; width: 100%;'>
-        <div class='text-danger display-3 mb-3'><i class='bi bi-x-circle-fill'></i></div>
-        <h4 class='fw-bold text-dark mb-2'>Tax Invoice / Receipt Not Generated</h4>
-        <p class='text-muted small mb-4'>Receipts are only generated for successful transactions. This payment transaction status is <span class='badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1 rounded-pill fw-bold'>" . htmlspecialchars($status ?: 'FAILED') . "</span>.</p>
-        <div class='d-flex justify-content-center gap-2'>
-            <a href='dashboard.php' class='btn btn-primary rounded-pill px-4 fw-bold'>Return to Dashboard</a>
-            <button onclick='window.close()' class='btn btn-outline-secondary rounded-pill px-3'>Close</button>
-        </div>
-    </div>
-</body>
-</html>");
-}
+$status = strtoupper($payment['payment_status'] ?? 'PENDING');
+$borderColor = ($status === 'SUCCESS') ? '#2563eb' : (($status === 'FAILED') ? '#ef4444' : '#f59e0b');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -89,7 +65,7 @@ if ($status !== 'SUCCESS') {
             padding: 45px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
             border-radius: 12px;
-            border-top: 6px solid #2563eb;
+            border-top: 6px solid <?php echo $borderColor; ?>;
         }
         .logo-text {
             font-weight: 800;
@@ -173,6 +149,22 @@ if ($status !== 'SUCCESS') {
                 </div>
             </div>
         </div>
+
+        <?php if ($status === 'FAILED'): ?>
+            <div class="alert alert-danger border-0 rounded-3 mb-4 small d-flex align-items-center">
+                <i class="bi bi-x-circle-fill fs-4 text-danger me-3"></i>
+                <div>
+                    <strong>Payment Transaction Unsuccessful (FAILED):</strong> This receipt records a failed payment attempt. No funds were debited or membership plan was not activated for this attempt.
+                </div>
+            </div>
+        <?php elseif ($status === 'PENDING'): ?>
+            <div class="alert alert-warning border-0 rounded-3 mb-4 small d-flex align-items-center">
+                <i class="bi bi-hourglass-split fs-4 text-warning me-3"></i>
+                <div>
+                    <strong>Payment Awaiting Verification (PENDING):</strong> Transaction is under verification. Receipt will update once gateway confirmation is received.
+                </div>
+            </div>
+        <?php endif; ?>
 
         <!-- Info Section (Billed To & Payment Meta) -->
         <div class="row mb-4 g-4">
