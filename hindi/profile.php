@@ -409,41 +409,47 @@ require_once __DIR__ . '/includes/header.php';
             <?php endif; ?>
 
             <!-- Claim Business Widget -->
-            <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white p-4 border border-warning-subtle" style="background: linear-gradient(135deg, #fffdf5 0%, #ffffff 100%); border-left: 4px solid #ffc107 !important;">
-                <div class="d-flex align-items-center gap-3 mb-3">
-                    <div class="badge bg-warning text-dark rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
-                        <i class="bi bi-patch-question-fill fs-5"></i>
-                    </div>
-                    <div>
-                        <h6 class="fw-bold text-dark mb-0">क्या यह आपका व्यवसाय या संस्था है?</h6>
-                        <small class="text-muted">स्वामित्व का दावा करें, विवरण अपडेट करें और समीक्षाएं प्रबंधित करें।</small>
-                    </div>
-                </div>
-
-                <?php if ($user_claim && $user_claim['status'] === 'PENDING'): ?>
-                    <div class="alert alert-warning rounded-3 p-3 small mb-0 border border-warning-subtle">
-                        <i class="bi bi-clock-history me-1"></i><strong>दावा समीक्षाधीन है:</strong> स्वामित्व का दावा <?php echo date('d M Y', strtotime($user_claim['created_at'])); ?> को सबमिट किया गया था। हमारी टीम जल्द ही आपसे संपर्क करेगी।
-                    </div>
-                <?php elseif ($user_claim && $user_claim['status'] === 'APPROVED'): ?>
-                    <div class="alert alert-success rounded-3 p-3 small mb-0 border border-success-subtle">
-                        <i class="bi bi-patch-check-fill me-1"></i><strong>दावा स्वीकृत:</strong> आप इस सूची के सत्यापित स्वामी हैं।
-                    </div>
-                <?php elseif ($claim_success): ?>
-                    <div class="alert alert-success rounded-3 p-3 small mb-0">
-                        <i class="bi bi-check-circle-fill me-1"></i>व्यवसाय दावा सफलतापूर्वक सबमिट किया गया! हमारी एडमिन टीम सत्यापन के बाद संपर्क करेगी।
-                    </div>
-                <?php else: ?>
-                    <?php if (!empty($claim_error)): ?>
-                        <div class="alert alert-danger rounded-3 p-3 small mb-2">
-                            <i class="bi bi-exclamation-triangle-fill me-1"></i><?php echo sanitizeInput($claim_error); ?>
+            <?php if (!isListingClaimed($listing['id'])): ?>
+                <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white p-4 border border-warning-subtle" style="background: linear-gradient(135deg, #fffdf5 0%, #ffffff 100%); border-left: 4px solid #ffc107 !important;">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="badge bg-warning text-dark rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                            <i class="bi bi-patch-question-fill fs-5"></i>
                         </div>
+                        <div>
+                            <h6 class="fw-bold text-dark mb-0">क्या यह आपका व्यवसाय या संस्था है?</h6>
+                            <small class="text-muted">स्वामित्व का दावा करें, विवरण अपडेट करें और समीक्षाएं प्रबंधित करें।</small>
+                        </div>
+                    </div>
+
+                    <?php if ($user_claim && $user_claim['status'] === 'PENDING'): ?>
+                        <div class="alert alert-warning rounded-3 p-3 small mb-0 border border-warning-subtle">
+                            <i class="bi bi-clock-history me-1"></i><strong>दावा समीक्षाधीन है:</strong> स्वामित्व का दावा <?php echo date('d M Y', strtotime($user_claim['created_at'])); ?> को सबमिट किया गया था। हमारी टीम जल्द ही आपसे संपर्क करेगी।
+                        </div>
+                    <?php elseif ($user_claim && $user_claim['status'] === 'APPROVED'): ?>
+                        <div class="alert alert-success rounded-3 p-3 small mb-0 border border-success-subtle">
+                            <i class="bi bi-patch-check-fill me-1"></i><strong>दावा स्वीकृत:</strong> आप इस सूची के सत्यापित स्वामी हैं।
+                        </div>
+                    <?php elseif ($claim_success): ?>
+                        <div class="alert alert-success rounded-3 p-3 small mb-0">
+                            <i class="bi bi-check-circle-fill me-1"></i>व्यवसाय दावा सफलतापूर्वक सबमिट किया गया! हमारी एडमिन टीम सत्यापन के बाद संपर्क करेगी।
+                        </div>
+                    <?php else: ?>
+                        <?php if (!empty($claim_error)): ?>
+                            <div class="alert alert-danger rounded-3 p-3 small mb-2">
+                                <i class="bi bi-exclamation-triangle-fill me-1"></i><?php echo sanitizeInput($claim_error); ?>
+                            </div>
+                        <?php endif; ?>
+                        <button class="btn btn-warning text-dark fw-bold rounded-pill w-100 py-2.5 shadow-xs d-flex align-items-center justify-content-center gap-2" data-bs-toggle="modal" data-bs-target="#claimBusinessModal">
+                            <i class="bi bi-shield-check fs-6"></i>
+                            <span>व्यवसाय का दावा करें (Claim Business)</span>
+                        </button>
                     <?php endif; ?>
-                    <button class="btn btn-warning text-dark fw-bold rounded-pill w-100 py-2.5 shadow-xs d-flex align-items-center justify-content-center gap-2" data-bs-toggle="modal" data-bs-target="#claimBusinessModal">
-                        <i class="bi bi-shield-check fs-6"></i>
-                        <span>व्यवसाय का दावा करें (Claim Business)</span>
-                    </button>
-                <?php endif; ?>
-            </div>
+                </div>
+            <?php elseif ($user_claim && $user_claim['status'] === 'PENDING'): ?>
+                <div class="alert alert-warning rounded-4 p-3 small mb-4 border border-warning-subtle shadow-sm bg-white">
+                    <i class="bi bi-clock-history me-1 text-warning"></i><strong>दावा समीक्षाधीन है:</strong> आपका दावा (<?php echo date('d M Y', strtotime($user_claim['created_at'])); ?>) एडमिन सत्यापन के अधीन है।
+                </div>
+            <?php endif; ?>
 
             <!-- Claim Business Modal -->
             <div class="modal fade" id="claimBusinessModal" tabindex="-1" aria-labelledby="claimBusinessModalLabel" aria-hidden="true">
@@ -547,11 +553,13 @@ require_once __DIR__ . '/includes/header.php';
                 </div>
             </div>
 
-            <!-- Share & Claim Box -->
-            <div class="card border-0 shadow-sm rounded-4 bg-light text-center p-3 mt-3">
-                <div class="small text-muted mb-2">क्या यह आपका व्यवसाय या संगठन है?</div>
-                <a href="add-contact.php" class="btn btn-outline-primary rounded-pill btn-sm fw-bold">लिस्टिंग पर दावा करें और जानकारी अपडेट करें</a>
-            </div>
+            <?php if (!isListingClaimed($listing['id'])): ?>
+                <!-- Share & Claim Box -->
+                <div class="card border-0 shadow-sm rounded-4 bg-light text-center p-3 mt-3">
+                    <div class="small text-muted mb-2">क्या यह आपका व्यवसाय या संगठन है?</div>
+                    <a href="add-contact.php" class="btn btn-outline-primary rounded-pill btn-sm fw-bold">लिस्टिंग पर दावा करें और जानकारी अपडेट करें</a>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 </div>

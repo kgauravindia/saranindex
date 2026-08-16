@@ -622,6 +622,24 @@ function hasUserClaimedListing($listingId, $userId = null, $mobile = null) {
     }
 }
 
+function isListingClaimed($listingId) {
+    ensureClaimsTable();
+    $db = getDB();
+    if (!$db) return false;
+    try {
+        $stmtL = $db->prepare("SELECT user_id FROM listings WHERE id = :lid LIMIT 1");
+        $stmtL->execute(['lid' => intval($listingId)]);
+        $uid = intval($stmtL->fetchColumn() ?: 0);
+        if ($uid > 0) return true;
+
+        $stmtC = $db->prepare("SELECT COUNT(*) FROM claims WHERE listing_id = :lid AND status IN ('APPROVED', 'PENDING')");
+        $stmtC->execute(['lid' => intval($listingId)]);
+        return intval($stmtC->fetchColumn() ?: 0) > 0;
+    } catch (PDOException $e) {
+        return false;
+    }
+}
+
 function getClaimsList($status = '') {
     ensureClaimsTable();
     $db = getDB();
