@@ -24,6 +24,48 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])
     }
 }
 
+// Handle Edit / Update Admin POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_admin'])) {
+    $admin_id = intval($_POST['admin_id'] ?? 0);
+    $post_data = [
+        'username' => trim($_POST['username'] ?? ''),
+        'password' => trim($_POST['password'] ?? ''),
+        'full_name' => trim($_POST['full_name'] ?? ''),
+        'email' => trim($_POST['email'] ?? ''),
+        'mobile' => trim($_POST['mobile'] ?? ''),
+        'role' => sanitizeInput($_POST['role'] ?? 'SUB_ADMIN'),
+        'scope_type' => sanitizeInput($_POST['scope_type'] ?? 'DISTRICT'),
+        'state' => sanitizeInput($_POST['state'] ?? 'Bihar'),
+        'district' => sanitizeInput($_POST['district'] ?? 'Saran'),
+        'block_id' => !empty($_POST['block_id']) ? intval($_POST['block_id']) : null,
+        'designation' => sanitizeInput($_POST['designation'] ?? ''),
+        'address' => sanitizeInput($_POST['address'] ?? ''),
+        'about' => sanitizeInput($_POST['about'] ?? '')
+    ];
+
+    if ($admin_id <= 0) {
+        $msg = "Invalid admin account ID.";
+        $msg_type = "danger";
+    } elseif (empty($post_data['username']) || empty($post_data['full_name'])) {
+        $msg = "Please fill in all required fields: Full Name and Username.";
+        $msg_type = "danger";
+    } elseif (!empty($post_data['password']) && strlen($post_data['password']) < 6) {
+        $msg = "New password must be at least 6 characters long.";
+        $msg_type = "danger";
+    } else {
+        if (updateAdminAccount($admin_id, $post_data)) {
+            $msg = "Admin account '{$post_data['full_name']}' (#{$admin_id}) updated successfully!";
+            $msg_type = "success";
+            if (isset($_SESSION['admin_user_id']) && intval($_SESSION['admin_user_id']) === $admin_id) {
+                $_SESSION['admin_full_name'] = $post_data['full_name'];
+            }
+        } else {
+            $msg = "Failed to update admin account. Username '{$post_data['username']}' may already exist.";
+            $msg_type = "danger";
+        }
+    }
+}
+
 // Handle Add / Appoint New Admin / Sub-Admin POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_admin'])) {
     $post_data = [
@@ -165,6 +207,9 @@ $blocks_list = getBlocks();
                                     <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#viewAdminModal<?php echo $a['id']; ?>" title="View Details">
                                         <i class="bi bi-eye"></i>
                                     </button>
+                                    <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#editAdminModal<?php echo $a['id']; ?>" title="Edit Account">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
                                     <?php if (isset($_SESSION['admin_user_id']) && intval($_SESSION['admin_user_id']) === intval($a['id'])): ?>
                                         <button type="button" class="btn btn-outline-secondary disabled" title="Current Logged-in User">Current</button>
                                     <?php else: ?>
@@ -229,6 +274,113 @@ $blocks_list = getBlocks();
                                     <div class="modal-footer bg-light">
                                         <button type="button" class="btn btn-secondary btn-sm rounded-3" data-bs-dismiss="modal">Close</button>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Edit Admin Modal -->
+                        <div class="modal fade" id="editAdminModal<?php echo $a['id']; ?>" tabindex="-1" aria-labelledby="editAdminModalLabel<?php echo $a['id']; ?>" aria-hidden="true">
+                            <div class="modal-dialog modal-lg modal-dialog-centered">
+                                <div class="modal-content border-0 shadow-lg rounded-3">
+                                    <div class="modal-header bg-warning text-dark py-3">
+                                        <h5 class="modal-title fw-bold" id="editAdminModalLabel<?php echo $a['id']; ?>"><i class="bi bi-pencil-square me-2"></i>Edit Admin Account: <?php echo sanitizeInput($a['full_name']); ?></h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <form action="admins.php" method="POST">
+                                        <input type="hidden" name="edit_admin" value="1">
+                                        <input type="hidden" name="admin_id" value="<?php echo $a['id']; ?>">
+                                        <div class="modal-body p-4 text-start">
+                                            
+                                            <!-- Section 1: Credentials & Contact -->
+                                            <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-key text-warning me-2"></i>1. Account Credentials & Contact</h6>
+                                            <div class="row g-3 mb-4">
+                                                <div class="col-12 col-md-6">
+                                                    <label for="edit_full_name_<?php echo $a['id']; ?>" class="form-label small fw-semibold">Full Name <span class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control" id="edit_full_name_<?php echo $a['id']; ?>" name="full_name" value="<?php echo sanitizeInput($a['full_name']); ?>" required>
+                                                </div>
+                                                <div class="col-12 col-md-6">
+                                                    <label for="edit_username_<?php echo $a['id']; ?>" class="form-label small fw-semibold">Admin Username <span class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control" id="edit_username_<?php echo $a['id']; ?>" name="username" value="<?php echo sanitizeInput($a['username']); ?>" required>
+                                                </div>
+                                                <div class="col-12 col-md-4">
+                                                    <label for="edit_password_<?php echo $a['id']; ?>" class="form-label small fw-semibold">New Password</label>
+                                                    <input type="password" class="form-control" id="edit_password_<?php echo $a['id']; ?>" name="password" placeholder="Leave blank to keep current" minlength="6">
+                                                    <div class="form-text text-muted small">Only enter if changing password</div>
+                                                </div>
+                                                <div class="col-12 col-md-4">
+                                                    <label for="edit_mobile_<?php echo $a['id']; ?>" class="form-label small fw-semibold">Mobile Number</label>
+                                                    <input type="text" class="form-control" id="edit_mobile_<?php echo $a['id']; ?>" name="mobile" value="<?php echo sanitizeInput($a['mobile'] ?? ''); ?>" placeholder="e.g. 9876543210">
+                                                </div>
+                                                <div class="col-12 col-md-4">
+                                                    <label for="edit_email_<?php echo $a['id']; ?>" class="form-label small fw-semibold">Email Address</label>
+                                                    <input type="email" class="form-control" id="edit_email_<?php echo $a['id']; ?>" name="email" value="<?php echo sanitizeInput($a['email'] ?? ''); ?>" placeholder="admin@saranindex.com">
+                                                </div>
+                                            </div>
+
+                                            <!-- Section 2: Jurisdiction Scope & Role -->
+                                            <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-geo-alt text-warning me-2"></i>2. Jurisdiction Scope & Access Role</h6>
+                                            <div class="row g-3 mb-4">
+                                                <div class="col-12 col-md-4">
+                                                    <label for="edit_role_<?php echo $a['id']; ?>" class="form-label small fw-semibold">Admin Role</label>
+                                                    <select class="form-select" id="edit_role_<?php echo $a['id']; ?>" name="role">
+                                                        <option value="SUB_ADMIN" <?php echo ($a['role'] === 'SUB_ADMIN') ? 'selected' : ''; ?>>SUB ADMIN</option>
+                                                        <option value="SUPER_ADMIN" <?php echo ($a['role'] === 'SUPER_ADMIN') ? 'selected' : ''; ?>>SUPER ADMIN</option>
+                                                        <option value="MODERATOR" <?php echo ($a['role'] === 'MODERATOR') ? 'selected' : ''; ?>>MODERATOR</option>
+                                                    </select>
+                                                </div>
+
+                                                <div class="col-12 col-md-4">
+                                                    <label for="edit_scope_type_<?php echo $a['id']; ?>" class="form-label small fw-semibold">Jurisdiction Coverage</label>
+                                                    <select class="form-select scope-type-select" id="edit_scope_type_<?php echo $a['id']; ?>" name="scope_type" data-target-wrapper="edit_block_select_wrapper_<?php echo $a['id']; ?>">
+                                                        <option value="DISTRICT" <?php echo (($a['scope_type'] ?? 'DISTRICT') === 'DISTRICT') ? 'selected' : ''; ?>>Full District (All Saran District)</option>
+                                                        <option value="BLOCK" <?php echo (($a['scope_type'] ?? '') === 'BLOCK') ? 'selected' : ''; ?>>Specific Block Jurisdiction</option>
+                                                    </select>
+                                                </div>
+
+                                                <div class="col-12 col-md-4" id="edit_block_select_wrapper_<?php echo $a['id']; ?>" style="<?php echo (($a['scope_type'] ?? '') === 'BLOCK') ? 'display: block;' : 'display: none;'; ?>">
+                                                    <label for="edit_block_id_<?php echo $a['id']; ?>" class="form-label small fw-semibold">Assigned Block</label>
+                                                    <select class="form-select" id="edit_block_id_<?php echo $a['id']; ?>" name="block_id">
+                                                        <option value="">Select Block</option>
+                                                        <?php foreach ($blocks_list as $blk): ?>
+                                                            <option value="<?php echo $blk['id']; ?>" <?php echo (intval($a['block_id'] ?? 0) === intval($blk['id'])) ? 'selected' : ''; ?>>
+                                                                <?php echo sanitizeInput($blk['block_name']); ?> (<?php echo sanitizeInput($blk['hindi_name']); ?>)
+                                                            </option>
+                                                        <?php endforeach; ?>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <!-- Section 3: Designation, Location & About -->
+                                            <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-card-heading text-warning me-2"></i>3. Designation, Address & Profile Notes</h6>
+                                            <div class="row g-3">
+                                                <div class="col-12 col-md-6">
+                                                    <label for="edit_designation_<?php echo $a['id']; ?>" class="form-label small fw-semibold">Designation / Title</label>
+                                                    <input type="text" class="form-control" id="edit_designation_<?php echo $a['id']; ?>" name="designation" value="<?php echo sanitizeInput($a['designation'] ?? ''); ?>" placeholder="e.g. Chapra Block Sub-Admin">
+                                                </div>
+                                                <div class="col-12 col-md-3">
+                                                    <label for="edit_state_<?php echo $a['id']; ?>" class="form-label small fw-semibold">State</label>
+                                                    <input type="text" class="form-control" id="edit_state_<?php echo $a['id']; ?>" name="state" value="<?php echo sanitizeInput($a['state'] ?? 'Bihar'); ?>">
+                                                </div>
+                                                <div class="col-12 col-md-3">
+                                                    <label for="edit_district_<?php echo $a['id']; ?>" class="form-label small fw-semibold">District</label>
+                                                    <input type="text" class="form-control" id="edit_district_<?php echo $a['id']; ?>" name="district" value="<?php echo sanitizeInput($a['district'] ?? 'Saran'); ?>">
+                                                </div>
+                                                <div class="col-12">
+                                                    <label for="edit_address_<?php echo $a['id']; ?>" class="form-label small fw-semibold">Office / Street Address</label>
+                                                    <input type="text" class="form-control" id="edit_address_<?php echo $a['id']; ?>" name="address" value="<?php echo sanitizeInput($a['address'] ?? ''); ?>" placeholder="e.g. Block Office Campus, Marhaura">
+                                                </div>
+                                                <div class="col-12">
+                                                    <label for="edit_about_<?php echo $a['id']; ?>" class="form-label small fw-semibold">About / Responsibilities Note</label>
+                                                    <textarea class="form-control" id="edit_about_<?php echo $a['id']; ?>" name="about" rows="3" placeholder="Enter notes..."><?php echo sanitizeInput($a['about'] ?? ''); ?></textarea>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                        <div class="modal-footer bg-light">
+                                            <button type="button" class="btn btn-secondary btn-sm rounded-3" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-warning btn-sm fw-bold px-4 rounded-3"><i class="bi bi-check-circle-fill me-1"></i> Update Admin Account</button>
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -356,6 +508,19 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Dynamic scope toggles for edit modals
+    document.addEventListener('change', function(e) {
+        if (e.target && e.target.classList.contains('scope-type-select')) {
+            const targetWrapperId = e.target.getAttribute('data-target-wrapper');
+            if (targetWrapperId) {
+                const wrapper = document.getElementById(targetWrapperId);
+                if (wrapper) {
+                    wrapper.style.display = (e.target.value === 'BLOCK') ? 'block' : 'none';
+                }
+            }
+        }
+    });
 });
 </script>
 

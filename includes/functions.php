@@ -2744,6 +2744,97 @@ function deleteAdminAccount($id) {
     return false;
 }
 
+function updateAdminAccount($id, $data) {
+    ensureAdminsTableExists();
+    $db = getDB();
+    if (!$db) return false;
+
+    $id = intval($id);
+    $username = trim($data['username'] ?? '');
+    $full_name = trim($data['full_name'] ?? '');
+    $email = trim($data['email'] ?? '');
+    $mobile = trim($data['mobile'] ?? '');
+    $role = sanitizeInput($data['role'] ?? 'SUB_ADMIN');
+    $scope_type = sanitizeInput($data['scope_type'] ?? 'DISTRICT');
+    $state = !empty($data['state']) ? sanitizeInput($data['state']) : 'Bihar';
+    $district = !empty($data['district']) ? sanitizeInput($data['district']) : 'Saran';
+    $block_id = (!empty($data['block_id']) && is_numeric($data['block_id'])) ? intval($data['block_id']) : null;
+    $designation = sanitizeInput($data['designation'] ?? '');
+    $address = sanitizeInput($data['address'] ?? '');
+    $about = sanitizeInput($data['about'] ?? '');
+    $password = trim($data['password'] ?? '');
+
+    try {
+        if (!empty($password)) {
+            $hash = password_hash($password, PASSWORD_DEFAULT);
+            $stmt = $db->prepare("UPDATE admins SET
+                username = :u,
+                password_hash = :h,
+                full_name = :fn,
+                email = :em,
+                mobile = :mob,
+                role = :r,
+                scope_type = :stype,
+                state = :st,
+                district = :dst,
+                block_id = :blk,
+                designation = :desig,
+                address = :addr,
+                about = :abt
+                WHERE id = :id");
+            return $stmt->execute([
+                'u' => $username,
+                'h' => $hash,
+                'fn' => $full_name,
+                'em' => $email ?: null,
+                'mob' => $mobile ?: null,
+                'r' => $role,
+                'stype' => $scope_type,
+                'st' => $state,
+                'dst' => $district,
+                'blk' => $block_id,
+                'desig' => $designation ?: null,
+                'addr' => $address ?: null,
+                'abt' => $about ?: null,
+                'id' => $id
+            ]);
+        } else {
+            $stmt = $db->prepare("UPDATE admins SET
+                username = :u,
+                full_name = :fn,
+                email = :em,
+                mobile = :mob,
+                role = :r,
+                scope_type = :stype,
+                state = :st,
+                district = :dst,
+                block_id = :blk,
+                designation = :desig,
+                address = :addr,
+                about = :abt
+                WHERE id = :id");
+            return $stmt->execute([
+                'u' => $username,
+                'fn' => $full_name,
+                'em' => $email ?: null,
+                'mob' => $mobile ?: null,
+                'r' => $role,
+                'stype' => $scope_type,
+                'st' => $state,
+                'dst' => $district,
+                'blk' => $block_id,
+                'desig' => $designation ?: null,
+                'addr' => $address ?: null,
+                'abt' => $about ?: null,
+                'id' => $id
+            ]);
+        }
+    } catch (PDOException $e) {
+        error_log("updateAdminAccount error: " . $e->getMessage());
+        return false;
+    }
+}
+
 function toggleUserMobileVerification($id) {
     $db = getDB();
     if ($db) {
