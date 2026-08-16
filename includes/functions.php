@@ -2193,30 +2193,38 @@ function getUserListings($mobileOrUserId) {
         $uStmt->execute(['id' => $userId]);
         $mobile = $uStmt->fetchColumn() ?: '';
     } else {
-        $mobile = preg_replace('/[^0-9]/', '', (string)$mobileOrUserId);
-        if (!empty($mobile)) {
-            $uStmt = $db->prepare("SELECT id FROM users WHERE mobile = :m OR RIGHT(mobile, 10) = :m10 LIMIT 1");
+        $rawInput = (string)$mobileOrUserId;
+        $digitsOnly = preg_replace('/[^0-9]/', '', $rawInput);
+        if (!empty($digitsOnly)) {
+            $m10In = (strlen($digitsOnly) >= 10) ? substr($digitsOnly, -10) : $digitsOnly;
+            $uStmt = $db->prepare("SELECT id, mobile FROM users WHERE id = :uid OR mobile = :m OR mobile LIKE :m_like LIMIT 1");
             $uStmt->execute([
-                'm' => $mobile,
-                'm10' => (strlen($mobile) >= 10) ? substr($mobile, -10) : $mobile
+                'uid' => is_numeric($rawInput) ? intval($rawInput) : 0,
+                'm' => $rawInput,
+                'm_like' => '%' . $m10In . '%'
             ]);
-            $userId = intval($uStmt->fetchColumn() ?: 0);
+            $userRow = $uStmt->fetch(PDO::FETCH_ASSOC);
+            if ($userRow) {
+                $userId = intval($userRow['id']);
+                $mobile = $userRow['mobile'];
+            }
         }
     }
 
-    $cleanMobile = (strlen($mobile) >= 10) ? substr($mobile, -10) : $mobile;
-    if (empty($mobile) && $userId <= 0) return [];
+    $rawDigits = preg_replace('/[^0-9]/', '', $mobile);
+    $cleanMobile = (strlen($rawDigits) >= 10) ? substr($rawDigits, -10) : $rawDigits;
+    $cleanLike = !empty($cleanMobile) ? '%' . $cleanMobile . '%' : '___NO_MATCH___';
+
+    if (empty($cleanMobile) && $userId <= 0) return [];
 
     // Auto-heal orphaned claims & listings for user
-    if ($userId > 0) {
+    if ($userId > 0 && !empty($cleanMobile)) {
         try {
-            if (!empty($cleanMobile)) {
-                $db->prepare("UPDATE claims SET user_id = :uid WHERE status IN ('APPROVED', 'PENDING') AND (user_id IS NULL OR user_id = 0) AND (claimant_mobile = :mob OR RIGHT(claimant_mobile, 10) = :m10 OR claimant_mobile LIKE :m_like)")
-                   ->execute(['uid' => $userId, 'mob' => $mobile, 'm10' => $cleanMobile, 'm_like' => '%' . $cleanMobile]);
+            $db->prepare("UPDATE claims SET user_id = :uid WHERE status IN ('APPROVED', 'PENDING') AND (user_id IS NULL OR user_id = 0) AND (claimant_mobile = :mob OR claimant_mobile LIKE :m_like)")
+               ->execute(['uid' => $userId, 'mob' => $mobile, 'm_like' => $cleanLike]);
 
-                $db->prepare("UPDATE listings SET user_id = :uid WHERE (user_id IS NULL OR user_id = 0) AND (mobile = :mob OR RIGHT(mobile, 10) = :m10 OR mobile LIKE :m_like)")
-                   ->execute(['uid' => $userId, 'mob' => $mobile, 'm10' => $cleanMobile, 'm_like' => '%' . $cleanMobile]);
-            }
+            $db->prepare("UPDATE listings SET user_id = :uid WHERE (user_id IS NULL OR user_id = 0) AND (mobile = :mob OR mobile LIKE :m_like)")
+               ->execute(['uid' => $userId, 'mob' => $mobile, 'm_like' => $cleanLike]);
 
             $db->prepare("UPDATE listings SET user_id = :uid, is_verified = 'YES' WHERE id IN (SELECT listing_id FROM claims WHERE user_id = :uid2 AND status = 'APPROVED') AND (user_id IS NULL OR user_id = 0)")
                ->execute(['uid' => $userId, 'uid2' => $userId]);
@@ -2228,50 +2236,44 @@ function getUserListings($mobileOrUserId) {
     try {
         ensureClaimsTable();
         $sql = "SELECT l.*, c.name as category_name, b.name as block_name,
-                       (SELECT cl.id FROM claims cl WHERE cl.listing_id = l.id AND ((cl.user_id IS NOT NULL AND cl.user_id = :uid1) OR (cl.claimant_mobile = :mob1 OR RIGHT(cl.claimant_mobile, 10) = :mob2 OR cl.claimant_mobile LIKE :mob_like1)) ORDER BY FIELD(cl.status, 'APPROVED', 'PENDING', 'REJECTED') ASC, cl.id DESC LIMIT 1) as claim_id,
-                       (SELECT cl.status FROM claims cl WHERE cl.listing_id = l.id AND ((cl.user_id IS NOT NULL AND cl.user_id = :uid3) OR (cl.claimant_mobile = :mob3 OR RIGHT(cl.claimant_mobile, 10) = :mob4 OR cl.claimant_mobile LIKE :mob_like2)) ORDER BY FIELD(cl.status, 'APPROVED', 'PENDING', 'REJECTED') ASC, cl.id DESC LIMIT 1) as claim_status,
-                       (SELECT cl.role_title FROM claims cl WHERE cl.listing_id = l.id AND ((cl.user_id IS NOT NULL AND cl.user_id = :uid5) OR (cl.claimant_mobile = :mob5 OR RIGHT(cl.claimant_mobile, 10) = :mob6 OR cl.claimant_mobile LIKE :mob_like3)) ORDER BY FIELD(cl.status, 'APPROVED', 'PENDING', 'REJECTED') ASC, cl.id DESC LIMIT 1) as claim_role
+                       (SELECT cl.id FROM claims cl WHERE cl.listing_id = l.id AND ((cl.user_id IS NOT NULL AND cl.user_id = :uid1) OR (cl.claimant_mobile = :mob1 OR cl.claimant_mobile LIKE :mob_like1)) ORDER BY FIELD(cl.status, 'APPROVED', 'PENDING', 'REJECTED') ASC, cl.id DESC LIMIT 1) as claim_id,
+                       (SELECT cl.status FROM claims cl WHERE cl.listing_id = l.id AND ((cl.user_id IS NOT NULL AND cl.user_id = :uid3) OR (cl.claimant_mobile = :mob3 OR cl.claimant_mobile LIKE :mob_like2)) ORDER BY FIELD(cl.status, 'APPROVED', 'PENDING', 'REJECTED') ASC, cl.id DESC LIMIT 1) as claim_status,
+                       (SELECT cl.role_title FROM claims cl WHERE cl.listing_id = l.id AND ((cl.user_id IS NOT NULL AND cl.user_id = :uid5) OR (cl.claimant_mobile = :mob5 OR cl.claimant_mobile LIKE :mob_like3)) ORDER BY FIELD(cl.status, 'APPROVED', 'PENDING', 'REJECTED') ASC, cl.id DESC LIMIT 1) as claim_role
                 FROM listings l 
                 LEFT JOIN categories c ON l.category_id = c.id 
                 LEFT JOIN blocks b ON l.block_id = b.id 
                 WHERE 
                 (
                     (:uid7 > 0 AND l.user_id = :uid8) OR
-                    (:mob7 != '' AND (l.mobile = :mob8 OR RIGHT(l.mobile, 10) = :mob9 OR l.mobile LIKE :mob_like4)) OR
+                    (:mob7 != '' AND (l.mobile = :mob8 OR l.mobile LIKE :mob_like4)) OR
                     l.id IN (
                         SELECT cl2.listing_id FROM claims cl2 
                         WHERE cl2.status IN ('APPROVED', 'PENDING') 
-                        AND ((:uid10 > 0 AND cl2.user_id = :uid11) OR (:mob10 != '' AND (cl2.claimant_mobile = :mob11 OR RIGHT(cl2.claimant_mobile, 10) = :mob12 OR cl2.claimant_mobile LIKE :mob_like5)))
+                        AND ((:uid10 > 0 AND cl2.user_id = :uid11) OR (:mob10 != '' AND (cl2.claimant_mobile = :mob11 OR cl2.claimant_mobile LIKE :mob_like5)))
                     )
                 )
                 ORDER BY l.id DESC";
 
         $stmt = $db->prepare($sql);
-        $cleanLike = !empty($cleanMobile) ? '%' . $cleanMobile : '___NO_MATCH___';
         $stmt->execute([
             'uid1' => $userId,
             'mob1' => $mobile,
-            'mob2' => $cleanMobile,
             'mob_like1' => $cleanLike,
             'uid3' => $userId,
             'mob3' => $mobile,
-            'mob4' => $cleanMobile,
             'mob_like2' => $cleanLike,
             'uid5' => $userId,
             'mob5' => $mobile,
-            'mob6' => $cleanMobile,
             'mob_like3' => $cleanLike,
             'uid7' => $userId,
             'uid8' => $userId,
             'mob7' => $cleanMobile,
             'mob8' => $mobile,
-            'mob9' => $cleanMobile,
             'mob_like4' => $cleanLike,
             'uid10' => $userId,
             'uid11' => $userId,
             'mob10' => $cleanMobile,
             'mob11' => $mobile,
-            'mob12' => $cleanMobile,
             'mob_like5' => $cleanLike
         ]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -2589,10 +2591,20 @@ function getUserPayments($userId) {
     $db = getDB();
     if (!$db || empty($userId)) return [];
 
+    $uid = intval($userId);
     try {
-        $stmt = $db->prepare("SELECT p.*, l.title as listing_title FROM payments p LEFT JOIN listings l ON p.listing_id = l.id WHERE p.user_id = :uid ORDER BY p.id DESC");
-        $stmt->execute(['uid' => intval($userId)]);
-        return $stmt->fetchAll();
+        // Auto-heal orphaned payments linked to user's listings
+        $db->prepare("UPDATE payments SET user_id = :uid WHERE (user_id IS NULL OR user_id = 0) AND listing_id IN (SELECT id FROM listings WHERE user_id = :uid2)")
+           ->execute(['uid' => $uid, 'uid2' => $uid]);
+
+        $stmt = $db->prepare("SELECT p.*, l.title as listing_title 
+                              FROM payments p 
+                              LEFT JOIN listings l ON p.listing_id = l.id 
+                              WHERE p.user_id = :uid 
+                                 OR p.listing_id IN (SELECT id FROM listings WHERE user_id = :uid2) 
+                              ORDER BY p.id DESC");
+        $stmt->execute(['uid' => $uid, 'uid2' => $uid]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
         error_log("getUserPayments error: " . $e->getMessage());
         return [];
