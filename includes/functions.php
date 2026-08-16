@@ -191,6 +191,19 @@ function getSubcategoriesByCategoryId($category_id) {
     return [];
 }
 
+function getProfessionalSubcategories() {
+    $db = getDB();
+    if ($db) {
+        try {
+            $stmt = $db->query("SELECT s.*, c.name as category_name FROM subcategories s LEFT JOIN categories c ON s.category_id = c.id WHERE s.type = 'PROFESSIONAL' ORDER BY s.name ASC");
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("getProfessionalSubcategories error: " . $e->getMessage());
+        }
+    }
+    return [];
+}
+
 function getAllSubcategories() {
     $db = getDB();
     if ($db) {
@@ -3092,6 +3105,8 @@ function saveUserFromAdmin($data, $id) {
         'mobile_status' => (strtoupper($data['mobile_status'] ?? '') === 'VERIFIED') ? 'VERIFIED' : 'UNVERIFIED',
         'email_status' => (strtoupper($data['email_status'] ?? '') === 'VERIFIED') ? 'VERIFIED' : 'UNVERIFIED',
         'pvis' => in_array($data['profile_visibility'] ?? '', ['PUBLIC', 'PRIVATE']) ? $data['profile_visibility'] : 'PUBLIC',
+        'plan_type' => in_array(strtoupper($data['plan_type'] ?? ''), ['FREE', 'GOLD', 'PLATINUM']) ? strtoupper($data['plan_type']) : 'FREE',
+        'plan_expiry' => (!empty($data['plan_type']) && strtoupper($data['plan_type']) !== 'FREE') ? date('Y-m-d H:i:s', strtotime('+1 year')) : null,
         'id' => intval($id)
     ];
 
@@ -3122,7 +3137,9 @@ function saveUserFromAdmin($data, $id) {
             type = :type,
             mobile_status = :mobile_status,
             email_status = :email_status,
-            profile_visibility = :pvis";
+            profile_visibility = :pvis,
+            plan_type = :plan_type,
+            plan_expiry = :plan_expiry";
 
         if (!empty($data['password'])) {
             $sql .= ", password_hash = :hash, password = :pass";
@@ -3356,7 +3373,10 @@ function updateProfessionalUserProfile($userId, $data) {
             linkedin = :link,
             twitter = :tw,
             facebook = :fb,
-            instagram = :insta
+            instagram = :insta,
+            google_maps_link = :gmaps,
+            public_url = :purl,
+            languages = :langs
             WHERE id = :id");
 
         $fullName = sanitizeInput($data['full_name'] ?? ($existingUser['full_name'] ?? ''));
@@ -3390,6 +3410,9 @@ function updateProfessionalUserProfile($userId, $data) {
             'tw' => sanitizeInput($data['twitter'] ?? ''),
             'fb' => sanitizeInput($data['facebook'] ?? ''),
             'insta' => sanitizeInput($data['instagram'] ?? ''),
+            'gmaps' => sanitizeInput($data['google_maps_link'] ?? ''),
+            'purl' => sanitizeInput($data['public_url'] ?? ''),
+            'langs' => sanitizeInput($data['languages'] ?? ''),
             'id' => intval($userId)
         ]);
 
@@ -3424,10 +3447,83 @@ function uploadUserProfilePhoto($file, $userId) {
         @mkdir($uploadDir, 0777, true);
     }
 
-    $filename = 'profile_' . intval($userId) . '_' . time() . '.' . $ext;
+    $targetExt = ($ext === 'png' || $ext === 'webp') ? $ext : 'jpg';
+    $filename = 'profile_' . intval($userId) . '_' . time() . '.' . $targetExt;
     $targetPath = $uploadDir . $filename;
+    $tmpFile = $file['tmp_name'];
 
-    if (move_uploaded_file($file['tmp_name'], $targetPath)) {
+    // Auto-Resize & Compress Image to Max 60KB
+    if (extension_loaded('gd')) {
+        list($origWidth, $origHeight, $imageType) = @getimagesize($tmpFile);
+        if ($origWidth > 0 && $origHeight > 0) {
+            $srcImg = null;
+            switch ($imageType) {
+                case IMAGETYPE_JPEG:
+                    $srcImg = @imagecreatefromjpeg($tmpFile);
+                    break;
+                case IMAGETYPE_PNG:
+                    $srcImg = @imagecreatefrompng($tmpFile);
+                    break;
+                case IMAGETYPE_WEBP:
+                    $srcImg = @imagecreatefromwebp($tmpFile);
+                    break;
+                case IMAGETYPE_GIF:
+                    $srcImg = @imagecreatefromgif($tmpFile);
+                    break;
+            }
+
+            if ($srcImg) {
+                // Downscale dimensions if larger than 500x500 px
+                $maxDim = 500;
+                $newWidth = $origWidth;
+                $newHeight = $origHeight;
+
+                if ($origWidth > $maxDim || $origHeight > $maxDim) {
+                    if ($origWidth > $origHeight) {
+                        $newWidth = $maxDim;
+                        $newHeight = intval(($origHeight / $origWidth) * $maxDim);
+                    } else {
+                        $newHeight = $maxDim;
+                        $newWidth = intval(($origWidth / $origHeight) * $maxDim);
+                    }
+                }
+
+                $dstImg = imagecreatetruecolor($newWidth, $newHeight);
+
+                if ($imageType === IMAGETYPE_PNG || $imageType === IMAGETYPE_WEBP) {
+                    imagealphablending($dstImg, false);
+                    imagesavealpha($dstImg, true);
+                }
+
+                imagecopyresampled($dstImg, $srcImg, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
+
+                $quality = 85;
+                $maxSize = 60 * 1024; // 60KB limit
+
+                do {
+                    if ($targetExt === 'png') {
+                        imagepng($dstImg, $targetPath, intval((100 - $quality) / 10));
+                    } elseif ($targetExt === 'webp') {
+                        imagewebp($dstImg, $targetPath, $quality);
+                    } else {
+                        imagejpeg($dstImg, $targetPath, $quality);
+                    }
+                    clearstatcache();
+                    $fileSize = filesize($targetPath);
+                    $quality -= 10;
+                } while ($fileSize > $maxSize && $quality >= 20);
+
+                imagedestroy($srcImg);
+                imagedestroy($dstImg);
+
+                if (file_exists($targetPath)) {
+                    return 'uploads/users/' . $filename;
+                }
+            }
+        }
+    }
+
+    if (move_uploaded_file($tmpFile, $targetPath)) {
         return 'uploads/users/' . $filename;
     }
 

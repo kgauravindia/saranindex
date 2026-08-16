@@ -213,6 +213,13 @@ require_once __DIR__ . '/includes/header.php';
                                     } else {
                                         echo '<span class="badge bg-light text-dark border">USER</span>';
                                     }
+
+                                    $plan = strtoupper($u['plan_type'] ?? 'FREE');
+                                    if ($plan === 'PLATINUM') {
+                                        echo ' <span class="badge bg-warning text-dark fw-bold"><i class="bi bi-crown-fill me-1 text-danger"></i>PLATINUM</span>';
+                                    } elseif ($plan === 'GOLD') {
+                                        echo ' <span class="badge bg-primary fw-bold"><i class="bi bi-patch-check-fill me-1"></i>GOLD</span>';
+                                    }
                                 ?>
                             </td>
                             <td>

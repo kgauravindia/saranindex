@@ -44,6 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'password' => trim($_POST['password'] ?? ''),
         'status' => sanitizeInput($_POST['status'] ?? 'ACTIVE'),
         'type' => sanitizeInput($_POST['type'] ?? 'USER'),
+        'plan_type' => sanitizeInput($_POST['plan_type'] ?? 'FREE'),
         'profile_visibility' => sanitizeInput($_POST['profile_visibility'] ?? 'PUBLIC'),
         'mobile_status' => isset($_POST['mobile_status']) && $_POST['mobile_status'] === 'VERIFIED' ? 'VERIFIED' : 'UNVERIFIED',
         'email_status' => isset($_POST['email_status']) && $_POST['email_status'] === 'VERIFIED' ? 'VERIFIED' : 'UNVERIFIED'
@@ -297,6 +298,15 @@ $all_categories = getCategoriesList();
                         <option value="USER" <?php echo ($user['type'] ?? 'USER') === 'USER' ? 'selected' : ''; ?>>USER (Standard Community User)</option>
                         <option value="AGENT" <?php echo ($user['type'] ?? '') === 'AGENT' ? 'selected' : ''; ?>>AGENT (Field Agent / Listing Partner)</option>
                         <option value="ADMIN" <?php echo ($user['type'] ?? '') === 'ADMIN' ? 'selected' : ''; ?>>ADMIN (Directory Admin)</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="plan_type" class="form-label small fw-semibold">Profile Membership Plan</label>
+                    <select class="form-select" id="plan_type" name="plan_type">
+                        <option value="FREE" <?php echo ($user['plan_type'] ?? 'FREE') === 'FREE' ? 'selected' : ''; ?>>FREE Plan (Basic Profile)</option>
+                        <option value="GOLD" <?php echo ($user['plan_type'] ?? '') === 'GOLD' ? 'selected' : ''; ?>>GOLD Plan (Gold Verified Pro Badge)</option>
+                        <option value="PLATINUM" <?php echo ($user['plan_type'] ?? '') === 'PLATINUM' ? 'selected' : ''; ?>>PLATINUM Plan (VIP Crown & Featured Pro)</option>
                     </select>
                 </div>
 

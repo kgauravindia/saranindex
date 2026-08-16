@@ -110,7 +110,15 @@ require_once __DIR__ . '/includes/header.php';
                         <div class="text-center text-md-start flex-grow-1">
                             <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-start gap-2 mb-1">
                                 <h2 class="fw-bold mb-0 text-white font-heading"><?php echo sanitizeInput($user['full_name']); ?></h2>
-                                <?php if (($user['mobile_status'] ?? '') === 'VERIFIED'): ?>
+                                <?php if (isset($user['plan_type']) && $user['plan_type'] === 'PLATINUM'): ?>
+                                    <span class="badge bg-warning text-dark fw-bold rounded-pill px-3 py-1 small shadow-xs">
+                                        <i class="bi bi-crown-fill me-1 text-danger"></i> VIP Platinum Pro
+                                    </span>
+                                <?php elseif (isset($user['plan_type']) && $user['plan_type'] === 'GOLD'): ?>
+                                    <span class="badge bg-primary text-white fw-bold rounded-pill px-3 py-1 small shadow-xs">
+                                        <i class="bi bi-patch-check-fill me-1"></i> Gold Verified Pro
+                                    </span>
+                                <?php elseif (($user['mobile_status'] ?? '') === 'VERIFIED'): ?>
                                     <span class="badge bg-primary text-white rounded-pill px-2.5 py-1 small" title="Verified Professional Account">
                                         <i class="bi bi-patch-check-fill me-1"></i>Verified Pro
                                     </span>
