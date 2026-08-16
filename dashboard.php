@@ -199,12 +199,23 @@ require_once __DIR__ . '/includes/header.php';
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
                 <div class="text-center mb-3">
-                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-bold fs-3 mb-2 shadow-sm" style="width: 72px; height: 72px;">
-                        <?php echo strtoupper(substr($user['full_name'], 0, 1)); ?>
-                    </div>
+                    <?php if (!empty($user['profile_image']) && file_exists(__DIR__ . '/' . $user['profile_image'])): ?>
+                        <img src="<?php echo sanitizeInput($user['profile_image']); ?>" alt="<?php echo sanitizeInput($user['full_name']); ?>" class="rounded-circle img-thumbnail shadow-sm mb-2" style="width: 80px; height: 80px; object-fit: cover;">
+                    <?php else: ?>
+                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-bold fs-3 mb-2 shadow-sm" style="width: 76px; height: 76px; background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);">
+                            <?php echo strtoupper(substr($user['full_name'], 0, 1)); ?>
+                        </div>
+                    <?php endif; ?>
                     <h5 class="fw-bold text-dark mb-1 font-heading"><?php echo htmlspecialchars($user['full_name']); ?></h5>
+                    <?php if (!empty($user['username_handle'])): 
+                        $handleClean = ltrim($user['username_handle'], '@');
+                    ?>
+                        <a href="@<?php echo sanitizeInput($handleClean); ?>" target="_blank" class="badge bg-primary-subtle text-primary text-decoration-none fw-bold px-2.5 py-1 mb-2 rounded-pill small">
+                            <i class="bi bi-at me-0.5"></i><?php echo sanitizeInput($handleClean); ?>
+                        </a>
+                    <?php endif; ?>
                     <?php if (!empty($user['business_name'])): ?>
-                        <div class="badge bg-primary-subtle text-primary fw-semibold mb-2"><?php echo htmlspecialchars($user['business_name']); ?></div>
+                        <div class="badge bg-secondary-subtle text-secondary fw-semibold mb-2"><?php echo htmlspecialchars($user['business_name']); ?></div>
                     <?php endif; ?>
                     <p class="text-muted small mb-0"><?php echo !empty($user['designation']) ? htmlspecialchars($user['designation']) : 'Registered Member'; ?></p>
                 </div>
