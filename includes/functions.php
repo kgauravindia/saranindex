@@ -568,6 +568,13 @@ function ensureClaimsTable() {
     $db = getDB();
     if (!$db) return;
     try {
+        // Ensure listings table has PRIMARY KEY on id column
+        try {
+            $db->exec("ALTER TABLE `listings` ADD PRIMARY KEY (`id`);");
+        } catch (Exception $ex) {
+            // Already has primary key
+        }
+
         $db->exec("CREATE TABLE IF NOT EXISTS `claims` (
             `id` INT AUTO_INCREMENT PRIMARY KEY,
             `listing_id` INT NOT NULL,
@@ -578,7 +585,9 @@ function ensureClaimsTable() {
             `verification_proof` TEXT,
             `status` ENUM('PENDING','APPROVED','REJECTED') DEFAULT 'PENDING',
             `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (`listing_id`) REFERENCES `listings`(`id`) ON DELETE CASCADE
+            KEY `idx_claim_listing_id` (`listing_id`),
+            KEY `idx_claim_user_id` (`user_id`),
+            KEY `idx_claim_status` (`status`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
     } catch (PDOException $e) {
         error_log("ensureClaimsTable error: " . $e->getMessage());
