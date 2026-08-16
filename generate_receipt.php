@@ -267,10 +267,6 @@ if ($status !== 'SUCCESS') {
                         <td colspan="2" class="text-end pt-3 text-muted small">Subtotal Amount:</td>
                         <td class="text-end pt-3 fw-semibold">₹<?php echo number_format($payment['amount'], 2); ?></td>
                     </tr>
-                    <tr>
-                        <td colspan="2" class="text-end border-0 text-muted small">Applicable Taxes (GST 0% / Included):</td>
-                        <td class="text-end border-0 text-muted small">₹0.00</td>
-                    </tr>
                     <tr class="bg-light">
                         <td colspan="2" class="text-end py-3 fw-bold h5 mb-0 text-dark">Total Paid:</td>
                         <td class="text-end py-3 fw-bold h5 mb-0 text-primary">₹<?php echo number_format($payment['amount'], 2); ?></td>
