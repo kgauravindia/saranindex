@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS `panchayats` (
     `village` TEXT,
     `village_hindi` TEXT,
     `panchayat_samiti_no` VARCHAR(100),
-    FOREIGN KEY (`block_id`) REFERENCES `blocks`(`id`) ON DELETE CASCADE
+    KEY `idx_panchayat_block_id` (`block_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 3. Villages Table
@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS `villages` (
     `hindi_name` VARCHAR(100),
     `slug` VARCHAR(100) UNIQUE,
     `pincode` VARCHAR(10),
-    FOREIGN KEY (`panchayat_id`) REFERENCES `panchayats`(`id`) ON DELETE CASCADE
+    KEY `idx_village_panchayat_id` (`panchayat_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 4. Categories Table
@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS `subcategories` (
     `hindi_name` VARCHAR(100),
     `slug` VARCHAR(100) UNIQUE,
     `keywords` TEXT,
-    FOREIGN KEY (`category_id`) REFERENCES `categories`(`id`) ON DELETE CASCADE
+    KEY `idx_subcat_category_id` (`category_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 6. Core Listings Table
@@ -100,8 +100,8 @@ CREATE TABLE IF NOT EXISTS `listings` (
     `star_rating` DECIMAL(3,2) DEFAULT 5.00,
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (`category_id`) REFERENCES `categories`(`id`),
-    FOREIGN KEY (`block_id`) REFERENCES `blocks`(`id`)
+    KEY `idx_listing_category_id` (`category_id`),
+    KEY `idx_listing_block_id` (`block_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 7. Reviews Table
@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS `reviews` (
     `comment` TEXT,
     `status` ENUM('APPROVED','PENDING') DEFAULT 'APPROVED',
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (`listing_id`) REFERENCES `listings`(`id`) ON DELETE CASCADE
+    KEY `idx_review_listing_id` (`listing_id`)
 -- 7.5. Public Users Table
 CREATE TABLE IF NOT EXISTS `users` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -170,7 +170,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     `facebook` VARCHAR(255) DEFAULT NULL,
     `instagram` VARCHAR(255) DEFAULT NULL,
     `google_maps_link` TEXT DEFAULT NULL,
-    FOREIGN KEY (`block_id`) REFERENCES `blocks`(`id`) ON DELETE SET NULL
+    KEY `idx_user_block_id` (`block_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 7.6. Deleted Users Archive Table
@@ -252,7 +252,7 @@ CREATE TABLE IF NOT EXISTS `people` (
     `status` ENUM('ACTIVE','PENDING','INACTIVE') DEFAULT 'ACTIVE',
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (`block_id`) REFERENCES `blocks`(`id`) ON DELETE SET NULL
+    KEY `idx_people_block_id` (`block_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 

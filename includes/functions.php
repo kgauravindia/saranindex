@@ -564,9 +564,29 @@ function addReview($listing_id, $reviewer_name, $rating, $comment, $user_id = nu
 
 // --- CLAIM BUSINESS HELPER FUNCTIONS ---
 
+function removeTableDependencies() {
+    $db = getDB();
+    if (!$db) return;
+    try {
+        $fks = $db->query("SELECT TABLE_NAME, CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = DATABASE() AND REFERENCED_TABLE_NAME IS NOT NULL")->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($fks as $fk) {
+            $t = $fk['TABLE_NAME'];
+            $c = $fk['CONSTRAINT_NAME'];
+            try {
+                $db->exec("ALTER TABLE `$t` DROP FOREIGN KEY `$c`");
+            } catch (Exception $e) {
+                // Ignore if already dropped
+            }
+        }
+    } catch (Exception $e) {
+        error_log("removeTableDependencies error: " . $e->getMessage());
+    }
+}
+
 function ensureClaimsTable() {
     $db = getDB();
     if (!$db) return;
+    removeTableDependencies();
     try {
         // Ensure listings table has PRIMARY KEY on id column
         try {
