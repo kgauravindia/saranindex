@@ -57,32 +57,46 @@ $git_info = getGitUpdateStatus();
     <div class="col-12 col-lg-5">
         <div class="card border-0 shadow-sm rounded-3 h-100">
             <div class="card-header bg-dark text-white py-3 border-0 rounded-top-3">
-                <h6 class="card-title fw-bold mb-0"><i class="bi bi-git me-2 text-warning"></i>Repository Status</h6>
+                <h6 class="card-title fw-bold mb-0"><i class="bi bi-git me-2 text-warning"></i>Repository Status & Config</h6>
             </div>
             <div class="card-body p-4">
                 <div class="d-flex align-items-center mb-4 p-3 bg-light rounded-3 border">
                     <div class="bg-primary text-white rounded-3 p-3 me-3 d-flex align-items-center justify-content-center">
                         <i class="bi bi-github fs-3"></i>
                     </div>
-                    <div>
-                        <div class="fw-bold text-dark fs-6">kgauravindia/saranindex</div>
+                    <div class="text-break">
+                        <div class="fw-bold text-dark fs-6 mb-0.5">kgauravindia/saranindex</div>
                         <small class="text-muted"><i class="bi bi-globe me-1"></i>Public GitHub Repository</small>
                     </div>
                 </div>
 
                 <div class="row g-3">
+                    <div class="col-12">
+                        <small class="text-muted d-block fw-semibold">Repository</small>
+                        <a href="https://github.com/kgauravindia/saranindex.git" target="_blank" class="fw-bold text-primary text-decoration-none small text-break">
+                            <i class="bi bi-link-45deg me-1"></i>https://github.com/kgauravindia/saranindex.git
+                        </a>
+                    </div>
+
                     <div class="col-6">
-                        <small class="text-muted d-block fw-semibold">Active Branch</small>
+                        <small class="text-muted d-block fw-semibold">Branch</small>
                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1.5 fw-semibold">
                             <i class="bi bi-git me-1"></i><?php echo sanitizeInput($git_info['branch']); ?>
                         </span>
                     </div>
 
                     <div class="col-6">
-                        <small class="text-muted d-block fw-semibold">Current Commit Hash</small>
+                        <small class="text-muted d-block fw-semibold">Current Commit</small>
                         <span class="badge bg-secondary-subtle text-dark border border-secondary-subtle rounded-pill px-3 py-1.5 fw-mono">
                             #<?php echo sanitizeInput($git_info['current_commit']); ?>
                         </span>
+                    </div>
+
+                    <div class="col-12">
+                        <small class="text-muted d-block fw-semibold">Install Path</small>
+                        <code class="bg-light text-dark border px-2.5 py-1 rounded small d-block text-break">
+                            <i class="bi bi-folder-fill me-1 text-warning"></i><?php echo sanitizeInput(dirname(__DIR__)); ?>
+                        </code>
                     </div>
 
                     <div class="col-12">
@@ -113,7 +127,7 @@ $git_info = getGitUpdateStatus();
                 <div>
                     <h5 class="fw-bold text-dark mb-2">Pull Latest Code Changes from GitHub</h5>
                     <p class="text-muted small mb-4">
-                        Clicking the update button will execute <code class="bg-light text-primary px-2 py-1 rounded">git pull origin main</code> on your local server directory (<code class="small">d:\laragon\www\saranindex</code>). This keeps your local installation completely synchronized with GitHub.
+                        Clicking the update button will execute <code class="bg-light text-primary px-2 py-1 rounded">git pull origin main</code> on your local server directory (<code class="small"><?php echo sanitizeInput(dirname(__DIR__)); ?></code>). This keeps your local installation completely synchronized with GitHub.
                     </p>
 
                     <div class="alert alert-info border-0 rounded-3 mb-4 small d-flex align-items-center">
