@@ -227,11 +227,6 @@ $admin_name = $_SESSION['admin_full_name'] ?? 'Administrator';
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link <?php echo $current_page === 'system_update.php' ? 'active' : ''; ?>" href="system_update.php">
-                    <i class="bi bi-github text-info"></i> GitHub System Update
-                </a>
-            </li>
-            <li class="nav-item">
                 <a class="nav-link <?php echo $current_page === 'blocks.php' ? 'active' : ''; ?>" href="blocks.php">
                     <i class="bi bi-geo-alt-fill text-danger"></i> Saran Blocks
                 </a>
@@ -291,9 +286,6 @@ $admin_name = $_SESSION['admin_full_name'] ?? 'Administrator';
         </div>
 
         <div class="d-flex align-items-center gap-3">
-            <a href="system_update.php" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold">
-                <i class="bi bi-github me-1"></i> Sync GitHub
-            </a>
             <a href="../index.php" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold">
                 <i class="bi bi-globe me-1"></i> Live Site
             </a>
