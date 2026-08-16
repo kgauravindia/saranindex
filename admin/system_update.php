@@ -8,7 +8,7 @@ $api_changelog_url = 'https://raw.githubusercontent.com/kgauravindia/saranindex/
 $zip_url = 'https://github.com/kgauravindia/saranindex/archive/refs/heads/main.zip';
 
 $local_version_file = __DIR__ . '/../version.json';
-$local_info = ['version' => '1.1.0', 'db_version' => 1];
+$local_info = ['version' => '1.2.0', 'db_version' => 2];
 if (file_exists($local_version_file)) {
     $content = file_get_contents($local_version_file);
     $local_info = json_decode($content, true) ?: $local_info;

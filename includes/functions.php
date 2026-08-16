@@ -3782,6 +3782,12 @@ function performGitPull() {
     $is_success = ($return_var === 0) || (stripos($result_text, 'Already up to date') !== false) || (stripos($result_text, 'Updating') !== false);
 
     if ($is_success) {
+        if (function_exists('removeTableDependencies')) {
+            removeTableDependencies();
+        }
+        if (function_exists('ensureClaimsTable')) {
+            ensureClaimsTable();
+        }
         if (function_exists('ensureAdminsTableExists')) {
             ensureAdminsTableExists();
         }
