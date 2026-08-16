@@ -3593,6 +3593,76 @@ function deleteHalka($id) {
     }
 }
 
+function getGitUpdateStatus() {
+    $repo_dir = dirname(__DIR__);
+    $info = [
+        'is_git' => false,
+        'branch' => 'main',
+        'remote_url' => 'https://github.com/kgauravindia/saranindex',
+        'current_commit' => 'Unknown',
+        'commit_msg' => 'Unknown',
+        'commit_date' => 'Unknown'
+    ];
+
+    if (is_dir($repo_dir . '/.git')) {
+        $info['is_git'] = true;
+        
+        $output = [];
+        @exec("cd /d " . escapeshellarg($repo_dir) . " && git rev-parse --abbrev-ref HEAD 2>&1", $output);
+        if (!empty($output[0])) {
+            $info['branch'] = trim($output[0]);
+        }
+
+        $output = [];
+        @exec("cd /d " . escapeshellarg($repo_dir) . " && git config --get remote.origin.url 2>&1", $output);
+        if (!empty($output[0])) {
+            $info['remote_url'] = trim($output[0]);
+        }
+
+        $output = [];
+        @exec("cd /d " . escapeshellarg($repo_dir) . " && git rev-parse --short HEAD 2>&1", $output);
+        if (!empty($output[0])) {
+            $info['current_commit'] = trim($output[0]);
+        }
+
+        $output = [];
+        @exec("cd /d " . escapeshellarg($repo_dir) . " && git log -1 --format=%s 2>&1", $output);
+        if (!empty($output[0])) {
+            $info['commit_msg'] = trim(implode(' ', $output));
+        }
+
+        $output = [];
+        @exec("cd /d " . escapeshellarg($repo_dir) . " && git log -1 --format=%cd --date=relative 2>&1", $output);
+        if (!empty($output[0])) {
+            $info['commit_date'] = trim($output[0]);
+        }
+    }
+
+    return $info;
+}
+
+function performGitPull() {
+    $repo_dir = dirname(__DIR__);
+    $output = [];
+    $return_var = 0;
+    
+    @exec("cd /d " . escapeshellarg($repo_dir) . " && git pull origin main 2>&1", $output, $return_var);
+    
+    $result_text = implode("\n", $output);
+    $is_success = ($return_var === 0);
+
+    if ($is_success) {
+        if (function_exists('ensureAdminsTableExists')) {
+            ensureAdminsTableExists();
+        }
+    }
+
+    return [
+        'success' => $is_success,
+        'output' => $result_text
+    ];
+}
+
 
 
 
