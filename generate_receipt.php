@@ -126,7 +126,7 @@ if (!$is_admin && !$is_owner) {
                 <div class="text-muted small">
                     Digital Directory of Saran District (Chapra, Bihar)<br>
                     Website: <a href="<?php echo BASE_URL; ?>" class="text-decoration-none text-primary">saranindex.com</a> • Email: support@saranindex.com<br>
-                    An Initiative for Connecting Saran District Digitally
+                    <strong class="text-dark">An Initiative of OfferPlant Technologies Private Limited for Connecting Saran District Digitally</strong>
                 </div>
             </div>
             <div class="text-sm-end">
@@ -254,7 +254,8 @@ if (!$is_admin && !$is_owner) {
 
         <!-- Footer -->
         <div class="text-center text-muted small mt-5 pt-4 border-top">
-            <p class="mb-1 fw-semibold text-dark">Thank you for choosing Saran Index!</p>
+            <p class="mb-1 fw-bold text-dark fs-6">Thank you for choosing Saran Index!</p>
+            <p class="mb-1 text-dark fw-semibold" style="font-size: 0.85rem;">An Initiative of OfferPlant Technologies Private Limited for Connecting Saran District Digitally</p>
             <p class="mb-0 text-muted" style="font-size: 0.78rem;">This is a computer-generated tax invoice & receipt for digital subscription services. No physical signature is required.</p>
         </div>
     </div>
