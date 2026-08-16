@@ -1,5 +1,17 @@
 [
   {
+    "version": "1.2.0",
+    "date": "2026-08-16",
+    "changes": [
+      "Added Claim Existing Business dashboard options and quick claim modal",
+      "Enhanced user listing queries with unformatted mobile pattern matching and auto-healing",
+      "Removed rigid foreign key table dependencies for fail-safe SQL imports",
+      "Updated tax receipt template with OfferPlant Technologies initiative branding & dynamic payment status indicators",
+      "Added dynamic directory statistics counters and Claim Business CTA on homepage",
+      "Optimized listing profiles by hiding claim widgets once ownership is verified"
+    ]
+  },
+  {
     "version": "1.1.0",
     "date": "2026-08-16",
     "changes": [
