@@ -94,6 +94,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
+// Handle Business Claim POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'claim_business') {
+    $listingId = intval($_POST['listing_id'] ?? 0);
+    $c_name = sanitizeInput($_POST['claimant_name'] ?? '');
+    $c_mobile = sanitizeInput($_POST['claimant_mobile'] ?? '');
+    $c_role = sanitizeInput($_POST['role_title'] ?? 'Owner / Manager');
+    $c_proof = sanitizeInput($_POST['verification_proof'] ?? '');
+
+    if ($listingId > 0 && !empty($c_name) && !empty($c_mobile)) {
+        if (submitBusinessClaim($listingId, $user['id'], $c_name, $c_mobile, $c_role, $c_proof)) {
+            $msg = "व्यवसाय का दावा सफलतापूर्वक सबमिट किया गया! हमारी एडमिन टीम सत्यापन के बाद इसे आपके खाते से जोड़ देगी।";
+            $msg_type = 'success';
+        } else {
+            $msg = "व्यवसाय दावा सबमिट करने में विफल। कृपया पुनः प्रयास करें या सहायता डेस्क से संपर्क करें।";
+            $msg_type = 'danger';
+        }
+    } else {
+        $msg = "कृपया एक वैध व्यवसाय सूची चुनें और अपना नाम तथा संपर्क मोबाइल नंबर भरें।";
+        $msg_type = 'warning';
+    }
+}
+
 $userListings = getUserListings($user['id']);
 $userPayments = getUserPayments($user['id']);
 $blocks = getBlocks();
@@ -183,6 +205,12 @@ require_once __DIR__ . '/includes/header.php';
                 <hr class="text-secondary opacity-25">
 
                 <div class="d-flex flex-column gap-2">
+                    <button type="button" class="btn btn-warning btn-sm w-100 rounded-pill fw-bold text-dark shadow-xs" data-bs-toggle="modal" data-bs-target="#claimSearchModal">
+                        <i class="bi bi-shield-check me-1"></i> पुराने व्यवसाय पर दावा करें (Claim Business)
+                    </button>
+                    <a href="../add-contact.php" class="btn btn-success btn-sm w-100 rounded-pill fw-bold shadow-xs">
+                        <i class="bi bi-plus-circle me-1"></i> नया व्यवसाय मुफ्त जोड़ें
+                    </a>
                     <button type="button" class="btn btn-light btn-sm w-100 rounded-pill fw-semibold text-secondary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
                         <i class="bi bi-gear me-1"></i> खाता सेटिंग्स प्रबंधित करें
                     </button>
@@ -208,7 +236,13 @@ require_once __DIR__ . '/includes/header.php';
                         <h4 class="fw-bold font-heading text-dark mb-0">मेरी डायरेक्टरी सूचियां और दावों की स्थिति</h4>
                         <small class="text-muted">आपके खाते (+91 <?php echo htmlspecialchars($user['mobile']); ?>) से जुड़े दावे और लिस्टिंग</small>
                     </div>
-                    <div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-warning text-dark btn-sm rounded-pill fw-bold shadow-xs" data-bs-toggle="modal" data-bs-target="#claimSearchModal">
+                            <i class="bi bi-shield-check me-1"></i> व्यवसाय पर दावा करें
+                        </button>
+                        <a href="../add-contact.php" class="btn btn-outline-primary btn-sm rounded-pill fw-bold">
+                            <i class="bi bi-plus-circle me-1"></i> व्यवसाय जोड़ें
+                        </a>
                         <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-2 rounded-pill">
                             कुल: <?php echo count($userListings); ?> लिस्टिंग
                         </span>
@@ -219,10 +253,15 @@ require_once __DIR__ . '/includes/header.php';
                     <div class="text-center py-5">
                         <div class="text-muted display-4 mb-3"><i class="bi bi-shop-window"></i></div>
                         <h5 class="fw-bold text-dark mb-2">कोई सूची नहीं मिली</h5>
-                        <p class="text-muted small mx-auto mb-4" style="max-width: 420px;">इस व्यू में कोई लिस्टिंग उपलब्ध नहीं है।</p>
-                        <a href="add-contact.php" class="btn btn-warning text-dark fw-bold rounded-pill px-4">
-                            <i class="bi bi-plus-circle me-1"></i> मुफ्त में व्यवसाय जोड़ें
-                        </a>
+                        <p class="text-muted small mx-auto mb-4" style="max-width: 420px;">आपके खाते से अभी कोई लिस्टिंग या दावा नहीं जुड़ा है।</p>
+                        <div class="d-flex flex-wrap justify-content-center gap-2">
+                            <button type="button" class="btn btn-warning text-dark fw-bold rounded-pill px-4 shadow-xs" data-bs-toggle="modal" data-bs-target="#claimSearchModal">
+                                <i class="bi bi-shield-check me-1"></i> पुराने व्यवसाय पर दावा करें
+                            </button>
+                            <a href="../add-contact.php" class="btn btn-outline-primary fw-bold rounded-pill px-4">
+                                <i class="bi bi-plus-circle me-1"></i> नया व्यवसाय मुफ्त जोड़ें
+                            </a>
+                        </div>
                     </div>
                 <?php else: ?>
                     <div class="table-responsive">
@@ -513,6 +552,83 @@ require_once __DIR__ . '/includes/header.php';
                 <div class="modal-footer bg-white p-3 border-top">
                     <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">रद्द करें</button>
                     <button type="submit" id="upgradePayBtn" class="btn btn-primary rounded-pill px-4 fw-bold"><i class="bi bi-lock-fill me-1"></i> रेजरपे से भुगतान करें</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Claim Existing Business Modal (Hindi) -->
+<div class="modal fade" id="claimSearchModal" tabindex="-1" aria-labelledby="claimSearchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-dark text-white py-3 px-4">
+                <h5 class="modal-title fw-bold" id="claimSearchModalLabel">
+                    <i class="bi bi-shield-check text-warning me-2"></i>पुराने व्यवसाय सूची पर दावा करें (Claim Business)
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="dashboard.php" method="POST">
+                <input type="hidden" name="action" value="claim_business">
+                <div class="modal-body p-4">
+                    <div class="alert alert-info border-0 rounded-3 mb-4 small d-flex align-items-center">
+                        <i class="bi bi-info-circle-fill text-info fs-4 me-3"></i>
+                        <div>
+                            क्या आप सारण इंडेक्स पर पहले से सूचीबद्ध किसी व्यवसाय के अधिकृत मालिक या प्रबंधक हैं? एडमिन सत्यापन हेतु अपना दावा सबमिट करें।
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="claim_listing_select" class="form-label fw-bold text-dark small">1. दावा करने के लिए व्यवसाय सूची चुनें *</label>
+                        <select name="listing_id" id="claim_listing_select" class="form-select rounded-3" required>
+                            <option value="">-- सारण इंडेक्स डायरेक्टरी से व्यवसाय चुनें --</option>
+                            <?php 
+                            $db_claim_select = getDB();
+                            if ($db_claim_select) {
+                                $all_listings = $db_claim_select->query("SELECT id, title, mobile, address FROM listings ORDER BY title ASC")->fetchAll(PDO::FETCH_ASSOC);
+                                foreach ($all_listings as $al) {
+                                    echo '<option value="' . $al['id'] . '">' . htmlspecialchars($al['title']) . ' (ID #' . $al['id'] . ' - ' . htmlspecialchars($al['mobile']) . ')</option>';
+                                }
+                            }
+                            ?>
+                        </select>
+                        <small class="text-muted extra-small">अपना व्यवसाय नहीं मिल रहा? आप <a href="../search.php" target="_blank" class="fw-semibold">डायरेक्टरी में खोज सकते हैं</a> या <a href="../add-contact.php" target="_blank" class="fw-semibold">नया व्यवसाय मुफ्त जोड़ सकते हैं</a>।</small>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-dark small">2. आपका पूरा नाम (Claimant Name) *</label>
+                            <input type="text" name="claimant_name" class="form-control rounded-3" value="<?php echo sanitizeInput($user['full_name'] ?? ''); ?>" required placeholder="उदा. कुमार गौरव">
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-dark small">3. आपका संपर्क मोबाइल *</label>
+                            <input type="tel" name="claimant_mobile" class="form-control rounded-3" value="<?php echo sanitizeInput($user['mobile'] ?? ''); ?>" required placeholder="10 अंकों का मोबाइल नंबर" maxlength="10">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-dark small">4. आपका पद / अधिकार (Designation) *</label>
+                            <select name="role_title" class="form-select rounded-3">
+                                <option value="Owner / Proprietor">मालिक / प्रोपराइटर (Owner)</option>
+                                <option value="Authorized Manager">अधिकृत प्रबंधक (Manager)</option>
+                                <option value="Business Partner">बिजनेस पार्टनर (Partner)</option>
+                                <option value="Official Representative">आधिकारिक प्रतिनिधि (Representative)</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-dark small">5. सत्यापन विवरण / जीएसटी / पंजी. संख्या (वैकल्पिक)</label>
+                            <input type="text" name="verification_proof" class="form-control rounded-3" placeholder="GSTIN, उद्यम या पंजीकरण संख्या">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light py-3 px-4 border-top">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">रद्द करें</button>
+                    <button type="submit" class="btn btn-warning text-dark fw-bold rounded-pill px-4 shadow-sm">
+                        <i class="bi bi-shield-check me-1"></i> स्वामित्व का दावा सबमिट करें
+                    </button>
                 </div>
             </form>
         </div>

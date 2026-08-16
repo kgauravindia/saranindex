@@ -122,6 +122,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
+// Handle Business Claim POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'claim_business') {
+    $listingId = intval($_POST['listing_id'] ?? 0);
+    $c_name = sanitizeInput($_POST['claimant_name'] ?? '');
+    $c_mobile = sanitizeInput($_POST['claimant_mobile'] ?? '');
+    $c_role = sanitizeInput($_POST['role_title'] ?? 'Owner / Manager');
+    $c_proof = sanitizeInput($_POST['verification_proof'] ?? '');
+
+    if ($listingId > 0 && !empty($c_name) && !empty($c_mobile)) {
+        if (submitBusinessClaim($listingId, $user['id'], $c_name, $c_mobile, $c_role, $c_proof)) {
+            $msg = "Business claim submitted successfully! Our admin team will verify and activate your listing access.";
+            $msg_type = 'success';
+        } else {
+            $msg = "Failed to submit business claim. Please try again or contact support.";
+            $msg_type = 'danger';
+        }
+    } else {
+        $msg = "Please select a valid business listing and fill in your name & contact mobile number.";
+        $msg_type = 'warning';
+    }
+}
+
 $userListings = getUserListings($user['id']);
 $userPayments = getUserPayments($user['id']);
 $blocks = getBlocks();
@@ -218,6 +240,12 @@ require_once __DIR__ . '/includes/header.php';
                     <button type="button" class="btn btn-primary btn-sm w-100 rounded-pill fw-bold shadow-xs" data-bs-toggle="modal" data-bs-target="#customHandleModal">
                         <i class="bi bi-at me-1"></i> Custom Profile Handle (@username)
                     </button>
+                    <button type="button" class="btn btn-warning btn-sm w-100 rounded-pill fw-bold text-dark shadow-xs" data-bs-toggle="modal" data-bs-target="#claimSearchModal">
+                        <i class="bi bi-shield-check me-1"></i> Claim Existing Business
+                    </button>
+                    <a href="add-contact.php" class="btn btn-success btn-sm w-100 rounded-pill fw-bold shadow-xs">
+                        <i class="bi bi-plus-circle me-1"></i> Add New Business Free
+                    </a>
                     <button type="button" class="btn btn-light btn-sm w-100 rounded-pill fw-semibold text-secondary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
                         <i class="bi bi-gear me-1"></i> Manage Account Settings
                     </button>
@@ -243,7 +271,13 @@ require_once __DIR__ . '/includes/header.php';
                         <h4 class="fw-bold font-heading text-dark mb-0">My Directory Listings & Claims</h4>
                         <small class="text-muted">Listings owned or claimed by your user account (+91 <?php echo htmlspecialchars($user['mobile']); ?>)</small>
                     </div>
-                    <div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-warning text-dark btn-sm rounded-pill fw-bold shadow-xs" data-bs-toggle="modal" data-bs-target="#claimSearchModal">
+                            <i class="bi bi-shield-check me-1"></i> Claim Business
+                        </button>
+                        <a href="add-contact.php" class="btn btn-outline-primary btn-sm rounded-pill fw-bold">
+                            <i class="bi bi-plus-circle me-1"></i> Add Business
+                        </a>
                         <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-2 rounded-pill">
                             Total: <?php echo count($userListings); ?> Listing<?php echo count($userListings) === 1 ? '' : 's'; ?>
                         </span>
@@ -254,10 +288,15 @@ require_once __DIR__ . '/includes/header.php';
                     <div class="text-center py-5">
                         <div class="text-muted display-4 mb-3"><i class="bi bi-shop-window"></i></div>
                         <h5 class="fw-bold text-dark mb-2">No Listings Found</h5>
-                        <p class="text-muted small mx-auto mb-4" style="max-width: 420px;">No directory listings are available in this view.</p>
-                        <a href="add-contact.php" class="btn btn-warning text-dark fw-bold rounded-pill px-4">
-                            <i class="bi bi-plus-circle me-1"></i> Submit Business Free
-                        </a>
+                        <p class="text-muted small mx-auto mb-4" style="max-width: 420px;">No directory listings are linked to this user account yet.</p>
+                        <div class="d-flex flex-wrap justify-content-center gap-2">
+                            <button type="button" class="btn btn-warning text-dark fw-bold rounded-pill px-4 shadow-xs" data-bs-toggle="modal" data-bs-target="#claimSearchModal">
+                                <i class="bi bi-shield-check me-1"></i> Claim Existing Business
+                            </button>
+                            <a href="add-contact.php" class="btn btn-outline-primary fw-bold rounded-pill px-4">
+                                <i class="bi bi-plus-circle me-1"></i> Submit New Business Free
+                            </a>
+                        </div>
                     </div>
                 <?php else: ?>
                     <!-- Mobile Card View (< md screens) -->
@@ -779,6 +818,83 @@ require_once __DIR__ . '/includes/header.php';
                 <div class="modal-footer bg-white p-3 border-top">
                     <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" id="upgradePayBtn" class="btn btn-primary rounded-pill px-4 fw-bold"><i class="bi bi-lock-fill me-1"></i> Pay via Razorpay</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Claim Existing Business Modal -->
+<div class="modal fade" id="claimSearchModal" tabindex="-1" aria-labelledby="claimSearchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-dark text-white py-3 px-4">
+                <h5 class="modal-title fw-bold" id="claimSearchModalLabel">
+                    <i class="bi bi-shield-check text-warning me-2"></i>Claim Existing Business Listing
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="dashboard.php" method="POST">
+                <input type="hidden" name="action" value="claim_business">
+                <div class="modal-body p-4">
+                    <div class="alert alert-info border-0 rounded-3 mb-4 small d-flex align-items-center">
+                        <i class="bi bi-info-circle-fill text-info fs-4 me-3"></i>
+                        <div>
+                            Are you the owner, manager, or authorized representative of an existing business listed on Saran Index? Submit your claim for admin verification.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="claim_listing_select" class="form-label fw-bold text-dark small">1. Select Business Listing to Claim *</label>
+                        <select name="listing_id" id="claim_listing_select" class="form-select rounded-3" required>
+                            <option value="">-- Choose Existing Business from Saran Index Directory --</option>
+                            <?php 
+                            $db_claim_select = getDB();
+                            if ($db_claim_select) {
+                                $all_listings = $db_claim_select->query("SELECT id, title, mobile, address FROM listings ORDER BY title ASC")->fetchAll(PDO::FETCH_ASSOC);
+                                foreach ($all_listings as $al) {
+                                    echo '<option value="' . $al['id'] . '">' . htmlspecialchars($al['title']) . ' (ID #' . $al['id'] . ' - ' . htmlspecialchars($al['mobile']) . ')</option>';
+                                }
+                            }
+                            ?>
+                        </select>
+                        <small class="text-muted extra-small">Can't find your business? You can also <a href="search.php" target="_blank" class="fw-semibold">search directory listings</a> or <a href="add-contact.php" target="_blank" class="fw-semibold">add a new listing free</a>.</small>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-dark small">2. Claimant Full Name *</label>
+                            <input type="text" name="claimant_name" class="form-control rounded-3" value="<?php echo sanitizeInput($user['full_name'] ?? ''); ?>" required placeholder="e.g. Kumar Gaurav">
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-dark small">3. Claimant Contact Mobile *</label>
+                            <input type="tel" name="claimant_mobile" class="form-control rounded-3" value="<?php echo sanitizeInput($user['mobile'] ?? ''); ?>" required placeholder="10-digit mobile number" maxlength="10">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-dark small">4. Designation / Role *</label>
+                            <select name="role_title" class="form-select rounded-3">
+                                <option value="Owner / Proprietor">Owner / Proprietor</option>
+                                <option value="Authorized Manager">Authorized Manager</option>
+                                <option value="Business Partner">Business Partner</option>
+                                <option value="Official Representative">Official Representative</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-dark small">5. Verification Proof / GST / Reg. No. (Optional)</label>
+                            <input type="text" name="verification_proof" class="form-control rounded-3" placeholder="GSTIN, Udyam, Registration No. or ID proof">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light py-3 px-4 border-top">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning text-dark fw-bold rounded-pill px-4 shadow-sm">
+                        <i class="bi bi-shield-check me-1"></i> Submit Ownership Claim
+                    </button>
                 </div>
             </form>
         </div>
