@@ -62,6 +62,7 @@ if ($export_action === 'selected' && !empty($selected_ids)) {
             LEFT JOIN blocks b ON l.block_id = b.id 
             LEFT JOIN panchayats p ON l.panchayat_id = p.id
             LEFT JOIN villages v ON l.village_id = v.id
+            LEFT JOIN users u ON l.user_id = u.id
             WHERE 1=1";
     $params = [];
 
@@ -71,8 +72,45 @@ if ($export_action === 'selected' && !empty($selected_ids)) {
     }
 
     if (!empty($search_query)) {
-        $sql .= " AND (l.title LIKE :search OR l.hindi_title LIKE :search OR l.mobile LIKE :search OR l.contact_person LIKE :search)";
-        $params['search'] = '%' . $search_query . '%';
+        $cleanSearch = trim($search_query);
+        if (strtolower($cleanSearch) === 'verified') {
+            $sql .= " AND l.is_verified = 'YES'";
+        } else {
+            $idSearch = ltrim($cleanSearch, '#');
+            $sVal = '%' . $cleanSearch . '%';
+            
+            $sql .= " AND (
+                l.title LIKE :s1 
+                OR l.hindi_title LIKE :s2 
+                OR l.mobile LIKE :s3 
+                OR l.whatsapp LIKE :s4
+                OR l.contact_person LIKE :s5
+                OR l.address LIKE :s6
+                OR l.email LIKE :s7
+                OR l.pincode LIKE :s8
+                OR l.services LIKE :s9
+                OR l.products LIKE :s10
+                OR l.slug LIKE :s11
+                OR c.name LIKE :s12
+                OR c.hindi_name LIKE :s13
+                OR sc.name LIKE :s14
+                OR sc.hindi_name LIKE :s15
+                OR b.name LIKE :s16
+                OR b.hindi_name LIKE :s17
+                OR u.full_name LIKE :s18
+                OR u.designation LIKE :s19";
+
+            if (is_numeric($idSearch)) {
+                $sql .= " OR l.id = :id_search";
+                $params['id_search'] = intval($idSearch);
+            }
+
+            $sql .= ")";
+
+            for ($i = 1; $i <= 19; $i++) {
+                $params['s' . $i] = $sVal;
+            }
+        }
     }
 
     $sql .= " ORDER BY l.id DESC";

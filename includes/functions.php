@@ -972,11 +972,13 @@ function getAllAdminListings($status = null, $search = null, $category_id = null
     $db = getDB();
     if ($db) {
         try {
-            $sql = "SELECT l.*, c.name as category_name, c.id as cat_id, sc.name as subcategory_name, sc.id as sub_cat_id, b.name as block_name 
+            $sql = "SELECT l.*, c.name as category_name, c.id as cat_id, sc.name as subcategory_name, sc.id as sub_cat_id, b.name as block_name, u.full_name as user_full_name, u.designation as user_designation 
                     FROM listings l 
                     LEFT JOIN categories c ON l.category_id = c.id 
                     LEFT JOIN subcategories sc ON l.subcategory_id = sc.id 
-                    LEFT JOIN blocks b ON l.block_id = b.id WHERE 1=1";
+                    LEFT JOIN blocks b ON l.block_id = b.id 
+                    LEFT JOIN users u ON l.user_id = u.id 
+                    WHERE 1=1";
             $params = [];
 
             if (!empty($status)) {
@@ -1004,6 +1006,9 @@ function getAllAdminListings($status = null, $search = null, $category_id = null
                 if (strtolower($cleanSearch) === 'verified') {
                     $sql .= " AND l.is_verified = 'YES'";
                 } else {
+                    $idSearch = ltrim($cleanSearch, '#');
+                    $sVal = '%' . $cleanSearch . '%';
+                    
                     $sql .= " AND (
                         l.title LIKE :s1 
                         OR l.hindi_title LIKE :s2 
@@ -1011,28 +1016,30 @@ function getAllAdminListings($status = null, $search = null, $category_id = null
                         OR l.whatsapp LIKE :s4
                         OR l.contact_person LIKE :s5
                         OR l.address LIKE :s6
-                        OR l.designation LIKE :s7
-                        OR c.name LIKE :s8
-                        OR c.hindi_name LIKE :s9
-                        OR sc.name LIKE :s10
-                        OR sc.hindi_name LIKE :s11
-                        OR b.name LIKE :s12
-                        OR b.hindi_name LIKE :s13
-                    )";
-                    $sVal = '%' . $cleanSearch . '%';
-                    $params['s1'] = $sVal;
-                    $params['s2'] = $sVal;
-                    $params['s3'] = $sVal;
-                    $params['s4'] = $sVal;
-                    $params['s5'] = $sVal;
-                    $params['s6'] = $sVal;
-                    $params['s7'] = $sVal;
-                    $params['s8'] = $sVal;
-                    $params['s9'] = $sVal;
-                    $params['s10'] = $sVal;
-                    $params['s11'] = $sVal;
-                    $params['s12'] = $sVal;
-                    $params['s13'] = $sVal;
+                        OR l.email LIKE :s7
+                        OR l.pincode LIKE :s8
+                        OR l.services LIKE :s9
+                        OR l.products LIKE :s10
+                        OR l.slug LIKE :s11
+                        OR c.name LIKE :s12
+                        OR c.hindi_name LIKE :s13
+                        OR sc.name LIKE :s14
+                        OR sc.hindi_name LIKE :s15
+                        OR b.name LIKE :s16
+                        OR b.hindi_name LIKE :s17
+                        OR u.full_name LIKE :s18
+                        OR u.designation LIKE :s19";
+
+                    if (is_numeric($idSearch)) {
+                        $sql .= " OR l.id = :id_search";
+                        $params['id_search'] = intval($idSearch);
+                    }
+
+                    $sql .= ")";
+
+                    for ($i = 1; $i <= 19; $i++) {
+                        $params['s' . $i] = $sVal;
+                    }
                 }
             }
 

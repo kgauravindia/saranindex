@@ -83,11 +83,12 @@ $listings = getAllAdminListings($status_filter, $search_query, $category_filter,
     <div class="row g-3 align-items-center">
         <!-- Status Filter Nav Pills -->
         <div class="col-12 col-md-7">
+            <?php $searchQueryParam = !empty($search_query) ? '&search=' . urlencode($search_query) : ''; ?>
             <div class="nav nav-pills small gap-1">
-                <a href="listings.php" class="nav-link px-3 py-1.5 rounded-pill <?php echo empty($status_filter) ? 'active bg-primary' : 'bg-light text-dark border'; ?>">All</a>
-                <a href="listings.php?status=ACTIVE" class="nav-link px-3 py-1.5 rounded-pill <?php echo $status_filter === 'ACTIVE' ? 'active bg-success' : 'bg-light text-dark border'; ?>">Active</a>
-                <a href="listings.php?status=PENDING" class="nav-link px-3 py-1.5 rounded-pill <?php echo $status_filter === 'PENDING' ? 'active bg-warning text-dark' : 'bg-light text-dark border'; ?>">Pending Approvals</a>
-                <a href="listings.php?status=REJECTED" class="nav-link px-3 py-1.5 rounded-pill <?php echo $status_filter === 'REJECTED' ? 'active bg-danger' : 'bg-light text-dark border'; ?>">Rejected</a>
+                <a href="listings.php<?php echo !empty($search_query) ? '?search=' . urlencode($search_query) : ''; ?>" class="nav-link px-3 py-1.5 rounded-pill <?php echo empty($status_filter) ? 'active bg-primary' : 'bg-light text-dark border'; ?>">All</a>
+                <a href="listings.php?status=ACTIVE<?php echo $searchQueryParam; ?>" class="nav-link px-3 py-1.5 rounded-pill <?php echo $status_filter === 'ACTIVE' ? 'active bg-success' : 'bg-light text-dark border'; ?>">Active</a>
+                <a href="listings.php?status=PENDING<?php echo $searchQueryParam; ?>" class="nav-link px-3 py-1.5 rounded-pill <?php echo $status_filter === 'PENDING' ? 'active bg-warning text-dark' : 'bg-light text-dark border'; ?>">Pending Approvals</a>
+                <a href="listings.php?status=REJECTED<?php echo $searchQueryParam; ?>" class="nav-link px-3 py-1.5 rounded-pill <?php echo $status_filter === 'REJECTED' ? 'active bg-danger' : 'bg-light text-dark border'; ?>">Rejected</a>
             </div>
         </div>
 
