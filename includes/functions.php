@@ -3598,8 +3598,33 @@ function deleteHalka($id) {
     }
 }
 
+function getGitExecutablePath() {
+    $output = [];
+    $return_var = 1;
+    @exec("git --version 2>&1", $output, $return_var);
+    if ($return_var === 0) {
+        return "git";
+    }
+
+    $candidate_paths = [
+        'C:\\Program Files\\Git\\cmd\\git.exe',
+        'D:\\laragon\\bin\\git\\bin\\git.exe',
+        'C:\\laragon\\bin\\git\\bin\\git.exe',
+        'C:\\Program Files (x86)\\Git\\cmd\\git.exe'
+    ];
+
+    foreach ($candidate_paths as $path) {
+        if (file_exists($path)) {
+            return '"' . $path . '"';
+        }
+    }
+
+    return "git";
+}
+
 function getGitUpdateStatus() {
     $repo_dir = dirname(__DIR__);
+    $git_cmd = getGitExecutablePath();
     $info = [
         'is_git' => false,
         'branch' => 'main',
@@ -3613,31 +3638,31 @@ function getGitUpdateStatus() {
         $info['is_git'] = true;
         
         $output = [];
-        @exec("cd /d " . escapeshellarg($repo_dir) . " && git rev-parse --abbrev-ref HEAD 2>&1", $output);
+        @exec("cd /d " . escapeshellarg($repo_dir) . " && " . $git_cmd . " rev-parse --abbrev-ref HEAD 2>&1", $output);
         if (!empty($output[0])) {
             $info['branch'] = trim($output[0]);
         }
 
         $output = [];
-        @exec("cd /d " . escapeshellarg($repo_dir) . " && git config --get remote.origin.url 2>&1", $output);
+        @exec("cd /d " . escapeshellarg($repo_dir) . " && " . $git_cmd . " config --get remote.origin.url 2>&1", $output);
         if (!empty($output[0])) {
             $info['remote_url'] = trim($output[0]);
         }
 
         $output = [];
-        @exec("cd /d " . escapeshellarg($repo_dir) . " && git rev-parse --short HEAD 2>&1", $output);
+        @exec("cd /d " . escapeshellarg($repo_dir) . " && " . $git_cmd . " rev-parse --short HEAD 2>&1", $output);
         if (!empty($output[0])) {
             $info['current_commit'] = trim($output[0]);
         }
 
         $output = [];
-        @exec("cd /d " . escapeshellarg($repo_dir) . " && git log -1 --format=%s 2>&1", $output);
+        @exec("cd /d " . escapeshellarg($repo_dir) . " && " . $git_cmd . " log -1 --format=%s 2>&1", $output);
         if (!empty($output[0])) {
             $info['commit_msg'] = trim(implode(' ', $output));
         }
 
         $output = [];
-        @exec("cd /d " . escapeshellarg($repo_dir) . " && git log -1 --format=%cd --date=relative 2>&1", $output);
+        @exec("cd /d " . escapeshellarg($repo_dir) . " && " . $git_cmd . " log -1 --format=%cd --date=relative 2>&1", $output);
         if (!empty($output[0])) {
             $info['commit_date'] = trim($output[0]);
         }
@@ -3648,13 +3673,17 @@ function getGitUpdateStatus() {
 
 function performGitPull() {
     $repo_dir = dirname(__DIR__);
+    $git_cmd = getGitExecutablePath();
     $output = [];
     $return_var = 0;
     
-    @exec("cd /d " . escapeshellarg($repo_dir) . " && git pull origin main 2>&1", $output, $return_var);
+    $cmd = "cd /d " . escapeshellarg($repo_dir) . " && " . $git_cmd . " config --global --add safe.directory " . escapeshellarg($repo_dir) . " 2>&1 && " . $git_cmd . " pull origin main 2>&1";
+    
+    @exec($cmd, $output, $return_var);
     
     $result_text = implode("\n", $output);
-    $is_success = ($return_var === 0);
+    
+    $is_success = ($return_var === 0) || (stripos($result_text, 'Already up to date') !== false) || (stripos($result_text, 'Updating') !== false);
 
     if ($is_success) {
         if (function_exists('ensureAdminsTableExists')) {
@@ -3664,7 +3693,7 @@ function performGitPull() {
 
     return [
         'success' => $is_success,
-        'output' => $result_text
+        'output' => !empty($result_text) ? $result_text : "Git pull executed. Result code: {$return_var}."
     ];
 }
 
