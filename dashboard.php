@@ -262,7 +262,9 @@ require_once __DIR__ . '/includes/header.php';
                 <?php else: ?>
                     <!-- Mobile Card View (< md screens) -->
                     <div class="d-block d-md-none">
-                        <?php foreach ($userListings as $l): ?>
+                        <?php foreach ($userListings as $l): 
+                            $cStatus = $l['claim_status'] ?? null;
+                        ?>
                             <div class="card border rounded-3 p-3 mb-3 shadow-xs bg-white">
                                 <div class="d-flex align-items-start justify-content-between mb-2 gap-2">
                                     <div>
@@ -272,7 +274,11 @@ require_once __DIR__ . '/includes/header.php';
                                         </span>
                                     </div>
                                     <div>
-                                        <?php if ($l['status'] === 'ACTIVE'): ?>
+                                        <?php if ($cStatus === 'PENDING'): ?>
+                                            <span class="badge bg-warning text-dark px-2 py-1 rounded-pill small"><i class="bi bi-hourglass-split me-1"></i>Claim Pending</span>
+                                        <?php elseif ($cStatus === 'APPROVED'): ?>
+                                            <span class="badge bg-success text-white px-2 py-1 rounded-pill small"><i class="bi bi-shield-check me-1"></i>Claim Approved</span>
+                                        <?php elseif ($l['status'] === 'ACTIVE'): ?>
                                             <span class="badge bg-success-subtle text-success px-2 py-1 rounded-pill small"><i class="bi bi-check-circle me-1"></i>Active</span>
                                         <?php elseif ($l['status'] === 'PENDING'): ?>
                                             <span class="badge bg-warning-subtle text-dark px-2 py-1 rounded-pill small"><i class="bi bi-hourglass-split me-1"></i>Review</span>
@@ -300,12 +306,18 @@ require_once __DIR__ . '/includes/header.php';
                                         <a href="<?php echo getListingUrl($l['slug']); ?>" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1 small" title="View Listing">
                                             <i class="bi bi-eye me-1"></i>View
                                         </a>
-                                        <a href="edit-listing.php?id=<?php echo sanitizeInput($l['id']); ?>" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 small" title="Edit Listing">
-                                            <i class="bi bi-pencil me-1"></i>Edit
-                                        </a>
-                                        <button type="button" class="btn btn-sm btn-warning text-dark rounded-pill px-2.5 py-1 small fw-bold" onclick="openUpgradeModal('<?php echo sanitizeInput($l['id']); ?>', '<?php echo sanitizeInput(addslashes($l['title'])); ?>', '<?php echo sanitizeInput($l['plan_type'] ?? 'FREE'); ?>')">
-                                            <i class="bi bi-rocket-takeoff-fill me-1"></i>Upgrade
-                                        </button>
+                                        <?php if ($cStatus === 'PENDING'): ?>
+                                            <span class="badge bg-light text-muted border px-2 py-1 extra-small" title="Edit option will be unlocked after claim approval">
+                                                <i class="bi bi-lock-fill me-1"></i>Pending Review
+                                            </span>
+                                        <?php else: ?>
+                                            <a href="edit-listing.php?id=<?php echo sanitizeInput($l['id']); ?>" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 small" title="Edit About & Business Details">
+                                                <i class="bi bi-pencil me-1"></i>Edit About
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-warning text-dark rounded-pill px-2.5 py-1 small fw-bold" onclick="openUpgradeModal('<?php echo sanitizeInput($l['id']); ?>', '<?php echo sanitizeInput(addslashes($l['title'])); ?>', '<?php echo sanitizeInput($l['plan_type'] ?? 'FREE'); ?>')">
+                                                <i class="bi bi-rocket-takeoff-fill me-1"></i>Upgrade
+                                            </button>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </div>
@@ -319,12 +331,14 @@ require_once __DIR__ . '/includes/header.php';
                                 <tr>
                                     <th>Title & Category</th>
                                     <th>Plan Tier</th>
-                                    <th>Status</th>
+                                    <th>Claim & Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($userListings as $l): ?>
+                                <?php foreach ($userListings as $l): 
+                                    $cStatus = $l['claim_status'] ?? null;
+                                ?>
                                     <tr>
                                         <td>
                                             <div class="fw-bold text-dark mb-0"><?php echo htmlspecialchars($l['title']); ?></div>
@@ -344,7 +358,12 @@ require_once __DIR__ . '/includes/header.php';
                                             <?php endif; ?>
                                         </td>
                                         <td>
-                                            <?php if ($l['status'] === 'ACTIVE'): ?>
+                                            <?php if ($cStatus === 'PENDING'): ?>
+                                                <span class="badge bg-warning text-dark px-2.5 py-1 rounded-pill small"><i class="bi bi-hourglass-split me-1"></i>Claim Pending</span>
+                                                <small class="text-muted d-block extra-small">Awaiting Admin Approval</small>
+                                            <?php elseif ($cStatus === 'APPROVED'): ?>
+                                                <span class="badge bg-success text-white px-2.5 py-1 rounded-pill small"><i class="bi bi-shield-check me-1"></i>Claim Approved</span>
+                                            <?php elseif ($l['status'] === 'ACTIVE'): ?>
                                                 <span class="badge bg-success-subtle text-success px-2.5 py-1 rounded-pill small"><i class="bi bi-check-circle me-1"></i>Active</span>
                                             <?php elseif ($l['status'] === 'PENDING'): ?>
                                                 <span class="badge bg-warning-subtle text-dark px-2.5 py-1 rounded-pill small"><i class="bi bi-hourglass-split me-1"></i>Under Review</span>
@@ -357,12 +376,18 @@ require_once __DIR__ . '/includes/header.php';
                                                 <a href="<?php echo getListingUrl($l['slug']); ?>" target="_blank" class="btn btn-sm btn-outline-primary rounded-circle p-0 d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="View Listing">
                                                     <i class="bi bi-eye-fill"></i>
                                                 </a>
-                                                <a href="edit-listing.php?id=<?php echo sanitizeInput($l['id']); ?>" class="btn btn-sm btn-outline-secondary rounded-circle p-0 d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="Edit Listing">
-                                                    <i class="bi bi-pencil-square"></i>
-                                                </a>
-                                                <button type="button" class="btn btn-sm btn-warning text-dark rounded-circle p-0 d-inline-flex align-items-center justify-content-center shadow-xs" style="width: 32px; height: 32px;" title="Upgrade Membership Plan" onclick="openUpgradeModal('<?php echo sanitizeInput($l['id']); ?>', '<?php echo sanitizeInput(addslashes($l['title'])); ?>', '<?php echo sanitizeInput($l['plan_type'] ?? 'FREE'); ?>')">
-                                                    <i class="bi bi-rocket-takeoff-fill"></i>
-                                                </button>
+                                                <?php if ($cStatus === 'PENDING'): ?>
+                                                    <span class="badge bg-light text-muted border px-2 py-1 extra-small" title="Editing unlocked after approval">
+                                                        <i class="bi bi-lock-fill me-1"></i>Pending Review
+                                                    </span>
+                                                <?php else: ?>
+                                                    <a href="edit-listing.php?id=<?php echo sanitizeInput($l['id']); ?>" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 small" title="Edit About & Business Details">
+                                                        <i class="bi bi-pencil-square me-1"></i>Edit About
+                                                    </a>
+                                                    <button type="button" class="btn btn-sm btn-warning text-dark rounded-circle p-0 d-inline-flex align-items-center justify-content-center shadow-xs" style="width: 32px; height: 32px;" title="Upgrade Membership Plan" onclick="openUpgradeModal('<?php echo sanitizeInput($l['id']); ?>', '<?php echo sanitizeInput(addslashes($l['title'])); ?>', '<?php echo sanitizeInput($l['plan_type'] ?? 'FREE'); ?>')">
+                                                        <i class="bi bi-rocket-takeoff-fill"></i>
+                                                    </button>
+                                                <?php endif; ?>
                                             </div>
                                         </td>
                                     </tr>

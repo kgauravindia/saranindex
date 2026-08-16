@@ -2128,17 +2128,22 @@ function getUserListings($mobileOrUserId) {
 
     try {
         ensureClaimsTable();
-        $sql = "SELECT DISTINCT l.*, c.name as category_name, b.name as block_name 
+        $sql = "SELECT l.*, c.name as category_name, b.name as block_name,
+                       cl.id as claim_id, cl.status as claim_status, cl.role_title as claim_role
                 FROM listings l 
                 LEFT JOIN categories c ON l.category_id = c.id 
                 LEFT JOIN blocks b ON l.block_id = b.id 
-                LEFT JOIN claims cl ON l.id = cl.listing_id
+                LEFT JOIN claims cl ON (l.id = cl.listing_id AND (
+                    (:uid1 > 0 AND cl.user_id = :uid2) OR 
+                    (!empty(:mob1) AND (cl.claimant_mobile = :mob2 OR RIGHT(cl.claimant_mobile, 10) = :mob3))
+                ))
                 WHERE 
                 (
-                    (:uid1 > 0 AND l.user_id = :uid2) OR
-                    (!empty(:mob1) AND (l.mobile = :mob2 OR RIGHT(l.mobile, 10) = :mob3)) OR
-                    (cl.id IS NOT NULL AND cl.status IN ('APPROVED', 'PENDING') AND ((:uid4 > 0 AND cl.user_id = :uid5) OR (!empty(:mob4) AND (cl.claimant_mobile = :mob5 OR RIGHT(cl.claimant_mobile, 10) = :mob6))))
+                    (:uid4 > 0 AND l.user_id = :uid5) OR
+                    (!empty(:mob4) AND (l.mobile = :mob5 OR RIGHT(l.mobile, 10) = :mob6)) OR
+                    (cl.id IS NOT NULL AND cl.status IN ('APPROVED', 'PENDING'))
                 )
+                GROUP BY l.id
                 ORDER BY l.id DESC";
         $stmt = $db->prepare($sql);
         $stmt->execute([

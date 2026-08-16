@@ -345,6 +345,92 @@ $all_categories = getCategoriesList();
     </div>
 </form>
 
+<?php 
+$user_listings_admin = getUserListings($user_id);
+?>
+
+<!-- User Claimed Businesses & Directory Listings Card -->
+<div class="card border-0 shadow-sm rounded-3 mt-4 mb-4">
+    <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+        <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-shop-window text-primary me-2"></i>User Claimed Businesses & Directory Listings</h5>
+        <span class="badge bg-primary rounded-pill px-3 py-1.5 fw-semibold">Total: <?php echo count($user_listings_admin); ?></span>
+    </div>
+    <div class="card-body p-0">
+        <?php if (empty($user_listings_admin)): ?>
+            <div class="text-center py-4 text-muted small">
+                <i class="bi bi-shop fs-3 d-block mb-2 opacity-50"></i>
+                No listings or business claims associated with this user account yet.
+            </div>
+        <?php else: ?>
+            <div class="table-responsive">
+                <table class="table align-middle table-hover mb-0">
+                    <thead class="bg-light small text-uppercase">
+                        <tr>
+                            <th style="width: 50px;">#ID</th>
+                            <th>Business Title & Category</th>
+                            <th>Mobile / Contact</th>
+                            <th>Claim Status</th>
+                            <th>Listing Status</th>
+                            <th class="text-end">Admin Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($user_listings_admin as $ul): 
+                            $cStatus = $ul['claim_status'] ?? null;
+                        ?>
+                            <tr>
+                                <td class="fw-bold text-muted">#<?php echo $ul['id']; ?></td>
+                                <td>
+                                    <div class="fw-bold text-dark mb-0.5"><?php echo sanitizeInput($ul['title']); ?></div>
+                                    <small class="text-muted"><i class="bi bi-tag me-1"></i><?php echo sanitizeInput($ul['category_name'] ?? 'General'); ?></small>
+                                </td>
+                                <td>
+                                    <small class="fw-semibold text-dark"><?php echo sanitizeInput($ul['mobile']); ?></small>
+                                </td>
+                                <td>
+                                    <?php if ($cStatus === 'PENDING'): ?>
+                                        <span class="badge bg-warning text-dark px-2.5 py-1 rounded-pill small"><i class="bi bi-hourglass-split me-1"></i>Claim Pending</span>
+                                    <?php elseif ($cStatus === 'APPROVED'): ?>
+                                        <span class="badge bg-success text-white px-2.5 py-1 rounded-pill small"><i class="bi bi-shield-check me-1"></i>Claim Approved</span>
+                                    <?php else: ?>
+                                        <span class="badge bg-light text-secondary border px-2.5 py-1 rounded-pill small">Direct Listing</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?php if ($ul['status'] === 'ACTIVE'): ?>
+                                        <span class="badge bg-success-subtle text-success px-2.5 py-1 rounded-pill small">Active</span>
+                                    <?php elseif ($ul['status'] === 'PENDING'): ?>
+                                        <span class="badge bg-warning-subtle text-dark px-2.5 py-1 rounded-pill small">Pending</span>
+                                    <?php else: ?>
+                                        <span class="badge bg-danger-subtle text-danger px-2.5 py-1 rounded-pill small">Inactive</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="../<?php echo sanitizeInput($ul['slug']); ?>" target="_blank" class="btn btn-outline-info" title="View Public Listing">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <?php if ($cStatus === 'PENDING'): ?>
+                                            <a href="claims.php?status=PENDING" class="btn btn-outline-warning fw-semibold px-2" title="Review Pending Claim in Admin">
+                                                <i class="bi bi-shield-lock me-1"></i>Review Claim
+                                            </a>
+                                        <?php else: ?>
+                                            <a href="listing_edit.php?id=<?php echo $ul['id']; ?>" class="btn btn-outline-secondary" title="Edit Listing Details & About">
+                                                <i class="bi bi-pencil-square me-1"></i>Edit About / Info
+                                            </a>
+                                            <!-- Note: No Delete option for claimed business listing -->
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const blockSelect = document.getElementById('block_id');
