@@ -408,7 +408,7 @@ require_once __DIR__ . '/includes/header.php';
                             <?php endif; ?>
                         </a>
                         <div class="flex-grow-1 min-w-0">
-                            <small class="text-muted d-block fw-semibold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Listed By Professional</small>
+                            <small class="text-muted d-block fw-semibold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Listed By</small>
                             <a href="<?php echo $ownerProfileUrl; ?>" class="text-decoration-none text-dark fw-bold fs-6 text-truncate d-block">
                                 <?php echo sanitizeInput($listing['owner_name']); ?>
                                 <i class="bi bi-patch-check-fill text-primary ms-1" title="Verified Member"></i>

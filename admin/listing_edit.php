@@ -249,20 +249,6 @@ if (!empty($listing['category_id'])) {
                         <input type="text" class="form-control form-control-lg fs-6" id="title" name="title" value="<?php echo sanitizeInput($listing['title']); ?>" required>
                     </div>
 
-                    <div class="col-12 col-md-4">
-                        <label for="entity_type" class="form-label small fw-semibold">Entity Classification</label>
-                        <select class="form-select" id="entity_type" name="entity_type">
-                            <option value="BUSINESS" <?php echo $listing['entity_type'] === 'BUSINESS' ? 'selected' : ''; ?>>Business / Retail Shop</option>
-                            <option value="PROFESSIONAL" <?php echo $listing['entity_type'] === 'PROFESSIONAL' ? 'selected' : ''; ?>>Professional / Legal / Advocate</option>
-                            <option value="HEALTHCARE" <?php echo $listing['entity_type'] === 'HEALTHCARE' ? 'selected' : ''; ?>>Healthcare / Hospital / Clinic</option>
-                            <option value="GOVT_OFFICE" <?php echo $listing['entity_type'] === 'GOVT_OFFICE' ? 'selected' : ''; ?>>Government Office</option>
-                            <option value="SCHOOL_COLLEGE" <?php echo $listing['entity_type'] === 'SCHOOL_COLLEGE' ? 'selected' : ''; ?>>School / College / Coaching</option>
-                            <option value="EMERGENCY" <?php echo $listing['entity_type'] === 'EMERGENCY' ? 'selected' : ''; ?>>Emergency Service</option>
-                            <option value="BANK" <?php echo $listing['entity_type'] === 'BANK' ? 'selected' : ''; ?>>Bank / ATM</option>
-                            <option value="HOTEL" <?php echo $listing['entity_type'] === 'HOTEL' ? 'selected' : ''; ?>>Hotel / Restaurant</option>
-                        </select>
-                    </div>
-
                     <div class="col-12 col-md-6">
                         <label for="hindi_title" class="form-label small fw-semibold">Hindi Name (हिंदी नाम)</label>
                         <input type="text" class="form-control" id="hindi_title" name="hindi_title" value="<?php echo sanitizeInput($listing['hindi_title']); ?>">

@@ -419,7 +419,6 @@ $blocks_list = getBlocks();
                                 <td><span class="badge bg-light text-dark border"><?php echo sanitizeInput($item['category_name'] ?: 'General'); ?></span></td>
                                 <td><span class="badge bg-light text-primary border"><?php echo sanitizeInput($item['block_name'] ?: 'Chapra Sadar'); ?></span></td>
                                 <td>
-                                    <span class="badge bg-secondary-subtle text-secondary small me-1"><?php echo sanitizeInput($item['entity_type']); ?></span>
                                     <span class="badge bg-warning-subtle text-dark small"><?php echo sanitizeInput($item['plan_type']); ?></span>
                                 </td>
                                 <td>
