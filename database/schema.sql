@@ -63,7 +63,6 @@ CREATE TABLE IF NOT EXISTS `subcategories` (
 -- 6. Core Listings Table
 CREATE TABLE IF NOT EXISTS `listings` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `entity_type` ENUM('BUSINESS','PROFESSIONAL','GOVT_OFFICE','SCHOOL_COLLEGE','HEALTHCARE','EMERGENCY','BANK','HOTEL') DEFAULT 'BUSINESS',
     `category_id` INT NOT NULL,
     `subcategory_id` INT DEFAULT NULL,
     `block_id` INT DEFAULT NULL,

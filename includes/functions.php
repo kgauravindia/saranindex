@@ -578,6 +578,11 @@ function removeTableDependencies() {
                 // Ignore if already dropped
             }
         }
+        try {
+            $db->exec("ALTER TABLE `listings` DROP COLUMN `entity_type`");
+        } catch (Exception $e) {
+            // Already dropped
+        }
     } catch (Exception $e) {
         error_log("removeTableDependencies error: " . $e->getMessage());
     }
