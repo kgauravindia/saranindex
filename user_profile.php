@@ -34,15 +34,38 @@ if ($is_private && !$is_admin && !$is_owner) {
     exit;
 }
 
-// Fetch user's listings on Saran Index
+// Fetch user's listings on Saran Index (by user_id OR matching mobile number)
 $user_listings = [];
+$user_mobile = preg_replace('/[^0-9]/', '', (string)($user['mobile'] ?? ''));
+$clean_mobile10 = (strlen($user_mobile) >= 10) ? substr($user_mobile, -10) : $user_mobile;
+
 $db = getDB();
 if ($db) {
     try {
-        $lStmt = $db->prepare("SELECT l.*, c.name as category_name, b.name as block_name FROM listings l LEFT JOIN categories c ON l.category_id = c.id LEFT JOIN blocks b ON l.block_id = b.id WHERE l.user_id = :uid AND l.status = 'ACTIVE' ORDER BY l.id DESC");
-        $lStmt->execute(['uid' => $user['id']]);
+        // Auto-heal: Link orphaned listings matching user's mobile number
+        if ($user['id'] > 0 && !empty($clean_mobile10)) {
+            $db->prepare("UPDATE listings SET user_id = :uid WHERE (user_id IS NULL OR user_id = 0) AND (mobile = :mob OR RIGHT(mobile, 10) = :m10 OR mobile LIKE :m_like)")
+               ->execute(['uid' => $user['id'], 'mob' => $user_mobile, 'm10' => $clean_mobile10, 'm_like' => '%' . $clean_mobile10]);
+        }
+
+        $lStmt = $db->prepare("SELECT l.*, c.name as category_name, b.name as block_name 
+                               FROM listings l 
+                               LEFT JOIN categories c ON l.category_id = c.id 
+                               LEFT JOIN blocks b ON l.block_id = b.id 
+                               WHERE (l.user_id = :uid OR (:mob != '' AND (l.mobile = :mob1 OR RIGHT(l.mobile, 10) = :m10 OR l.mobile LIKE :m_like))) 
+                               AND l.status = 'ACTIVE' 
+                               ORDER BY l.id DESC");
+        $lStmt->execute([
+            'uid' => $user['id'],
+            'mob' => $user_mobile,
+            'mob1' => $user_mobile,
+            'm10' => $clean_mobile10,
+            'm_like' => !empty($clean_mobile10) ? '%' . $clean_mobile10 : '___NO_MATCH___'
+        ]);
         $user_listings = $lStmt->fetchAll(PDO::FETCH_ASSOC);
-    } catch (PDOException $e) {}
+    } catch (PDOException $e) {
+        error_log("user_profile.php listings fetch error: " . $e->getMessage());
+    }
 }
 
 $page_handle = !empty($user['username_handle']) ? $user['username_handle'] : ('@' . slugify($user['full_name']));
