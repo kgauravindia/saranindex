@@ -27,7 +27,7 @@ try {
                 l.hindi_title LIKE :q2 OR 
                 (:m != '' AND (l.mobile LIKE :m1 OR RIGHT(l.mobile, 10) = :m10))
             ) 
-            AND l.status = 'ACTIVE' 
+            AND l.status IN ('ACTIVE', 'PENDING') 
             ORDER BY l.title ASC 
             LIMIT 15";
 
@@ -40,8 +40,17 @@ try {
         'm10' => !empty($cleanMobile10) ? $cleanMobile10 : '___NO_MATCH___'
     ]);
 
-    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    echo json_encode($results ?: []);
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $results = [];
+    foreach ($rows as $r) {
+        $results[] = [
+            'id' => (int)$r['id'],
+            'title' => htmlspecialchars($r['title'], ENT_QUOTES, 'UTF-8'),
+            'mobile' => $r['mobile'] ?? '',
+            'block_name' => $r['block_name'] ?? 'Saran'
+        ];
+    }
+    echo json_encode($results);
 } catch (Exception $e) {
     echo json_encode([]);
 }

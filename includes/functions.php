@@ -640,16 +640,65 @@ function submitBusinessClaim($listingId, $userId, $name, $mobile, $role, $proof)
     ensureClaimsTable();
     $db = getDB();
     if (!$db) return false;
+
+    $listingId = intval($listingId);
+    if ($listingId <= 0) return false;
+
     try {
-        $stmt = $db->prepare("INSERT INTO claims (listing_id, user_id, claimant_name, claimant_mobile, role_title, verification_proof, status) VALUES (:lid, :uid, :cname, :cmob, :role, :proof, 'PENDING')");
-        return $stmt->execute([
-            'lid' => intval($listingId),
-            'uid' => !empty($userId) ? intval($userId) : null,
-            'cname' => sanitizeInput($name),
-            'cmob' => sanitizeInput($mobile),
-            'role' => sanitizeInput($role),
-            'proof' => sanitizeInput($proof)
+        // Fetch listing details to compare mobile number
+        $lStmt = $db->prepare("SELECT id, mobile, user_id FROM listings WHERE id = :id LIMIT 1");
+        $lStmt->execute(['id' => $listingId]);
+        $listing = $lStmt->fetch(PDO::FETCH_ASSOC);
+        if (!$listing) return false;
+
+        $cleanClaimant = preg_replace('/[^0-9]/', '', (string)$mobile);
+        $cleanListing = preg_replace('/[^0-9]/', '', (string)($listing['mobile'] ?? ''));
+
+        $m10Claimant = (strlen($cleanClaimant) >= 10) ? substr($cleanClaimant, -10) : $cleanClaimant;
+        $m10Listing = (strlen($cleanListing) >= 10) ? substr($cleanListing, -10) : $cleanListing;
+
+        // Auto-approve if claimant mobile matches listing mobile number
+        $autoApprove = (!empty($m10Claimant) && !empty($m10Listing) && $m10Claimant === $m10Listing);
+        $claimStatus = $autoApprove ? 'APPROVED' : 'PENDING';
+
+        // Check if an existing claim exists for this listing & user/mobile
+        $chk = $db->prepare("SELECT id FROM claims WHERE listing_id = :lid AND ((user_id IS NOT NULL AND user_id = :uid) OR claimant_mobile = :mob) LIMIT 1");
+        $chk->execute([
+            'lid' => $listingId,
+            'uid' => !empty($userId) ? intval($userId) : -1,
+            'mob' => $mobile
         ]);
+        $existingClaimId = $chk->fetchColumn();
+
+        if ($existingClaimId) {
+            $stmt = $db->prepare("UPDATE claims SET claimant_name = :cname, claimant_mobile = :cmob, role_title = :role, verification_proof = :proof, status = :st WHERE id = :id");
+            $res = $stmt->execute([
+                'cname' => sanitizeInput($name),
+                'cmob' => sanitizeInput($mobile),
+                'role' => sanitizeInput($role),
+                'proof' => sanitizeInput($proof),
+                'st' => $claimStatus,
+                'id' => $existingClaimId
+            ]);
+        } else {
+            $stmt = $db->prepare("INSERT INTO claims (listing_id, user_id, claimant_name, claimant_mobile, role_title, verification_proof, status) VALUES (:lid, :uid, :cname, :cmob, :role, :proof, :st)");
+            $res = $stmt->execute([
+                'lid' => $listingId,
+                'uid' => !empty($userId) ? intval($userId) : null,
+                'cname' => sanitizeInput($name),
+                'cmob' => sanitizeInput($mobile),
+                'role' => sanitizeInput($role),
+                'proof' => sanitizeInput($proof),
+                'st' => $claimStatus
+            ]);
+        }
+
+        if ($res && ($autoApprove || $claimStatus === 'APPROVED') && !empty($userId)) {
+            $db->prepare("UPDATE listings SET user_id = :uid, is_verified = 'YES' WHERE id = :lid AND (user_id IS NULL OR user_id = 0 OR user_id = :uid2)")
+               ->execute(['uid' => intval($userId), 'lid' => $listingId, 'uid2' => intval($userId)]);
+        }
+
+        return $res;
     } catch (PDOException $e) {
         error_log("submitBusinessClaim error: " . $e->getMessage());
         return false;
