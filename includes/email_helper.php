@@ -42,6 +42,54 @@ if (!function_exists('sendSystemEmail')) {
     }
 }
 
+if (!function_exists('ensureUsersEmailColumns')) {
+    /**
+     * Auto-migrate missing email verification columns in users table
+     */
+    function ensureUsersEmailColumns() {
+        $db = getDB();
+        if (!$db) return;
+        try {
+            $cols = $db->query("SHOW COLUMNS FROM users")->fetchAll(PDO::FETCH_COLUMN);
+            if (!in_array('email_token', $cols)) {
+                $db->exec("ALTER TABLE `users` ADD COLUMN `email_token` VARCHAR(100) DEFAULT NULL");
+            }
+            if (!in_array('email_token_expiry', $cols)) {
+                $db->exec("ALTER TABLE `users` ADD COLUMN `email_token_expiry` DATETIME DEFAULT NULL");
+            }
+            if (!in_array('email_status', $cols)) {
+                $db->exec("ALTER TABLE `users` ADD COLUMN `email_status` ENUM('UNVERIFIED','VERIFIED') DEFAULT 'UNVERIFIED'");
+            }
+        } catch (Exception $e) {
+            error_log("ensureUsersEmailColumns error: " . $e->getMessage());
+        }
+    }
+}
+
+if (!function_exists('ensureListingsEmailColumns')) {
+    /**
+     * Auto-migrate missing email verification columns in listings table
+     */
+    function ensureListingsEmailColumns() {
+        $db = getDB();
+        if (!$db) return;
+        try {
+            $cols = $db->query("SHOW COLUMNS FROM listings")->fetchAll(PDO::FETCH_COLUMN);
+            if (!in_array('email_token', $cols)) {
+                $db->exec("ALTER TABLE `listings` ADD COLUMN `email_token` VARCHAR(100) DEFAULT NULL");
+            }
+            if (!in_array('email_token_expiry', $cols)) {
+                $db->exec("ALTER TABLE `listings` ADD COLUMN `email_token_expiry` DATETIME DEFAULT NULL");
+            }
+            if (!in_array('email_status', $cols)) {
+                $db->exec("ALTER TABLE `listings` ADD COLUMN `email_status` ENUM('UNVERIFIED','VERIFIED') DEFAULT 'UNVERIFIED'");
+            }
+        } catch (Exception $e) {
+            error_log("ensureListingsEmailColumns error: " . $e->getMessage());
+        }
+    }
+}
+
 if (!function_exists('sendUserEmailVerification')) {
     /**
      * Generate token & OTP, send user email verification link & code
@@ -56,6 +104,8 @@ if (!function_exists('sendUserEmailVerification')) {
         if (!$db) return ['status' => 'error', 'msg' => 'Database connection failed.'];
 
         try {
+            ensureUsersEmailColumns();
+
             $otp = sprintf("%06d", mt_rand(100000, 999999));
             $token = bin2hex(random_bytes(16)); // 32 chars
 
@@ -119,11 +169,10 @@ if (!function_exists('sendUserEmailVerification')) {
             $res['otp'] = $otp;
             $res['token'] = $token;
             return $res;
-        } catch (PDOException $e) {
+        } catch (Exception $e) {
             error_log("sendUserEmailVerification error: " . $e->getMessage());
+            return ['status' => 'error', 'msg' => 'Failed to generate verification token: ' . $e->getMessage()];
         }
-
-        return ['status' => 'error', 'msg' => 'Failed to generate verification token.'];
     }
 }
 
