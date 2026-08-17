@@ -2275,11 +2275,12 @@ function getUserListings($mobileOrUserId) {
     // Auto-heal orphaned claims & listings for user
     if ($userId > 0 && !empty($cleanMobile)) {
         try {
-            $db->prepare("UPDATE claims SET user_id = :uid WHERE status IN ('APPROVED', 'PENDING') AND (user_id IS NULL OR user_id = 0) AND (claimant_mobile = :mob OR claimant_mobile LIKE :m_like)")
-               ->execute(['uid' => $userId, 'mob' => $mobile, 'm_like' => $cleanLike]);
+            ensureClaimsTable();
+            $db->prepare("UPDATE claims SET user_id = :uid WHERE status IN ('APPROVED', 'PENDING') AND (user_id IS NULL OR user_id = 0) AND (claimant_mobile = :mob OR claimant_mobile LIKE :m_like OR RIGHT(REPLACE(REPLACE(REPLACE(claimant_mobile, ' ', ''), '-', ''), '+91', ''), 10) = :m10)")
+               ->execute(['uid' => $userId, 'mob' => $mobile, 'm_like' => $cleanLike, 'm10' => $cleanMobile]);
 
-            $db->prepare("UPDATE listings SET user_id = :uid WHERE (user_id IS NULL OR user_id = 0) AND (mobile = :mob OR mobile LIKE :m_like)")
-               ->execute(['uid' => $userId, 'mob' => $mobile, 'm_like' => $cleanLike]);
+            $db->prepare("UPDATE listings SET user_id = :uid WHERE (user_id IS NULL OR user_id = 0) AND (mobile = :mob OR mobile LIKE :m_like OR RIGHT(REPLACE(REPLACE(REPLACE(mobile, ' ', ''), '-', ''), '+91', ''), 10) = :m10_2)")
+               ->execute(['uid' => $userId, 'mob' => $mobile, 'm_like' => $cleanLike, 'm10_2' => $cleanMobile]);
 
             $db->prepare("UPDATE listings SET user_id = :uid, is_verified = 'YES' WHERE id IN (SELECT listing_id FROM claims WHERE user_id = :uid2 AND status = 'APPROVED') AND (user_id IS NULL OR user_id = 0)")
                ->execute(['uid' => $userId, 'uid2' => $userId]);
@@ -2337,22 +2338,33 @@ function getUserListings($mobileOrUserId) {
         error_log("getUserListings primary query error: " . $e->getMessage());
     }
 
-    // Fail-safe direct query fallback
+    // Resilient direct query fallback including claims table
     try {
-        $sqlFallback = "SELECT l.*, c.name as category_name, b.name as block_name
+        $sqlFallback = "SELECT l.*, c.name as category_name, b.name as block_name,
+                               cl.id as claim_id, cl.status as claim_status, cl.role_title as claim_role
                         FROM listings l 
                         LEFT JOIN categories c ON l.category_id = c.id 
                         LEFT JOIN blocks b ON l.block_id = b.id 
+                        LEFT JOIN claims cl ON (l.id = cl.listing_id AND ((:uid3 > 0 AND cl.user_id = :uid4) OR cl.claimant_mobile = :cmob1 OR cl.claimant_mobile LIKE :cmob2))
                         WHERE (:uid > 0 AND l.user_id = :uid2) 
                            OR (:mob != '' AND (l.mobile = :mob2 OR l.mobile LIKE :mob_like OR RIGHT(REPLACE(REPLACE(REPLACE(l.mobile, ' ', ''), '-', ''), '+91', ''), 10) = :m10))
+                           OR l.id IN (SELECT cl2.listing_id FROM claims cl2 WHERE (cl2.user_id = :uid5 OR cl2.claimant_mobile = :cmob3 OR cl2.claimant_mobile LIKE :cmob4) AND cl2.status IN ('APPROVED', 'PENDING'))
+                        GROUP BY l.id
                         ORDER BY l.id DESC";
         $stmtF = $db->prepare($sqlFallback);
         $stmtF->execute([
             'uid' => $userId,
             'uid2' => $userId,
+            'uid3' => $userId,
+            'uid4' => $userId,
+            'uid5' => $userId,
             'mob' => $mobile,
             'mob2' => $mobile,
             'mob_like' => $cleanLike,
+            'cmob1' => $mobile,
+            'cmob2' => $cleanLike,
+            'cmob3' => $mobile,
+            'cmob4' => $cleanLike,
             'm10' => !empty($cleanMobile) ? $cleanMobile : '___NO_MATCH___'
         ]);
         return $stmtF->fetchAll(PDO::FETCH_ASSOC);
