@@ -1198,7 +1198,6 @@ function saveListing($data, $id = null) {
     $slug = !empty($data['slug']) ? slugify($data['slug']) : slugify($data['title']);
 
     $params = [
-        'entity_type' => $data['entity_type'] ?? 'BUSINESS',
         'category_id' => intval($data['category_id'] ?? 1),
         'subcategory_id' => !empty($data['subcategory_id']) ? intval($data['subcategory_id']) : null,
         'block_id' => !empty($data['block_id']) ? intval($data['block_id']) : null,
@@ -1247,7 +1246,6 @@ function saveListing($data, $id = null) {
     try {
         if ($id) {
             $sql = "UPDATE listings SET 
-                entity_type = :entity_type,
                 category_id = :category_id,
                 subcategory_id = :subcategory_id,
                 block_id = :block_id,
@@ -1282,15 +1280,19 @@ function saveListing($data, $id = null) {
                 WHERE id = :id";
             $params['id'] = intval($id);
             $stmt = $db->prepare($sql);
-            return $stmt->execute($params);
+            $result = $stmt->execute($params);
+            if (!$result) {
+                error_log('saveListing UPDATE failed: ' . implode('|', $stmt->errorInfo()));
+            }
+            return $result;
         } else {
             $sql = "INSERT INTO listings (
-                entity_type, category_id, subcategory_id, block_id, panchayat_id, village_id,
+                category_id, subcategory_id, block_id, panchayat_id, village_id,
                 title, hindi_title, slug, contact_person, mobile, mobile_visibility, whatsapp, email, website,
                 address, pincode, map_link, business_hours, services, products, gst_no, udyam_no, cin_no, local_reg_no, description, cover_image,
                 is_verified, is_featured, status, plan_type, plan_expires_at
             ) VALUES (
-                :entity_type, :category_id, :subcategory_id, :block_id, :panchayat_id, :village_id,
+                :category_id, :subcategory_id, :block_id, :panchayat_id, :village_id,
                 :title, :hindi_title, :slug, :contact_person, :mobile, :mobile_visibility, :whatsapp, :email, :website,
                 :address, :pincode, :map_link, :business_hours, :services, :products, :gst_no, :udyam_no, :cin_no, :local_reg_no, :description, :cover_image,
                 :is_verified, :is_featured, :status, :plan_type, :plan_expires_at
