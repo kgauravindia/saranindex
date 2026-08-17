@@ -76,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
     }
 }
 
-$blocks = getAllBlocks();
+$blocks = getBlocks();
 $header_title = "Admin Profile & Password Settings";
 require_once __DIR__ . '/includes/header.php';
 ?>

@@ -104,6 +104,10 @@ function getBlocks() {
     return [];
 }
 
+function getAllBlocks() {
+    return getBlocks();
+}
+
 function getBlockBySlug($slug) {
     $db = getDB();
     if (!$db || empty($slug)) return null;
