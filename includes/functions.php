@@ -2331,11 +2331,36 @@ function getUserListings($mobileOrUserId) {
             'mob11' => $mobile,
             'mob_like5' => $cleanLike
         ]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    } catch (PDOException $e) {
-        error_log("getUserListings error: " . $e->getMessage());
-        return [];
+        $listings = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        if (!empty($listings)) return $listings;
+    } catch (Exception $e) {
+        error_log("getUserListings primary query error: " . $e->getMessage());
     }
+
+    // Fail-safe direct query fallback
+    try {
+        $sqlFallback = "SELECT l.*, c.name as category_name, b.name as block_name
+                        FROM listings l 
+                        LEFT JOIN categories c ON l.category_id = c.id 
+                        LEFT JOIN blocks b ON l.block_id = b.id 
+                        WHERE (:uid > 0 AND l.user_id = :uid2) 
+                           OR (:mob != '' AND (l.mobile = :mob2 OR l.mobile LIKE :mob_like OR RIGHT(REPLACE(REPLACE(REPLACE(l.mobile, ' ', ''), '-', ''), '+91', ''), 10) = :m10))
+                        ORDER BY l.id DESC";
+        $stmtF = $db->prepare($sqlFallback);
+        $stmtF->execute([
+            'uid' => $userId,
+            'uid2' => $userId,
+            'mob' => $mobile,
+            'mob2' => $mobile,
+            'mob_like' => $cleanLike,
+            'm10' => !empty($cleanMobile) ? $cleanMobile : '___NO_MATCH___'
+        ]);
+        return $stmtF->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $ex) {
+        error_log("getUserListings fallback error: " . $ex->getMessage());
+    }
+
+    return [];
 }
 
 function updateUserProfile($userId, $fullName, $email = '', $blockId = null, $address = '', $newPassword = '', $whatsapp = '', $businessName = '', $designation = '', $pincode = '', $panchayatId = null, $villageId = null, $bio = '') {
@@ -2649,8 +2674,10 @@ function getUserPayments($userId) {
     $uid = intval($userId);
     try {
         // Auto-heal orphaned payments linked to user's listings
-        $db->prepare("UPDATE payments SET user_id = :uid WHERE (user_id IS NULL OR user_id = 0) AND listing_id IN (SELECT id FROM listings WHERE user_id = :uid2)")
-           ->execute(['uid' => $uid, 'uid2' => $uid]);
+        try {
+            $db->prepare("UPDATE payments SET user_id = :uid WHERE (user_id IS NULL OR user_id = 0) AND listing_id IN (SELECT id FROM listings WHERE user_id = :uid2)")
+               ->execute(['uid' => $uid, 'uid2' => $uid]);
+        } catch (Exception $ex) {}
 
         $stmt = $db->prepare("SELECT p.*, l.title as listing_title 
                               FROM payments p 
@@ -2659,11 +2686,21 @@ function getUserPayments($userId) {
                                  OR p.listing_id IN (SELECT id FROM listings WHERE user_id = :uid2) 
                               ORDER BY p.id DESC");
         $stmt->execute(['uid' => $uid, 'uid2' => $uid]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    } catch (PDOException $e) {
-        error_log("getUserPayments error: " . $e->getMessage());
-        return [];
+        $payments = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        if (!empty($payments)) return $payments;
+    } catch (Exception $e) {
+        error_log("getUserPayments primary query error: " . $e->getMessage());
     }
+
+    try {
+        $stmtF = $db->prepare("SELECT * FROM payments WHERE user_id = :uid ORDER BY id DESC");
+        $stmtF->execute(['uid' => $uid]);
+        return $stmtF->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $ex) {
+        error_log("getUserPayments fallback error: " . $ex->getMessage());
+    }
+
+    return [];
 }
 
 function getAllAdminUsers($status = null, $search = null) {
