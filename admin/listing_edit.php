@@ -259,7 +259,22 @@ if (!empty($listing['category_id'])) {
                         <div class="input-group">
                             <span class="input-group-text bg-light text-muted small">saranindex.com/listing/</span>
                             <input type="text" class="form-control" id="slug" name="slug" value="<?php echo sanitizeInput($listing['slug']); ?>">
+                            <?php if (!empty($listing['slug'])): 
+                                $publicUrl = rtrim(BASE_URL, '/') . '/listing/' . htmlspecialchars($listing['slug']);
+                            ?>
+                                <button type="button" class="btn btn-outline-secondary copy-url-btn" data-url="<?php echo $publicUrl; ?>" title="Copy Full Public URL">
+                                    <i class="bi bi-clipboard"></i>
+                                </button>
+                                <a href="../<?php echo getListingUrl($listing['slug']); ?>" target="_blank" class="btn btn-outline-primary" title="Open Public Page">
+                                    <i class="bi bi-box-arrow-up-right"></i>
+                                </a>
+                            <?php endif; ?>
                         </div>
+                        <?php if (!empty($listing['slug'])): ?>
+                            <div class="form-text small text-muted">
+                                Public URL: <a href="../<?php echo getListingUrl($listing['slug']); ?>" target="_blank" class="text-primary text-decoration-none fw-semibold"><?php echo $publicUrl; ?></a>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -605,6 +620,23 @@ document.addEventListener('DOMContentLoaded', function() {
             loadVillages(this.value, 0);
         });
     }
+
+    // Copy URL Button Handler
+    document.querySelectorAll('.copy-url-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const url = this.getAttribute('data-url');
+            navigator.clipboard.writeText(url).then(() => {
+                const icon = this.querySelector('i');
+                icon.className = 'bi bi-clipboard-check text-success';
+                setTimeout(() => {
+                    icon.className = 'bi bi-clipboard';
+                }, 2000);
+            }).catch(() => {
+                prompt('Copy this URL:', url);
+            });
+        });
+    });
 });
 </script>
 

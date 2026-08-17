@@ -209,6 +209,18 @@ $listings = getAllAdminListings($status_filter, $search_query, $category_filter,
                                             </span>
                                         <?php endif; ?>
                                     </div>
+                                    <?php if (!empty($item['slug'])): 
+                                        $publicUrl = rtrim(BASE_URL, '/') . '/listing/' . htmlspecialchars($item['slug']); 
+                                    ?>
+                                        <div class="mt-1 d-flex align-items-center gap-1">
+                                            <a href="../<?php echo getListingUrl($item['slug']); ?>" target="_blank" class="badge bg-light text-primary border text-decoration-none extra-small" title="Open Public URL: <?php echo $publicUrl; ?>" style="font-size:0.7rem;">
+                                                <i class="bi bi-link-45deg"></i> listing/<?php echo htmlspecialchars($item['slug']); ?>
+                                            </a>
+                                            <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-1.5 py-0 copy-url-btn" data-url="<?php echo $publicUrl; ?>" title="Copy Public URL" style="font-size:0.65rem; line-height:1.2;">
+                                                <i class="bi bi-clipboard"></i>
+                                            </button>
+                                        </div>
+                                    <?php endif; ?>
                                 </td>
                                 <td>
                                     <div class="small fw-semibold text-dark"><i class="bi bi-geo-alt text-primary me-1"></i><?php echo sanitizeInput($item['block_name'] ?? 'Chapra Sadar'); ?></div>
@@ -340,6 +352,23 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     updateCounts();
+
+    // Copy URL Button Handler
+    document.querySelectorAll('.copy-url-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const url = this.getAttribute('data-url');
+            navigator.clipboard.writeText(url).then(() => {
+                const icon = this.querySelector('i');
+                icon.className = 'bi bi-clipboard-check text-success';
+                setTimeout(() => {
+                    icon.className = 'bi bi-clipboard';
+                }, 2000);
+            }).catch(() => {
+                prompt('Copy this URL:', url);
+            });
+        });
+    });
 });
 </script>
 

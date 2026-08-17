@@ -623,6 +623,46 @@ require_once __DIR__ . '/includes/header.php';
                 </div>
             </div>
 
+            <!-- Public URL & Share Card -->
+            <?php 
+            $publicListingUrl = rtrim(BASE_URL, '/') . '/listing/' . htmlspecialchars($listing['slug']);
+            $shareText = urlencode($listing['title'] . " - Verified on Saran Index: " . $publicListingUrl);
+            ?>
+            <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white p-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="fw-bold font-heading text-dark mb-0">
+                        <i class="bi bi-share-fill text-primary me-2"></i>Share & Public URL
+                    </h5>
+                    <span class="badge bg-primary-subtle text-primary rounded-pill px-2.5 py-1 small">Official Link</span>
+                </div>
+
+                <p class="text-muted small mb-2">Share this directory profile with customers, on social media, or WhatsApp:</p>
+
+                <!-- URL Display & Copy Field -->
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control form-control-sm bg-light text-secondary font-monospace" id="publicListingUrlInput" value="<?php echo $publicListingUrl; ?>" readonly style="font-size: 0.8rem;">
+                    <button class="btn btn-sm btn-primary fw-semibold px-3" type="button" id="copyPublicUrlBtn" data-url="<?php echo $publicListingUrl; ?>">
+                        <i class="bi bi-clipboard me-1" id="copyIcon"></i> <span id="copyBtnText">Copy</span>
+                    </button>
+                </div>
+
+                <!-- Quick Share Buttons -->
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <a href="https://api.whatsapp.com/send?text=<?php echo $shareText; ?>" target="_blank" class="btn btn-sm btn-success rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-xs" title="Share on WhatsApp">
+                        <i class="bi bi-whatsapp"></i> WhatsApp
+                    </a>
+                    <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode($publicListingUrl); ?>" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5" title="Share on Facebook">
+                        <i class="bi bi-facebook"></i> Facebook
+                    </a>
+                    <a href="https://twitter.com/intent/tweet?url=<?php echo urlencode($publicListingUrl); ?>&text=<?php echo urlencode('Check out ' . $listing['title'] . ' on Saran Index!'); ?>" target="_blank" class="btn btn-sm btn-outline-dark rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5" title="Share on X">
+                        <i class="bi bi-twitter-x"></i> X
+                    </a>
+                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5 d-none" id="nativeShareBtn" data-title="<?php echo htmlspecialchars($listing['title']); ?>" data-url="<?php echo $publicListingUrl; ?>" title="More Sharing Options">
+                        <i class="bi bi-share"></i> More
+                    </button>
+                </div>
+            </div>
+
             <?php if (!isListingClaimed($listing['id'])): ?>
                 <!-- Share & Claim Box -->
                 <div class="card border-0 shadow-sm rounded-4 bg-light text-center p-3">
@@ -633,5 +673,53 @@ require_once __DIR__ . '/includes/header.php';
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const copyBtn = document.getElementById('copyPublicUrlBtn');
+    const copyIcon = document.getElementById('copyIcon');
+    const copyBtnText = document.getElementById('copyBtnText');
+    const urlInput = document.getElementById('publicListingUrlInput');
+    const nativeShareBtn = document.getElementById('nativeShareBtn');
+
+    if (copyBtn && urlInput) {
+        copyBtn.addEventListener('click', function() {
+            const url = this.getAttribute('data-url');
+            navigator.clipboard.writeText(url).then(function() {
+                copyIcon.className = 'bi bi-clipboard-check text-white';
+                copyBtnText.textContent = 'Copied!';
+                copyBtn.classList.remove('btn-primary');
+                copyBtn.classList.add('btn-success');
+                setTimeout(function() {
+                    copyIcon.className = 'bi bi-clipboard me-1';
+                    copyBtnText.textContent = 'Copy';
+                    copyBtn.classList.remove('btn-success');
+                    copyBtn.classList.add('btn-primary');
+                }, 2000);
+            }).catch(function() {
+                urlInput.select();
+                document.execCommand('copy');
+                copyBtnText.textContent = 'Copied!';
+                setTimeout(function() {
+                    copyBtnText.textContent = 'Copy';
+                }, 2000);
+            });
+        });
+    }
+
+    if (navigator.share && nativeShareBtn) {
+        nativeShareBtn.classList.remove('d-none');
+        nativeShareBtn.addEventListener('click', function() {
+            navigator.share({
+                title: this.getAttribute('data-title'),
+                text: 'Check out ' + this.getAttribute('data-title') + ' on Saran Index Directory',
+                url: this.getAttribute('data-url')
+            }).catch(function(e) {
+                console.log('Share dismissed', e);
+            });
+        });
+    }
+});
+</script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
