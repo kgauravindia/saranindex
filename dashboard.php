@@ -470,6 +470,19 @@ require_once __DIR__ . '/includes/header.php';
                                                     <span><i class="bi bi-geo-alt me-1 text-primary"></i><?php echo htmlspecialchars($l['block_name']); ?></span>
                                                 <?php endif; ?>
                                             </div>
+                                            <?php if (!empty($l['slug'])): 
+                                                $publicUrl = rtrim(BASE_URL, '/') . '/listing/' . htmlspecialchars($l['slug']);
+                                            ?>
+                                            <div class="d-flex align-items-center gap-2 mt-2 p-2 bg-light rounded-3 border" style="max-width: 100%;">
+                                                <i class="bi bi-link-45deg text-primary flex-shrink-0"></i>
+                                                <a href="<?php echo $publicUrl; ?>" target="_blank" class="text-primary text-decoration-none extra-small fw-semibold text-truncate" style="max-width: 340px;" title="<?php echo $publicUrl; ?>">
+                                                    <?php echo $publicUrl; ?>
+                                                </a>
+                                                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-0 flex-shrink-0 copy-url-btn" data-url="<?php echo $publicUrl; ?>" title="Copy Public URL" style="font-size:0.7rem;">
+                                                    <i class="bi bi-clipboard"></i>
+                                                </button>
+                                            </div>
+                                            <?php endif; ?>
                                         </div>
 
                                         <!-- Right Buttons Group -->
@@ -786,6 +799,27 @@ require_once __DIR__ . '/includes/header.php';
 <script>
 // Live AJAX Claim Business Search Script
 document.addEventListener('DOMContentLoaded', function() {
+
+    // Copy Public URL to Clipboard
+    document.querySelectorAll('.copy-url-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const url = this.getAttribute('data-url');
+            navigator.clipboard.writeText(url).then(() => {
+                const icon = this.querySelector('i');
+                icon.className = 'bi bi-clipboard-check text-success';
+                this.classList.add('btn-success', 'text-white');
+                this.classList.remove('btn-outline-secondary');
+                setTimeout(() => {
+                    icon.className = 'bi bi-clipboard';
+                    this.classList.remove('btn-success', 'text-white');
+                    this.classList.add('btn-outline-secondary');
+                }, 2000);
+            }).catch(() => {
+                prompt('Copy this URL:', url);
+            });
+        });
+    });
+
     const searchInput = document.getElementById('claim_search_input');
     const resultsBox = document.getElementById('claim_search_results');
     const formWrapper = document.getElementById('claim_form_wrapper');
