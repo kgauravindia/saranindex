@@ -34,6 +34,16 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         if (toggleListingFeatured($target_id)) {
             $msg = "Toggled featured status for listing #{$target_id}.";
         }
+    } elseif ($action === 'send_email_verify') {
+        require_once __DIR__ . '/../includes/email_helper.php';
+        $res = sendListingEmailVerification($target_id);
+        if ($res['status'] === 'success') {
+            $msg = "Listing email verification (Code: {$res['otp']}) sent to listing #{$target_id}!";
+            $msg_type = "success";
+        } else {
+            $msg = "Failed to dispatch listing verification email: " . $res['msg'];
+            $msg_type = "danger";
+        }
     } elseif ($action === 'delete') {
         if (deleteListing($target_id)) {
             $msg = "Listing #{$target_id} deleted successfully.";
@@ -251,6 +261,12 @@ $listings = getAllAdminListings($status_filter, $search_query, $category_filter,
                                             </a>
                                             <a href="listings.php?action=reject&id=<?php echo $item['id']; ?>" class="btn btn-outline-warning" title="Reject Listing">
                                                 <i class="bi bi-x-lg"></i>
+                                            </a>
+                                        <?php endif; ?>
+
+                                        <?php if (!empty($item['email'])): ?>
+                                            <a href="listings.php?action=send_email_verify&id=<?php echo $item['id']; ?>" class="btn btn-outline-primary" title="Send Email Verification to Listing Owner">
+                                                <i class="bi bi-envelope-at"></i>
                                             </a>
                                         <?php endif; ?>
 

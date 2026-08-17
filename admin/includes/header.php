@@ -265,6 +265,11 @@ $admin_name = $_SESSION['admin_full_name'] ?? 'Administrator';
                 </a>
             </li>
             <li class="nav-item">
+                <a class="nav-link <?php echo $current_page === 'profile.php' ? 'active' : ''; ?>" href="profile.php" title="My Profile & Password">
+                    <i class="bi bi-person-gear"></i> <span class="nav-text">My Profile & Password</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link <?php echo $current_page === 'admins.php' ? 'active' : ''; ?>" href="admins.php" title="Admin Accounts">
                     <i class="bi bi-person-badge-fill"></i> <span class="nav-text">Admin Accounts</span>
                 </a>
@@ -357,6 +362,8 @@ $admin_name = $_SESSION['admin_full_name'] ?? 'Administrator';
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" aria-labelledby="adminUserDropdown">
                     <li><h6 class="dropdown-header">Logged in as Administrator</h6></li>
+                    <li><a class="dropdown-item" href="profile.php"><i class="bi bi-person-gear me-2 text-primary"></i>My Profile & Password</a></li>
+                    <li><a class="dropdown-item" href="admins.php"><i class="bi bi-person-badge me-2 text-secondary"></i>Manage Admin Accounts</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item text-danger" href="logout.php"><i class="bi bi-box-arrow-right me-2"></i>Sign Out</a></li>
                 </ul>

@@ -39,6 +39,15 @@ define('DB_PASS', getenv('DB_PASS') !== false ? getenv('DB_PASS') : '');
 define('DB_NAME', getenv('DB_NAME') ?: 'saranindex');
 define('DB_CHARSET', 'utf8mb4');
 
+// System Email & SMTP Credentials Configuration
+define('SMTP_HOST', getenv('SMTP_HOST') ?: 'smtp.hostinger.com');
+define('SMTP_PORT', getenv('SMTP_PORT') ?: 587);
+define('SMTP_USER', getenv('SMTP_USER') ?: 'info@saranindex.com');
+define('SMTP_PASS', getenv('SMTP_PASS') ?: 'YOUR_EMAIL_PASSWORD');
+define('SMTP_SECURE', getenv('SMTP_SECURE') ?: 'tls');
+define('SYSTEM_FROM_EMAIL', getenv('SYSTEM_FROM_EMAIL') ?: 'info@saranindex.com');
+define('SYSTEM_FROM_NAME', getenv('SYSTEM_FROM_NAME') ?: 'Saran Index');
+
 // SMS Template Configuration
 define('SMS_SENDER_ID', 'SARDEX');
 define('SMS_REGISTRATION_TEMPLATE', "Dear {#var#}, \n Your Application / Website EVC / OTP / Password is {#var#} \n \n Regards\n SARDEX\n OfferPlant");

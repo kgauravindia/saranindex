@@ -1,5 +1,17 @@
 [
   {
+    "version": "1.3.0",
+    "date": "2026-08-17",
+    "changes": [
+      "Added Export Users to CSV/Excel functionality in Admin Panel with UTF-8 BOM encoding & filter persistence",
+      "Created Admin Profile Editing & Password Change module with password validation",
+      "Added Admin Password Recovery workflow with 6-digit Security OTP code verification",
+      "Built Email Verification System for User Accounts and Business Listings with 1-click verification URLs and 6-digit OTPs",
+      "Configured System Email & Hostinger SMTP settings for info@saranindex.com in config files",
+      "Enhanced Admin Panel with one-click Email Verification dispatch for Users and Business Listings"
+    ]
+  },
+  {
     "version": "1.2.0",
     "date": "2026-08-16",
     "changes": [

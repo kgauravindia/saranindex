@@ -32,17 +32,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['test_email_verify']))
         $msg = "Please enter a valid email address.";
         $msg_type = "danger";
     } else {
-        $headers = "From: Saran Index <no-reply@saranindex.com>\r\n";
-        $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
-        $subject = "Saran Index - Email Verification Test";
-        $body = "<h2>Saran Index Verification Test</h2><p>This is a test verification email sent from Saran Index Control Panel on " . date('Y-m-d H:i:s') . ".</p>";
-        
-        if (@mail($test_email, $subject, $body, $headers)) {
-            $msg = "Test verification email dispatched successfully to {$test_email}.";
+        require_once __DIR__ . '/../includes/email_helper.php';
+        $dummyUser = [
+            'id' => 0,
+            'full_name' => 'Test Recipient',
+            'email' => $test_email
+        ];
+        $res = sendUserEmailVerification($dummyUser);
+        if ($res['status'] === 'success') {
+            $msg = "Test verification email (Code: {$res['otp']}) dispatched successfully to {$test_email}!";
             $msg_type = "success";
         } else {
-            $msg = "Server sendmail function failed. Please configure SMTP gateway.";
-            $msg_type = "warning";
+            $msg = "Failed to send test verification email: " . $res['msg'];
+            $msg_type = "danger";
         }
     }
 }
@@ -54,6 +56,16 @@ if (file_exists($log_path)) {
     $lines = file($log_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     if ($lines) {
         $sms_logs = array_reverse(array_slice($lines, -15));
+    }
+}
+
+// Fetch recent Email logs if log file exists
+$email_logs = [];
+$email_log_path = __DIR__ . '/../email_debug.log';
+if (file_exists($email_log_path)) {
+    $e_lines = file($email_log_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    if ($e_lines) {
+        $email_logs = array_reverse(array_slice($e_lines, -15));
     }
 }
 ?>
@@ -145,17 +157,17 @@ if (file_exists($log_path)) {
 
             <div class="mb-3">
                 <label class="form-label small fw-semibold text-muted mb-1">Sender Email Address</label>
-                <input type="email" class="form-control form-control-sm bg-light" value="no-reply@saranindex.com" readonly>
+                <input type="email" class="form-control form-control-sm bg-light font-monospace text-primary fw-bold" value="<?php echo defined('SYSTEM_FROM_EMAIL') ? SYSTEM_FROM_EMAIL : 'info@saranindex.com'; ?>" readonly>
             </div>
 
             <div class="row g-3 mb-3">
-                <div class="col-12 col-md-8">
-                    <label class="form-label small fw-semibold text-muted mb-1">SMTP Server Host</label>
-                    <input type="text" class="form-control form-control-sm bg-light" value="localhost (PHPMailer / Sendmail)" readonly>
+                <div class="col-12 col-md-7">
+                    <label class="form-label small fw-semibold text-muted mb-1">SMTP Host Server</label>
+                    <input type="text" class="form-control form-control-sm bg-light font-monospace" value="<?php echo defined('SMTP_HOST') ? SMTP_HOST : 'smtp.hostinger.com'; ?>" readonly>
                 </div>
-                <div class="col-12 col-md-4">
-                    <label class="form-label small fw-semibold text-muted mb-1">Port & Security</label>
-                    <input type="text" class="form-control form-control-sm bg-light" value="587 / TLS" readonly>
+                <div class="col-12 col-md-5">
+                    <label class="form-label small fw-semibold text-muted mb-1">SMTP User / Auth</label>
+                    <input type="text" class="form-control form-control-sm bg-light font-monospace" value="<?php echo defined('SMTP_USER') ? SMTP_USER : 'info@saranindex.com'; ?>" readonly>
                 </div>
             </div>
 
@@ -173,7 +185,7 @@ if (file_exists($log_path)) {
         </div>
 
         <!-- Recent SMS Gateway Debug Logs -->
-        <div class="card border-0 shadow-sm rounded-3 p-4">
+        <div class="card border-0 shadow-sm rounded-3 p-4 mb-4">
             <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-journal-code text-warning me-2"></i>Recent SMS Gateway Debug Logs</h6>
 
             <?php if (empty($sms_logs)): ?>
@@ -181,6 +193,21 @@ if (file_exists($log_path)) {
             <?php else: ?>
                 <div class="bg-dark text-light p-3 rounded-3 font-monospace small overflow-x-auto" style="max-height: 220px; font-size: 0.78rem;">
                     <?php foreach ($sms_logs as $log): ?>
+                        <div class="mb-1 text-nowrap"><?php echo sanitizeInput($log); ?></div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <!-- Recent Email Dispatch Debug Logs -->
+        <div class="card border-0 shadow-sm rounded-3 p-4">
+            <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-envelope-paper-fill text-info me-2"></i>Recent Email Verification Debug Logs</h6>
+
+            <?php if (empty($email_logs)): ?>
+                <div class="text-muted small py-3 text-center">No Email logs recorded yet.</div>
+            <?php else: ?>
+                <div class="bg-dark text-light p-3 rounded-3 font-monospace small overflow-x-auto" style="max-height: 220px; font-size: 0.78rem;">
+                    <?php foreach ($email_logs as $log): ?>
                         <div class="mb-1 text-nowrap"><?php echo sanitizeInput($log); ?></div>
                     <?php endforeach; ?>
                 </div>

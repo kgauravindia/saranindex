@@ -824,7 +824,9 @@ function ensureAdminsTableExists() {
             'block_id' => "INT DEFAULT NULL",
             'designation' => "VARCHAR(150) DEFAULT NULL",
             'address' => "TEXT DEFAULT NULL",
-            'about' => "TEXT DEFAULT NULL"
+            'about' => "TEXT DEFAULT NULL",
+            'reset_token' => "VARCHAR(255) DEFAULT NULL",
+            'reset_expiry' => "DATETIME DEFAULT NULL"
         ];
 
         foreach ($neededCols as $col => $typeDef) {
@@ -2966,6 +2968,128 @@ function updateAdminAccount($id, $data) {
         error_log("updateAdminAccount error: " . $e->getMessage());
         return false;
     }
+}
+
+function getAdminById($id) {
+    ensureAdminsTableExists();
+    $db = getDB();
+    if ($db) {
+        try {
+            $stmt = $db->prepare("SELECT a.*, b.name as block_name, b.hindi_name as block_hindi_name 
+                                FROM admins a 
+                                LEFT JOIN blocks b ON a.block_id = b.id 
+                                WHERE a.id = :id LIMIT 1");
+            $stmt->execute(['id' => intval($id)]);
+            return $stmt->fetch();
+        } catch (PDOException $e) {
+            error_log("getAdminById error: " . $e->getMessage());
+        }
+    }
+    return false;
+}
+
+function changeAdminPassword($admin_id, $current_password, $new_password) {
+    ensureAdminsTableExists();
+    $db = getDB();
+    if (!$db) return ['success' => false, 'message' => 'Database connection failed.'];
+
+    $admin_id = intval($admin_id);
+    if ($admin_id <= 0) return ['success' => false, 'message' => 'Invalid admin ID.'];
+    if (strlen($new_password) < 6) return ['success' => false, 'message' => 'New password must be at least 6 characters long.'];
+
+    try {
+        $stmt = $db->prepare("SELECT password_hash FROM admins WHERE id = :id LIMIT 1");
+        $stmt->execute(['id' => $admin_id]);
+        $row = $stmt->fetch();
+        if (!$row) return ['success' => false, 'message' => 'Admin account not found.'];
+
+        if (!password_verify($current_password, $row['password_hash'])) {
+            return ['success' => false, 'message' => 'Current password is incorrect.'];
+        }
+
+        $new_hash = password_hash($new_password, PASSWORD_DEFAULT);
+        $upStmt = $db->prepare("UPDATE admins SET password_hash = :h WHERE id = :id");
+        if ($upStmt->execute(['h' => $new_hash, 'id' => $admin_id])) {
+            return ['success' => true, 'message' => 'Admin password changed successfully!'];
+        }
+    } catch (PDOException $e) {
+        error_log("changeAdminPassword error: " . $e->getMessage());
+    }
+
+    return ['success' => false, 'message' => 'An error occurred while changing password.'];
+}
+
+function getAdminByUsernameOrEmailOrMobile($identifier) {
+    ensureAdminsTableExists();
+    $db = getDB();
+    if ($db) {
+        try {
+            $identifier = trim($identifier);
+            $stmt = $db->prepare("SELECT * FROM admins WHERE username = :i OR email = :i OR mobile = :i LIMIT 1");
+            $stmt->execute(['i' => $identifier]);
+            return $stmt->fetch();
+        } catch (PDOException $e) {
+            error_log("getAdminByUsernameOrEmailOrMobile error: " . $e->getMessage());
+        }
+    }
+    return false;
+}
+
+function generateAdminResetOTP($identifier) {
+    ensureAdminsTableExists();
+    $admin = getAdminByUsernameOrEmailOrMobile($identifier);
+    if (!$admin) return false;
+
+    $db = getDB();
+    if (!$db) return false;
+
+    try {
+        $otp = sprintf("%06d", mt_rand(100000, 999999));
+        $stmt = $db->prepare("UPDATE admins SET reset_token = :t, reset_expiry = DATE_ADD(NOW(), INTERVAL 30 MINUTE) WHERE id = :id");
+        if ($stmt->execute(['t' => $otp, 'id' => $admin['id']])) {
+            return [
+                'admin' => $admin,
+                'otp' => $otp
+            ];
+        }
+    } catch (PDOException $e) {
+        error_log("generateAdminResetOTP error: " . $e->getMessage());
+    }
+
+    return false;
+}
+
+function resetAdminPasswordWithOTP($identifier, $otp_code, $new_password) {
+    ensureAdminsTableExists();
+    $db = getDB();
+    if (!$db) return ['success' => false, 'message' => 'Database connection error.'];
+
+    if (strlen($new_password) < 6) {
+        return ['success' => false, 'message' => 'New password must be at least 6 characters long.'];
+    }
+
+    try {
+        $identifier = trim($identifier);
+        $otp_code = trim($otp_code);
+
+        $stmt = $db->prepare("SELECT * FROM admins WHERE (username = :i OR email = :i OR mobile = :i) AND reset_token = :otp AND reset_expiry >= NOW() LIMIT 1");
+        $stmt->execute(['i' => $identifier, 'otp' => $otp_code]);
+        $admin = $stmt->fetch();
+
+        if (!$admin) {
+            return ['success' => false, 'message' => 'Invalid or expired OTP recovery code.'];
+        }
+
+        $new_hash = password_hash($new_password, PASSWORD_DEFAULT);
+        $upStmt = $db->prepare("UPDATE admins SET password_hash = :h, reset_token = NULL, reset_expiry = NULL WHERE id = :id");
+        if ($upStmt->execute(['h' => $new_hash, 'id' => $admin['id']])) {
+            return ['success' => true, 'message' => 'Password reset successfully! You can now log in with your new password.', 'admin' => $admin];
+        }
+    } catch (PDOException $e) {
+        error_log("resetAdminPasswordWithOTP error: " . $e->getMessage());
+    }
+
+    return ['success' => false, 'message' => 'An error occurred while resetting password.'];
 }
 
 function toggleUserMobileVerification($id) {

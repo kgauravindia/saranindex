@@ -40,6 +40,16 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         if (toggleUserEmailVerification($target_id)) {
             $msg = "Updated Email verification status for user #{$target_id}.";
         }
+    } elseif ($action === 'send_email_verify') {
+        require_once __DIR__ . '/../includes/email_helper.php';
+        $res = sendUserEmailVerification($target_id);
+        if ($res['status'] === 'success') {
+            $msg = "Verification email (Code: {$res['otp']}) dispatched successfully to user #{$target_id}!";
+            $msg_type = "success";
+        } else {
+            $msg = "Email dispatch failed: " . $res['msg'];
+            $msg_type = "danger";
+        }
     } elseif ($action === 'delete') {
         $admin_user = $_SESSION['admin_username'] ?? 'ADMIN';
         if (deleteUser($target_id, $admin_user)) {
@@ -78,7 +88,10 @@ require_once __DIR__ . '/includes/header.php';
         <h4 class="fw-bold mb-1">User Accounts</h4>
         <p class="text-muted small mb-0">View, search, filter, manage Mobile OTP & Email verification status, and bulk import users in Saran district.</p>
     </div>
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="export_users.php?export_action=all<?php echo $status_filter ? '&status='.urlencode($status_filter) : ''; ?><?php echo $search_query ? '&search='.urlencode($search_query) : ''; ?>" class="btn btn-outline-secondary fw-bold px-3 py-2 rounded-3 shadow-sm" title="Export matching user records to CSV / Excel">
+            <i class="bi bi-download me-1"></i> Export Users CSV
+        </a>
         <a href="verification_settings.php" class="btn btn-outline-primary fw-bold px-3 py-2 rounded-3 shadow-sm">
             <i class="bi bi-shield-check me-1"></i> OTP & Verification Settings
         </a>
@@ -182,9 +195,16 @@ require_once __DIR__ . '/includes/header.php';
                                         <i class="bi bi-check-circle-fill me-1"></i>VERIFIED
                                     </a>
                                 <?php else: ?>
-                                    <a href="users.php?action=toggle_email_verify&id=<?php echo $u['id']; ?><?php echo $status_filter ? '&status='.$status_filter : ''; ?>" class="badge bg-secondary text-decoration-none" title="Click to mark Email as Verified">
-                                        <i class="bi bi-dash-circle me-1"></i>UNVERIFIED
-                                    </a>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <a href="users.php?action=toggle_email_verify&id=<?php echo $u['id']; ?><?php echo $status_filter ? '&status='.$status_filter : ''; ?>" class="badge bg-secondary text-decoration-none" title="Click to mark Email as Verified">
+                                            <i class="bi bi-dash-circle me-1"></i>UNVERIFIED
+                                        </a>
+                                        <?php if (!empty($u['email'])): ?>
+                                            <a href="users.php?action=send_email_verify&id=<?php echo $u['id']; ?><?php echo $status_filter ? '&status='.$status_filter : ''; ?>" class="btn btn-sm btn-outline-primary py-0 px-1" title="Send Verification Email to User">
+                                                <i class="bi bi-send-fill" style="font-size: 0.75rem;"></i>
+                                            </a>
+                                        <?php endif; ?>
+                                    </div>
                                 <?php endif; ?>
                             </td>
 

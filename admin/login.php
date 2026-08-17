@@ -113,7 +113,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
         <div class="mb-4">
-            <label for="password" class="form-label small fw-semibold text-secondary">Password</label>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <label for="password" class="form-label small fw-semibold text-secondary mb-0">Password</label>
+                <a href="forgot_password.php" class="small text-primary text-decoration-none fw-medium" title="Recover Admin Password">Forgot Password?</a>
+            </div>
             <div class="input-group">
                 <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-lock"></i></span>
                 <input type="password" class="form-control bg-light border-start-0" id="password" name="password" placeholder="••••••••" required>
