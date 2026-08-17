@@ -617,6 +617,24 @@ function ensureClaimsTable() {
             // Already has primary key
         }
 
+        // Auto-add user_id column to listings table if missing on production database
+        try {
+            $checkCol = $db->query("SHOW COLUMNS FROM `listings` LIKE 'user_id'")->fetch();
+            if (!$checkCol) {
+                $db->exec("ALTER TABLE `listings` ADD COLUMN `user_id` INT DEFAULT NULL AFTER `id`, ADD KEY `idx_listing_user_id` (`user_id`);");
+            }
+        } catch (Exception $ex) {
+            error_log("ensureClaimsTable user_id column add: " . $ex->getMessage());
+        }
+
+        // Auto-add reset columns to users table if missing
+        try {
+            $checkResetToken = $db->query("SHOW COLUMNS FROM `users` LIKE 'reset_token'")->fetch();
+            if (!$checkResetToken) {
+                $db->exec("ALTER TABLE `users` ADD COLUMN `reset_token` VARCHAR(100) DEFAULT NULL, ADD COLUMN `reset_expiry` DATETIME DEFAULT NULL;");
+            }
+        } catch (Exception $ex) {}
+
         $db->exec("CREATE TABLE IF NOT EXISTS `claims` (
             `id` INT AUTO_INCREMENT PRIMARY KEY,
             `listing_id` INT NOT NULL,

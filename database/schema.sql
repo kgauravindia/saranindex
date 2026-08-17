@@ -63,6 +63,7 @@ CREATE TABLE IF NOT EXISTS `subcategories` (
 -- 6. Core Listings Table
 CREATE TABLE IF NOT EXISTS `listings` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `user_id` INT DEFAULT NULL,
     `category_id` INT NOT NULL,
     `subcategory_id` INT DEFAULT NULL,
     `block_id` INT DEFAULT NULL,
