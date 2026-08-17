@@ -361,11 +361,133 @@ require_once __DIR__ . '/includes/header.php';
     background-color: #f8fafc;
     border-bottom: 1px solid #e2e8f0;
     padding: 12px 16px;
+    white-space: nowrap;
 }
 .dash-table td {
     padding: 14px 16px;
     vertical-align: middle;
     border-bottom: 1px solid #f1f5f9;
+    white-space: nowrap;
+}
+
+/* ==========================================================
+   MOBILE-FIRST RESPONSIVE OPTIMIZATIONS
+   ========================================================== */
+@media (max-width: 767.98px) {
+    .dash-hero {
+        padding: 20px 16px !important;
+        border-radius: 16px;
+    }
+    .dash-avatar-img,
+    .dash-avatar-placeholder {
+        width: 65px;
+        height: 65px;
+        font-size: 1.6rem;
+    }
+    .dash-hero h3 {
+        font-size: 1.25rem;
+    }
+    .dash-hero .btn-pill-action {
+        flex: 1 1 calc(50% - 6px);
+        justify-content: center;
+        text-align: center;
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+    .stat-card-modern {
+        padding: 14px 12px;
+        border-radius: 14px;
+    }
+    .stat-card-modern .h3 {
+        font-size: 1.35rem;
+    }
+    .stat-icon-pill {
+        width: 38px;
+        height: 38px;
+        font-size: 1.1rem;
+        border-radius: 10px;
+    }
+    .dash-nav-pills {
+        flex-wrap: nowrap !important;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 6px !important;
+        border-radius: 14px !important;
+    }
+    .dash-nav-pills .nav-link {
+        white-space: nowrap;
+        font-size: 0.82rem;
+        padding: 8px 14px;
+        flex-shrink: 0;
+    }
+    .listing-entry-card {
+        padding: 16px;
+        border-radius: 14px;
+    }
+    .listing-icon-box {
+        width: 42px;
+        height: 42px;
+        font-size: 1.2rem;
+        border-radius: 10px;
+    }
+    .public-url-strip {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+        padding: 8px 10px;
+    }
+    .public-url-strip a {
+        word-break: break-all;
+        white-space: normal;
+        font-size: 0.75rem;
+    }
+    .public-url-strip .copy-url-btn {
+        align-self: flex-end;
+        width: auto;
+    }
+    .listing-mobile-actions {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 6px;
+        margin-top: 8px;
+    }
+    .listing-mobile-actions .btn {
+        width: 100%;
+        justify-content: center;
+        padding: 6px 8px;
+        font-size: 0.78rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .dashboard-wrapper {
+        padding-top: 12px !important;
+        padding-bottom: 24px !important;
+    }
+    .dash-hero .d-flex.align-items-center.gap-3.5 {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        width: 100%;
+    }
+    .dash-hero .d-flex.align-items-center.gap-2.flex-wrap.mb-1 {
+        justify-content: center;
+    }
+    .dash-hero .d-flex.align-items-center.gap-3.text-white-50 {
+        justify-content: center;
+        flex-direction: column;
+        gap: 4px !important;
+    }
+    .dash-hero .btn-pill-action {
+        flex: 1 1 100%;
+    }
+    .listing-mobile-actions {
+        grid-template-columns: 1fr 1fr;
+    }
+    .listing-mobile-actions .btn-upgrade {
+        grid-column: span 2;
+    }
 }
 </style>
 
@@ -720,7 +842,7 @@ require_once __DIR__ . '/includes/header.php';
                                             </div>
 
                                             <!-- Right Action Buttons -->
-                                            <div class="d-flex align-items-center gap-2 flex-shrink-0 align-self-start pt-1">
+                                            <div class="d-flex align-items-center gap-2 flex-shrink-0 align-self-start pt-1 listing-mobile-actions">
                                                 <a href="<?php echo getListingUrl($l['slug']); ?>" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold" title="View Public Page">
                                                     <i class="bi bi-eye me-1"></i>View
                                                 </a>
@@ -732,7 +854,7 @@ require_once __DIR__ . '/includes/header.php';
                                                     <a href="edit-listing.php?id=<?php echo $l['id']; ?>" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold">
                                                         <i class="bi bi-pencil me-1"></i>Edit
                                                     </a>
-                                                    <button type="button" class="btn btn-sm btn-warning text-dark rounded-pill px-3 fw-bold shadow-xs" data-bs-toggle="modal" data-bs-target="#upgradeModal<?php echo $l['id']; ?>">
+                                                    <button type="button" class="btn btn-sm btn-warning text-dark rounded-pill px-3 fw-bold shadow-xs btn-upgrade" data-bs-toggle="modal" data-bs-target="#upgradeModal<?php echo $l['id']; ?>">
                                                         <i class="bi bi-lightning-charge-fill me-1"></i>Upgrade
                                                     </button>
                                                 <?php endif; ?>
