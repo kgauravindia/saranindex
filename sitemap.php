@@ -6,7 +6,12 @@ require_once __DIR__ . '/includes/functions.php';
 
 header("Content-Type: application/xml; charset=utf-8");
 
-$baseUrl = defined('BASE_URL') ? rtrim(BASE_URL, '/') . '/' : 'https://saranindex.com/';
+$rawBase = defined('BASE_URL') ? BASE_URL : 'https://saranindex.com/';
+$baseUrl = preg_replace('~/\./~', '/', rtrim($rawBase, '/') . '/');
+if (php_sapi_name() === 'cli' && (strpos($baseUrl, 'localhost') !== false || strpos($baseUrl, '127.0.0.1') !== false)) {
+    // When running under production cron / CLI, default to canonical domain if not hosted on web server
+    // $baseUrl = 'https://saranindex.com/';
+}
 
 echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
 echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
@@ -35,6 +40,8 @@ $staticPages = [
     'blocks'            => ['freq' => 'weekly',  'prio' => '0.9'],
     'panchayats'        => ['freq' => 'weekly',  'prio' => '0.9'],
     'villages'          => ['freq' => 'daily',   'prio' => '0.8'],
+    'halkas'            => ['freq' => 'weekly',  'prio' => '0.8'],
+    'pincodes'          => ['freq' => 'weekly',  'prio' => '0.8'],
     'categories'        => ['freq' => 'weekly',  'prio' => '0.8'],
     'emergency'         => ['freq' => 'monthly', 'prio' => '0.8'],
     'history'           => ['freq' => 'monthly', 'prio' => '0.8'],
@@ -43,11 +50,11 @@ $staticPages = [
     'university'        => ['freq' => 'monthly', 'prio' => '0.7'],
     'add-listing'       => ['freq' => 'monthly', 'prio' => '0.7'],
     'pricing'           => ['freq' => 'monthly', 'prio' => '0.7'],
-    'login'             => ['freq' => 'monthly', 'prio' => '0.5'],
-    'register'          => ['freq' => 'monthly', 'prio' => '0.5'],
     'sources'           => ['freq' => 'monthly', 'prio' => '0.6'],
     'about'             => ['freq' => 'monthly', 'prio' => '0.5'],
     'contact'           => ['freq' => 'monthly', 'prio' => '0.5'],
+    'login'             => ['freq' => 'monthly', 'prio' => '0.5'],
+    'register'          => ['freq' => 'monthly', 'prio' => '0.5'],
     'privacy-policy'    => ['freq' => 'yearly',  'prio' => '0.3'],
     'terms'             => ['freq' => 'yearly',  'prio' => '0.3'],
     'refund-policy'     => ['freq' => 'yearly',  'prio' => '0.3'],
@@ -58,12 +65,24 @@ $staticPages = [
     'hindi/blocks'      => ['freq' => 'weekly',  'prio' => '0.8'],
     'hindi/panchayats'  => ['freq' => 'weekly',  'prio' => '0.8'],
     'hindi/villages'    => ['freq' => 'daily',   'prio' => '0.8'],
+    'hindi/halkas'      => ['freq' => 'weekly',  'prio' => '0.8'],
+    'hindi/pincodes'    => ['freq' => 'weekly',  'prio' => '0.8'],
     'hindi/categories'  => ['freq' => 'weekly',  'prio' => '0.8'],
     'hindi/emergency'   => ['freq' => 'monthly', 'prio' => '0.7'],
     'hindi/history'     => ['freq' => 'monthly', 'prio' => '0.7'],
     'hindi/river'       => ['freq' => 'monthly', 'prio' => '0.7'],
     'hindi/nahar'       => ['freq' => 'monthly', 'prio' => '0.7'],
+    'hindi/university'  => ['freq' => 'monthly', 'prio' => '0.7'],
     'hindi/add-listing' => ['freq' => 'monthly', 'prio' => '0.6'],
+    'hindi/pricing'     => ['freq' => 'monthly', 'prio' => '0.6'],
+    'hindi/sources'     => ['freq' => 'monthly', 'prio' => '0.6'],
+    'hindi/about'       => ['freq' => 'monthly', 'prio' => '0.5'],
+    'hindi/contact'     => ['freq' => 'monthly', 'prio' => '0.5'],
+    'hindi/login'       => ['freq' => 'monthly', 'prio' => '0.5'],
+    'hindi/register'    => ['freq' => 'monthly', 'prio' => '0.5'],
+    'hindi/privacy-policy' => ['freq' => 'yearly', 'prio' => '0.3'],
+    'hindi/terms'          => ['freq' => 'yearly', 'prio' => '0.3'],
+    'hindi/refund-policy'  => ['freq' => 'yearly', 'prio' => '0.3'],
 ];
 
 foreach ($staticPages as $path => $meta) {
@@ -109,12 +128,13 @@ if ($db) {
     } catch (Exception $e) {}
 
     // ─────────────────────────────────────────────
-    // 5. Pincodes
+    // 5. Pincodes (English + Hindi)
     // ─────────────────────────────────────────────
     try {
         $stmt = $db->query("SELECT DISTINCT pincode FROM listings WHERE pincode IS NOT NULL AND pincode != '' AND status = 'ACTIVE' ORDER BY pincode ASC");
         while ($row = $stmt->fetch()) {
             addSitemapUrl($baseUrl . 'pincode/' . rawurlencode($row['pincode']), $today, 'weekly', '0.6');
+            addSitemapUrl($baseUrl . 'hindi/pincode/' . rawurlencode($row['pincode']), $today, 'weekly', '0.6');
         }
     } catch (Exception $e) {}
 

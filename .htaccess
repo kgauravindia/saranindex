@@ -27,6 +27,7 @@ ErrorDocument 404 /saranindex/404.php
     RewriteRule ^pincode/([0-9]+)/?$ pincode.php?code=$1 [L,QSA]
     
     # Core Static Pages
+    RewriteRule ^sitemap\.xml$ sitemap.php [L,QSA]
     RewriteRule ^search/?$ search.php [L,QSA]
     RewriteRule ^login/?$ login.php [L,QSA]
     RewriteRule ^register/?$ register.php [L,QSA]

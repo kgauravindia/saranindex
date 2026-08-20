@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /config/
+Disallow: /api/
+
+Sitemap: https://saranindex.com/sitemap.xml
+Sitemap: https://saranindex.com/sitemap.php
