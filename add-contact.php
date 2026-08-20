@@ -76,17 +76,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $is_verified_val = ($plan_type === 'PLATINUM' || $plan_type === 'GOLD') ? 'YES' : 'NO';
                 $plan_expires_val = ($plan_type !== 'FREE') ? date('Y-m-d H:i:s', strtotime('+1 year')) : null;
 
-                $is_unregistered_submission = false;
+                $is_unregistered_submission = empty($currentUser);
+                // All new public & user submissions require admin review and approval before going live
                 $initial_status = 'PENDING';
-                if (!empty($currentUser)) {
-                    $checkData = ['user_id' => $currentUser['id'], 'mobile' => $mobile];
-                    if (isListingUserMobileActive($checkData)) {
-                        $initial_status = 'ACTIVE';
-                    }
-                } else {
-                    $is_unregistered_submission = true;
-                    $initial_status = 'PENDING';
-                }
 
                 $stmt = $db->prepare("INSERT INTO listings (user_id, category_id, subcategory_id, block_id, village_id, title, hindi_title, slug, contact_person, mobile, whatsapp, email, address, pincode, services, description, plan_type, plan_expires_at, is_featured, is_verified, status) VALUES (:uid, :cat, :sub, :blk, :vid, :title, :htitle, :slug, :cp, :mob, :wa, :email, :addr, :pin, :srv, :desc, :plan, :plan_exp, :feat, :ver, :status)");
                 $stmt->execute([
@@ -145,7 +137,7 @@ require_once __DIR__ . '/includes/header.php';
 
         <div class="d-flex justify-content-center gap-2 mb-3 flex-wrap">
             <span class="badge bg-warning text-dark fw-bold px-3 py-1.5 rounded-pill fs-7 shadow-sm">
-                <i class="bi bi-star-fill me-1"></i> Select Your Preferred Plan
+                <i class="bi bi-star-fill me-1"></i> Free Business Directory
             </span>
             <span class="badge px-3 py-1.5 rounded-pill fs-7 text-white" style="background: rgba(255,255,255,0.2); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.3);">
                 <i class="bi bi-geo-alt-fill me-1"></i> 20 Blocks & 1,764 Villages
@@ -153,49 +145,46 @@ require_once __DIR__ . '/includes/header.php';
         </div>
 
         <h1 class="h2 fw-bold font-heading text-white mb-2">
-            List Your Business or Entity on Saran Index
+            List Your Business on Saran Index
         </h1>
         <p class="text-white-50 fs-6 mx-auto mb-0" style="max-width: 680px;">
-            Reach citizens across Chapra and all 20 blocks of Saran District. Connect your shop, clinic, school, or service instantly.
+            Grow your business visibility across Chapra and all 20 blocks of Saran. Free listing submission with zero hidden charges.
         </p>
 
     </div>
 </div>
 
+<!-- Main Form Section -->
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-9 col-xl-8">
 
             <?php if ($success_msg): ?>
-                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-success-subtle border-start border-4 border-success">
+                <div class="alert alert-success alert-dismissible fade show rounded-4 p-4 shadow-sm mb-4 border-0" role="alert">
                     <div class="d-flex align-items-start gap-3">
-                        <div class="rounded-circle bg-success text-white p-2.5 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
-                            <i class="bi bi-check-lg fs-4"></i>
-                        </div>
+                        <i class="bi bi-check-circle-fill text-success fs-2 flex-shrink-0 mt-1"></i>
                         <div class="flex-grow-1">
                             <h5 class="fw-bold text-success mb-1">Listing Submitted Successfully!</h5>
-                            <?php if (!empty($is_unregistered_submission)): ?>
-                                <p class="text-secondary small mb-3">
-                                    Thank you for submitting <strong><?php echo sanitizeInput($submitted_title ?? 'your listing'); ?></strong> on <strong>Saran Index</strong>.
-                                    <br>
-                                    <span class="badge bg-warning text-dark mt-2 mb-1 px-3 py-1.5 rounded-pill fs-7 fw-bold shadow-xs">
-                                        <i class="bi bi-hourglass-split me-1"></i> Pending Admin Approval
-                                    </span>
-                                    <br>
-                                    Since you are not registered or logged in, your listing has been queued and will be published live once reviewed and approved by our admin team.
+                            <p class="text-secondary small mb-2">
+                                <strong><?php echo sanitizeInput($submitted_title); ?></strong> has been successfully submitted.
+                            </p>
+                            <div class="p-3 bg-white rounded-3 border mb-3">
+                                <span class="badge bg-warning text-dark px-3 py-1.5 rounded-pill fs-7 fw-bold mb-2 d-inline-block shadow-xs">
+                                    <i class="bi bi-hourglass-split me-1"></i> Pending Admin Review & Approval
+                                </span>
+                                <p class="text-secondary small mb-0" style="line-height: 1.6;">
+                                    To maintain directory quality and verify authenticity, all new submissions require administrator approval before going live. Your listing is in the review queue and will be published once approved.
                                 </p>
-                                <div class="d-flex gap-2 flex-wrap">
+                            </div>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <?php if (!empty($currentUser)): ?>
+                                    <a href="dashboard.php" class="btn btn-sm btn-success rounded-pill px-3 fw-bold"><i class="bi bi-speedometer2 me-1"></i> Go to Dashboard</a>
+                                <?php else: ?>
                                     <a href="register.php" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold"><i class="bi bi-person-plus me-1"></i> Register Free Account</a>
                                     <a href="login.php" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold"><i class="bi bi-box-arrow-in-right me-1"></i> Login</a>
-                                    <a href="add-contact.php" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold"><i class="bi bi-plus-lg me-1"></i> Add Another Listing</a>
-                                </div>
-                            <?php else: ?>
-                                <p class="text-secondary small mb-3">Thank you for adding your entity on <strong>Saran Index</strong>. Your listing has been created!</p>
-                                <div class="d-flex gap-2 flex-wrap">
-                                    <a href="dashboard.php" class="btn btn-sm btn-success rounded-pill px-3 fw-bold"><i class="bi bi-speedometer2 me-1"></i> Go to Dashboard</a>
-                                    <a href="add-contact.php" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold"><i class="bi bi-plus-lg me-1"></i> Add Another Listing</a>
-                                </div>
-                            <?php endif; ?>
+                                <?php endif; ?>
+                                <a href="add-contact.php" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold"><i class="bi bi-plus-lg me-1"></i> Add Another Listing</a>
+                            </div>
                         </div>
                     </div>
                 </div>

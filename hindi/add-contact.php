@@ -69,17 +69,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $is_verified_val = ($plan_type === 'PLATINUM' || $plan_type === 'GOLD') ? 'YES' : 'NO';
                 $plan_expires_val = ($plan_type !== 'FREE') ? date('Y-m-d H:i:s', strtotime('+1 year')) : null;
 
-                $is_unregistered_submission = false;
+                $is_unregistered_submission = empty($currentUser);
+                // सभी नई लिस्टिंग्स को एडमिन समीक्षा एवं स्वीकृति के बाद ही लाइव प्रकाशित किया जाएगा
                 $initial_status = 'PENDING';
-                if (!empty($currentUser)) {
-                    $checkData = ['user_id' => $currentUser['id'], 'mobile' => $mobile];
-                    if (isListingUserMobileActive($checkData)) {
-                        $initial_status = 'ACTIVE';
-                    }
-                } else {
-                    $is_unregistered_submission = true;
-                    $initial_status = 'PENDING';
-                }
 
                 $stmt = $db->prepare("INSERT INTO listings (user_id, category_id, subcategory_id, block_id, village_id, title, hindi_title, slug, contact_person, mobile, whatsapp, email, address, pincode, services, description, plan_type, plan_expires_at, is_featured, is_verified, status) VALUES (:uid, :cat, :sub, :blk, :vid, :title, :htitle, :slug, :cp, :mob, :wa, :email, :addr, :pin, :srv, :desc, :plan, :plan_exp, :feat, :ver, :status)");
                 $stmt->execute([
@@ -140,7 +132,7 @@ require_once __DIR__ . '/includes/header.php';
 
         <div class="d-flex justify-content-center gap-2 mb-3 flex-wrap">
             <span class="badge bg-warning text-dark fw-bold px-3 py-1.5 rounded-pill fs-7 shadow-sm">
-                <i class="bi bi-star-fill me-1"></i> अपना पसंदीदा प्लान चुनें
+                <i class="bi bi-star-fill me-1"></i> निःशुल्क व्यापार निर्देशिका
             </span>
             <span class="badge px-3 py-1.5 rounded-pill fs-7 text-white" style="background: rgba(255,255,255,0.2); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.3);">
                 <i class="bi bi-geo-alt-fill me-1"></i> 20 प्रखंड एवं 1,764 मौजा
@@ -169,28 +161,26 @@ require_once __DIR__ . '/includes/header.php';
                         </div>
                         <div class="flex-grow-1">
                             <h5 class="fw-bold text-success mb-1">लिस्टिंग सफलतापूर्वक दर्ज हो गई!</h5>
-                            <?php if (!empty($is_unregistered_submission)): ?>
-                                <p class="text-secondary small mb-3">
-                                    <strong>सारण इंडेक्स</strong> पर <strong><?php echo sanitizeInput($submitted_title ?? 'आपकी जानकारी'); ?></strong> जोड़ने के लिए धन्यवाद।
-                                    <br>
-                                    <span class="badge bg-warning text-dark mt-2 mb-1 px-3 py-1.5 rounded-pill fs-7 fw-bold shadow-xs">
-                                        <i class="bi bi-hourglass-split me-1"></i> एडमिन स्वीकृति के लिए लंबित (Pending Admin Approval)
-                                    </span>
-                                    <br>
-                                    चूंकि आप पंजीकृत या लॉगिन नहीं हैं, आपकी लिस्टिंग दर्ज कर ली गई है और एडमिन द्वारा समीक्षा एवं स्वीकृति के पश्चात लाइव प्रकाशित कर दी जाएगी।
+                            <p class="text-secondary small mb-2">
+                                <strong>सारण इंडेक्स</strong> पर <strong><?php echo sanitizeInput($submitted_title ?? 'आपकी जानकारी'); ?></strong> दर्ज करने के लिए धन्यवाद।
+                            </p>
+                            <div class="p-3 bg-white rounded-3 border mb-3">
+                                <span class="badge bg-warning text-dark px-3 py-1.5 rounded-pill fs-7 fw-bold mb-2 d-inline-block shadow-xs">
+                                    <i class="bi bi-hourglass-split me-1"></i> एडमिन समीक्षा एवं स्वीकृति के लिए लंबित (Pending Admin Approval)
+                                </span>
+                                <p class="text-secondary small mb-0" style="line-height: 1.6;">
+                                    निर्देशिका की गुणवत्ता एवं प्रमाणिकता बनाए रखने हेतु सभी नई लिस्टिंग्स को एडमिन द्वारा सत्यापन एवं स्वीकृति के उपरांत ही लाइव प्रकाशित किया जाता है। आपकी लिस्टिंग समीक्षा कतार में है और एडमिन द्वारा स्वीकृत होते ही प्रकाशित कर दी जाएगी।
                                 </p>
-                                <div class="d-flex gap-2 flex-wrap">
+                            </div>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <?php if (!empty($currentUser)): ?>
+                                    <a href="dashboard.php" class="btn btn-sm btn-success rounded-pill px-3 fw-bold"><i class="bi bi-speedometer2 me-1"></i> डैशबोर्ड पर जाएं</a>
+                                <?php else: ?>
                                     <a href="register.php" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold"><i class="bi bi-person-plus me-1"></i> नया अकाउंट बनाएं</a>
                                     <a href="login.php" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold"><i class="bi bi-box-arrow-in-right me-1"></i> लॉगिन करें</a>
-                                    <a href="add-contact.php" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold"><i class="bi bi-plus-lg me-1"></i> दूसरी लिस्टिंग जोड़ें</a>
-                                </div>
-                            <?php else: ?>
-                                <p class="text-secondary small mb-3"><strong>सारण इंडेक्स</strong> पर आपकी जानकारी सफलतापूर्वक दर्ज कर दी गई है।</p>
-                                <div class="d-flex gap-2 flex-wrap">
-                                    <a href="dashboard.php" class="btn btn-sm btn-success rounded-pill px-3 fw-bold"><i class="bi bi-speedometer2 me-1"></i> डैशबोर्ड पर जाएं</a>
-                                    <a href="add-contact.php" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold"><i class="bi bi-plus-lg me-1"></i> दूसरी लिस्टिंग जोड़ें</a>
-                                </div>
-                            <?php endif; ?>
+                                <?php endif; ?>
+                                <a href="add-contact.php" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold"><i class="bi bi-plus-lg me-1"></i> दूसरी लिस्टिंग जोड़ें</a>
+                            </div>
                         </div>
                     </div>
                 </div>
