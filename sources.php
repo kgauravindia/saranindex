@@ -79,6 +79,8 @@ require_once __DIR__ . '/includes/header.php';
             <div class="col-md-6 text-md-end">
                 <div class="d-flex flex-wrap gap-1.5 justify-content-md-end">
                     <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 py-1.5 filter-btn active" data-filter="all">All Sources</button>
+                    <button type="button" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 filter-btn" data-filter="History">History & Heritage</button>
+                    <button type="button" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 filter-btn" data-filter="River">Rivers & Water</button>
                     <button type="button" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 filter-btn" data-filter="Education">Education</button>
                     <button type="button" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 filter-btn" data-filter="Business">Business</button>
                     <button type="button" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 filter-btn" data-filter="Admin">Admin</button>

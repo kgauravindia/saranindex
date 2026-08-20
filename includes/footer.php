@@ -218,6 +218,28 @@ $social_wa = defined('SOCIAL_WHATSAPP') ? SOCIAL_WHATSAPP : 'https://whatsapp.co
             </div>
         </div>
 
+        <!-- District Heritage, Rivers & Canal Knowledge Guides -->
+        <div class="row pt-3 mt-3 border-top border-secondary border-opacity-50">
+            <div class="col-12">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2.5">
+                    <h6 class="footer-heading mb-0 text-white-50" style="font-size: 0.82rem; letter-spacing: 0.04em;">
+                        <i class="bi bi-compass-fill text-warning me-1"></i>Saran District Heritage, Geography & Canal Irrigation Guides
+                    </h6>
+                </div>
+                <div class="d-flex flex-wrap gap-2 text-white-50 small">
+                    <a href="history" class="block-pill-chip" title="History & Heritage of Saran District">
+                        <i class="bi bi-hourglass-split text-warning"></i> History & Heritage of Saran
+                    </a>
+                    <a href="river" class="block-pill-chip" title="Rivers of Saran (Ganga, Sarayu, Gandak)">
+                        <i class="bi bi-water text-info"></i> Rivers of Saran (Ganga, Sarayu, Gandak)
+                    </a>
+                    <a href="nahar" class="block-pill-chip" title="Canals & Irrigation Network (Gandak Project)">
+                        <i class="bi bi-bezier2 text-success"></i> Canals & Irrigation (Gandak Project)
+                    </a>
+                </div>
+            </div>
+        </div>
+
         <!-- Bottom Copyright Bar -->
         <div class="d-flex flex-column flex-md-row align-items-center justify-content-between pt-4 mt-4 border-top border-secondary text-white-50 small gap-3">
             <p class="mb-0 text-center text-md-start">

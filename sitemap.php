@@ -37,6 +37,9 @@ $staticPages = [
     'villages'          => ['freq' => 'daily',   'prio' => '0.8'],
     'categories'        => ['freq' => 'weekly',  'prio' => '0.8'],
     'emergency'         => ['freq' => 'monthly', 'prio' => '0.8'],
+    'history'           => ['freq' => 'monthly', 'prio' => '0.8'],
+    'river'             => ['freq' => 'monthly', 'prio' => '0.8'],
+    'nahar'             => ['freq' => 'monthly', 'prio' => '0.8'],
     'university'        => ['freq' => 'monthly', 'prio' => '0.7'],
     'add-listing'       => ['freq' => 'monthly', 'prio' => '0.7'],
     'pricing'           => ['freq' => 'monthly', 'prio' => '0.7'],
@@ -57,6 +60,9 @@ $staticPages = [
     'hindi/villages'    => ['freq' => 'daily',   'prio' => '0.8'],
     'hindi/categories'  => ['freq' => 'weekly',  'prio' => '0.8'],
     'hindi/emergency'   => ['freq' => 'monthly', 'prio' => '0.7'],
+    'hindi/history'     => ['freq' => 'monthly', 'prio' => '0.7'],
+    'hindi/river'       => ['freq' => 'monthly', 'prio' => '0.7'],
+    'hindi/nahar'       => ['freq' => 'monthly', 'prio' => '0.7'],
     'hindi/add-listing' => ['freq' => 'monthly', 'prio' => '0.6'],
 ];
 
