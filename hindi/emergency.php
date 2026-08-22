@@ -353,6 +353,56 @@ require_once __DIR__ . '/includes/header.php';
             </div>
         </div>
     </div>
+
+    <!-- 4. Flood, Irrigation & Embankment Helpline (WRD BeFIQR) -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white border-top border-4 border-info">
+        <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3 flex-wrap gap-2">
+            <h5 class="fw-bold text-dark mb-0 font-heading">
+                <i class="bi bi-water text-info me-2 fs-4"></i> बाढ़, सिंचाई एवं तटबंध नियंत्रण कक्ष (जल संसाधन विभाग)
+            </h5>
+            <span class="badge bg-info-subtle text-info-emphasis rounded-pill px-3 py-1 fs-7 fw-bold">
+                BeFIQR क्विक रिस्पांस
+            </span>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="p-3 border rounded-3 bg-light hover-shadow transition-all h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <h6 class="fw-bold text-dark mb-0">जल संसाधन विभाग 24x7 बाढ़ व सिंचाई नियंत्रण कक्ष (BeFIQR)</h6>
+                            <span class="badge bg-danger text-white fs-7 rounded-pill">टोल फ्री 24x7</span>
+                        </div>
+                        <p class="text-muted fs-7 mb-2"><i class="bi bi-shield-check me-1 text-danger"></i> BeFIQR (बाढ़ एवं सिंचाई त्वरित प्रतिक्रिया प्रणाली), जल संसाधन विभाग, बिहार</p>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+                        <span class="fw-bold text-danger fs-6">1800 3456 145</span>
+                        <a href="tel:18003456145" class="btn btn-danger btn-sm rounded-pill px-3 fw-bold">
+                            <i class="bi bi-telephone-fill me-1"></i> 1800 3456 145 पर कॉल करें
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="p-3 border rounded-3 bg-light hover-shadow transition-all h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <h6 class="fw-bold text-dark mb-0">सारण नहर अंचल कार्यालय, छपरा</h6>
+                            <span class="badge bg-info text-white fs-7 rounded-pill">सारण WRD</span>
+                        </div>
+                        <p class="text-muted fs-7 mb-2"><i class="bi bi-geo-alt me-1 text-info"></i> जल संसाधन विभाग (नहर एवं सिंचाई प्रबंधन), छपरा</p>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+                        <span class="fw-bold text-dark fs-6">06152-232492 / 7463889124</span>
+                        <a href="tel:7463889124" class="btn btn-info btn-sm rounded-pill px-3 fw-bold text-white">
+                            <i class="bi bi-telephone-fill me-1"></i> नहर अंचल कॉल करें
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

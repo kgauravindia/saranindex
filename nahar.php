@@ -93,6 +93,7 @@ require_once __DIR__ . '/includes/header.php';
             <a href="#major-canals" class="quick-nav-pill"><i class="bi bi-water text-primary"></i> Main & Branch Canals</a>
             <a href="#distributaries" class="quick-nav-pill"><i class="bi bi-bezier2 text-info"></i> Distributaries & Minors</a>
             <a href="#crop-impact" class="quick-nav-pill"><i class="bi bi-flower2 text-warning"></i> Crop Impact & Seasons</a>
+            <a href="#officers" class="quick-nav-pill"><i class="bi bi-telephone-fill text-danger"></i> Officer Contacts</a>
             <a href="#sources" class="quick-nav-pill"><i class="bi bi-shield-check text-success"></i> Official Sources</a>
         </div>
     </div>
@@ -482,7 +483,310 @@ require_once __DIR__ . '/includes/header.php';
         </div>
     </div>
 
-    <!-- Section 5: Official Sources & Hydrology References -->
+    <!-- Section 5: Irrigation Officers Contact Directory (Saran District) -->
+    <div id="officers" class="card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-5 bg-white border-top border-4 border-danger">
+        <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+            <div>
+                <span class="badge bg-danger-subtle text-danger fw-bold px-3 py-1.5 rounded-pill small mb-1">
+                    <i class="bi bi-telephone-fill me-1"></i> Official Directory
+                </span>
+                <h2 class="fw-bold font-heading text-dark display-6 mb-0">Saran District Irrigation & Canal Officers Contact</h2>
+            </div>
+            <a href="https://irrigation.befiqr.in/" target="_blank" rel="noopener" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-1.5 fw-bold">
+                <i class="bi bi-box-arrow-up-right me-1"></i> WRD BeFIQR Portal <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <p class="text-secondary small mb-4" style="line-height: 1.7;">
+            Contact details of the Water Resources Department (WRD), Govt. of Bihar irrigation circle and division offices overseeing the canal network in <strong>Saran District</strong>:
+        </p>
+
+        <div class="row g-4 mb-4">
+            <!-- 1. S.E., Saran Canal Circle, Chapra -->
+            <div class="col-md-6">
+                <div class="p-4 rounded-4 bg-white border h-100 d-flex flex-column shadow-sm">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="d-flex align-items-center gap-2.5">
+                            <div class="bg-danger-subtle text-danger rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                                <i class="bi bi-building-gear fs-5"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold text-dark font-heading mb-0 fs-6">Superintending Engineer (S.E.)</h5>
+                                <span class="text-muted small">Saran Canal Circle, Chapra</span>
+                            </div>
+                        </div>
+                        <span class="badge bg-danger-subtle text-danger fw-bold rounded-pill px-2.5 py-1 small">Circle HQ</span>
+                    </div>
+
+                    <div class="d-flex flex-column gap-2 mb-3">
+                        <!-- CUG Call Bar -->
+                        <div class="d-flex align-items-center justify-content-between p-2.5 rounded-3 bg-danger bg-opacity-10 border border-danger border-opacity-25">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-danger rounded-circle p-1.5 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
+                                    <i class="bi bi-phone text-white" style="font-size: 0.75rem;"></i>
+                                </span>
+                                <div>
+                                    <span class="text-muted d-block" style="font-size: 0.7rem; line-height: 1;">CUG Mobile</span>
+                                    <span class="fw-bold text-dark font-monospace small">+91 74638 89124</span>
+                                </div>
+                            </div>
+                            <a href="tel:7463889124" class="btn btn-danger btn-sm rounded-pill px-3 py-1 fw-bold fs-7 shadow-sm">
+                                <i class="bi bi-telephone-fill me-1"></i> Call
+                            </a>
+                        </div>
+
+                        <!-- Secondary Contacts Row -->
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <a href="tel:06152232492" class="d-flex align-items-center gap-2 p-2 rounded-3 bg-light border text-decoration-none text-dark hover-shadow transition-all h-100">
+                                    <i class="bi bi-telephone text-primary fs-6"></i>
+                                    <div class="text-truncate">
+                                        <span class="text-muted d-block" style="font-size: 0.68rem; line-height: 1;">Office Phone</span>
+                                        <strong class="font-monospace small text-truncate d-block">06152-232492</strong>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="tel:7903124419" class="d-flex align-items-center gap-2 p-2 rounded-3 bg-light border text-decoration-none text-dark hover-shadow transition-all h-100">
+                                    <i class="bi bi-phone text-secondary fs-6"></i>
+                                    <div class="text-truncate">
+                                        <span class="text-muted d-block" style="font-size: 0.68rem; line-height: 1;">Alt. Mobile</span>
+                                        <strong class="font-monospace small text-truncate d-block">7903124419</strong>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Email Bar -->
+                        <a href="mailto:sesccchapra@gmail.com" class="d-flex align-items-center justify-content-between p-2 px-2.5 rounded-3 bg-light border text-decoration-none text-secondary hover-shadow transition-all">
+                            <div class="d-flex align-items-center gap-2 text-truncate me-2">
+                                <i class="bi bi-envelope text-warning fs-6 flex-shrink-0"></i>
+                                <span class="small font-monospace text-dark text-truncate">sesccchapra@gmail.com</span>
+                            </div>
+                            <span class="badge bg-white text-primary border small flex-shrink-0">Email <i class="bi bi-arrow-right-short"></i></span>
+                        </a>
+                    </div>
+
+                    <div class="mt-auto pt-2 border-top small text-muted">
+                        <i class="bi bi-geo-alt text-danger me-1"></i> Jurisdiction: Entire Saran Canal Circle (Chapra HQ)
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. E.E., Saran Canal Division, Chapra -->
+            <div class="col-md-6">
+                <div class="p-4 rounded-4 bg-white border h-100 d-flex flex-column shadow-sm">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="d-flex align-items-center gap-2.5">
+                            <div class="bg-primary-subtle text-primary rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                                <i class="bi bi-water fs-5"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold text-dark font-heading mb-0 fs-6">Executive Engineer (E.E.)</h5>
+                                <span class="text-muted small">Saran Canal Division, Chapra</span>
+                            </div>
+                        </div>
+                        <span class="badge bg-primary-subtle text-primary fw-bold rounded-pill px-2.5 py-1 small">Division</span>
+                    </div>
+
+                    <div class="d-flex flex-column gap-2 mb-3">
+                        <!-- CUG Call Bar -->
+                        <div class="d-flex align-items-center justify-content-between p-2.5 rounded-3 bg-primary bg-opacity-10 border border-primary border-opacity-25">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-primary rounded-circle p-1.5 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
+                                    <i class="bi bi-phone text-white" style="font-size: 0.75rem;"></i>
+                                </span>
+                                <div>
+                                    <span class="text-muted d-block" style="font-size: 0.7rem; line-height: 1;">CUG Mobile</span>
+                                    <span class="fw-bold text-dark font-monospace small">+91 74638 89604</span>
+                                </div>
+                            </div>
+                            <a href="tel:7463889604" class="btn btn-primary btn-sm rounded-pill px-3 py-1 fw-bold fs-7 shadow-sm">
+                                <i class="bi bi-telephone-fill me-1"></i> Call
+                            </a>
+                        </div>
+
+                        <!-- Secondary Contacts Row -->
+                        <div class="row g-2">
+                            <div class="col-12">
+                                <a href="tel:7277073652" class="d-flex align-items-center gap-2 p-2 rounded-3 bg-light border text-decoration-none text-dark hover-shadow transition-all">
+                                    <i class="bi bi-phone text-secondary fs-6"></i>
+                                    <div class="text-truncate">
+                                        <span class="text-muted d-block" style="font-size: 0.68rem; line-height: 1;">Alt. Mobile</span>
+                                        <strong class="font-monospace small text-truncate d-block">+91 72770 73652</strong>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Email Bar -->
+                        <a href="mailto:eescdchapra@gmail.com" class="d-flex align-items-center justify-content-between p-2 px-2.5 rounded-3 bg-light border text-decoration-none text-secondary hover-shadow transition-all">
+                            <div class="d-flex align-items-center gap-2 text-truncate me-2">
+                                <i class="bi bi-envelope text-warning fs-6 flex-shrink-0"></i>
+                                <span class="small font-monospace text-dark text-truncate">eescdchapra@gmail.com</span>
+                            </div>
+                            <span class="badge bg-white text-primary border small flex-shrink-0">Email <i class="bi bi-arrow-right-short"></i></span>
+                        </a>
+                    </div>
+
+                    <div class="mt-auto pt-2 border-top small text-muted">
+                        <i class="bi bi-geo-alt text-primary me-1"></i> Jurisdiction: Chapra Branch Canal & Sadar Command Area
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. E.E., Saran Canal Division, Marhaura -->
+            <div class="col-md-6">
+                <div class="p-4 rounded-4 bg-white border h-100 d-flex flex-column shadow-sm">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="d-flex align-items-center gap-2.5">
+                            <div class="bg-success-subtle text-success rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                                <i class="bi bi-diagram-2 fs-5"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold text-dark font-heading mb-0 fs-6">Executive Engineer (E.E.)</h5>
+                                <span class="text-muted small">Saran Canal Division, Marhaura</span>
+                            </div>
+                        </div>
+                        <span class="badge bg-success-subtle text-success fw-bold rounded-pill px-2.5 py-1 small">Division</span>
+                    </div>
+
+                    <div class="d-flex flex-column gap-2 mb-3">
+                        <!-- CUG Call Bar -->
+                        <div class="d-flex align-items-center justify-content-between p-2.5 rounded-3 bg-success bg-opacity-10 border border-success border-opacity-25">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-success rounded-circle p-1.5 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
+                                    <i class="bi bi-phone text-white" style="font-size: 0.75rem;"></i>
+                                </span>
+                                <div>
+                                    <span class="text-muted d-block" style="font-size: 0.7rem; line-height: 1;">CUG Mobile</span>
+                                    <span class="fw-bold text-dark font-monospace small">+91 74638 89600</span>
+                                </div>
+                            </div>
+                            <a href="tel:7463889600" class="btn btn-success btn-sm rounded-pill px-3 py-1 fw-bold fs-7 shadow-sm">
+                                <i class="bi bi-telephone-fill me-1"></i> Call
+                            </a>
+                        </div>
+
+                        <!-- Secondary Contacts Row -->
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <a href="tel:06159231630" class="d-flex align-items-center gap-2 p-2 rounded-3 bg-light border text-decoration-none text-dark hover-shadow transition-all h-100">
+                                    <i class="bi bi-telephone text-primary fs-6"></i>
+                                    <div class="text-truncate">
+                                        <span class="text-muted d-block" style="font-size: 0.68rem; line-height: 1;">Office Phone</span>
+                                        <strong class="font-monospace small text-truncate d-block">06159-231630</strong>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="tel:9931209711" class="d-flex align-items-center gap-2 p-2 rounded-3 bg-light border text-decoration-none text-dark hover-shadow transition-all h-100">
+                                    <i class="bi bi-phone text-secondary fs-6"></i>
+                                    <div class="text-truncate">
+                                        <span class="text-muted d-block" style="font-size: 0.68rem; line-height: 1;">Alt. Mobile</span>
+                                        <strong class="font-monospace small text-truncate d-block">9931209711</strong>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Email Bar -->
+                        <a href="mailto:eescd.mrh@gmail.com" class="d-flex align-items-center justify-content-between p-2 px-2.5 rounded-3 bg-light border text-decoration-none text-secondary hover-shadow transition-all">
+                            <div class="d-flex align-items-center gap-2 text-truncate me-2">
+                                <i class="bi bi-envelope text-warning fs-6 flex-shrink-0"></i>
+                                <span class="small font-monospace text-dark text-truncate">eescd.mrh@gmail.com</span>
+                            </div>
+                            <span class="badge bg-white text-primary border small flex-shrink-0">Email <i class="bi bi-arrow-right-short"></i></span>
+                        </a>
+                    </div>
+
+                    <div class="mt-auto pt-2 border-top small text-muted">
+                        <i class="bi bi-geo-alt text-success me-1"></i> Jurisdiction: Marhowrah Branch Canal, Amnour, Isuapur, Dariapur
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. E.E., Saran Canal Division, Ekma -->
+            <div class="col-md-6">
+                <div class="p-4 rounded-4 bg-white border h-100 d-flex flex-column shadow-sm">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="d-flex align-items-center gap-2.5">
+                            <div class="bg-warning-subtle text-warning-emphasis rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                                <i class="bi bi-compass fs-5"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold text-dark font-heading mb-0 fs-6">Executive Engineer (E.E.)</h5>
+                                <span class="text-muted small">Saran Canal Division, Ekma</span>
+                            </div>
+                        </div>
+                        <span class="badge bg-warning-subtle text-warning-emphasis fw-bold rounded-pill px-2.5 py-1 small">Division</span>
+                    </div>
+
+                    <div class="d-flex flex-column gap-2 mb-3">
+                        <!-- CUG Call Bar -->
+                        <div class="d-flex align-items-center justify-content-between p-2.5 rounded-3 bg-warning bg-opacity-10 border border-warning border-opacity-25">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-warning text-dark rounded-circle p-1.5 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
+                                    <i class="bi bi-phone" style="font-size: 0.75rem;"></i>
+                                </span>
+                                <div>
+                                    <span class="text-muted d-block" style="font-size: 0.7rem; line-height: 1;">CUG Mobile</span>
+                                    <span class="fw-bold text-dark font-monospace small">+91 74638 89602</span>
+                                </div>
+                            </div>
+                            <a href="tel:7463889602" class="btn btn-warning text-dark btn-sm rounded-pill px-3 py-1 fw-bold fs-7 shadow-sm">
+                                <i class="bi bi-telephone-fill me-1"></i> Call
+                            </a>
+                        </div>
+
+                        <!-- Secondary Contacts Row -->
+                        <div class="row g-2">
+                            <div class="col-12">
+                                <a href="tel:06155231546" class="d-flex align-items-center gap-2 p-2 rounded-3 bg-light border text-decoration-none text-dark hover-shadow transition-all">
+                                    <i class="bi bi-telephone text-primary fs-6"></i>
+                                    <div class="text-truncate">
+                                        <span class="text-muted d-block" style="font-size: 0.68rem; line-height: 1;">Office Phone (Landline)</span>
+                                        <strong class="font-monospace small text-truncate d-block">06155-231546</strong>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Email Bar -->
+                        <a href="mailto:scdivekma@gmail.com" class="d-flex align-items-center justify-content-between p-2 px-2.5 rounded-3 bg-light border text-decoration-none text-secondary hover-shadow transition-all">
+                            <div class="d-flex align-items-center gap-2 text-truncate me-2">
+                                <i class="bi bi-envelope text-warning fs-6 flex-shrink-0"></i>
+                                <span class="small font-monospace text-dark text-truncate">scdivekma@gmail.com</span>
+                            </div>
+                            <span class="badge bg-white text-primary border small flex-shrink-0">Email <i class="bi bi-arrow-right-short"></i></span>
+                        </a>
+                    </div>
+
+                    <div class="mt-auto pt-2 border-top small text-muted">
+                        <i class="bi bi-geo-alt text-warning me-1"></i> Jurisdiction: Ekma, Manjhi, Lahladpur & Western Saran Command
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 24x7 WRD Helpline Banner -->
+        <div class="p-3.5 rounded-4 bg-danger-subtle border border-danger-subtle d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-danger text-white rounded-circle p-2.5 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
+                    <i class="bi bi-headset fs-5"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold text-danger mb-0">WRD 24x7 Flood & Irrigation Control Room Helpline (BeFIQR)</h6>
+                    <span class="text-secondary small">Toll-Free Helpline for canal breaches, siltation, or irrigation supply issues</span>
+                </div>
+            </div>
+            <a href="tel:18003456145" class="btn btn-danger btn-sm rounded-pill px-3 py-2 fw-bold text-nowrap align-self-start align-self-sm-center shadow-sm">
+                <i class="bi bi-telephone-outbound me-1"></i> 1800 3456 145
+            </a>
+        </div>
+    </div>
+
+    <!-- Section 6: Official Sources & Hydrology References -->
     <div id="sources" class="card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-5 bg-white border-top border-4 border-success">
         <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
             <div>
