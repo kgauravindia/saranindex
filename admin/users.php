@@ -144,6 +144,7 @@ require_once __DIR__ . '/includes/header.php';
                     <th>Business / Designation</th>
                     <th>Block</th>
                     <th>Role</th>
+                    <th>Profile Views</th>
                     <th>Status</th>
                     <th class="text-end">Actions</th>
                 </tr>
@@ -151,7 +152,7 @@ require_once __DIR__ . '/includes/header.php';
             <tbody>
                 <?php if (empty($users)): ?>
                     <tr>
-                        <td colspan="9" class="text-center py-5 text-muted">
+                        <td colspan="10" class="text-center py-5 text-muted">
                             <i class="bi bi-people fs-1 d-block mb-2 text-secondary"></i>
                             No users match your filter criteria.
                         </td>
@@ -241,6 +242,11 @@ require_once __DIR__ . '/includes/header.php';
                                         echo ' <span class="badge bg-primary fw-bold"><i class="bi bi-patch-check-fill me-1"></i>GOLD</span>';
                                     }
                                 ?>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border px-2.5 py-1 fw-semibold" title="<?php echo number_format($u['counter'] ?? 0); ?> Profile Views">
+                                    <i class="bi bi-eye text-info me-1"></i><?php echo number_format($u['counter'] ?? 0); ?>
+                                </span>
                             </td>
                             <td>
                                 <?php 

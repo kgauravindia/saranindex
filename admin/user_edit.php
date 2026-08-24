@@ -47,7 +47,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'plan_type' => sanitizeInput($_POST['plan_type'] ?? 'FREE'),
         'profile_visibility' => sanitizeInput($_POST['profile_visibility'] ?? 'PUBLIC'),
         'mobile_status' => isset($_POST['mobile_status']) && $_POST['mobile_status'] === 'VERIFIED' ? 'VERIFIED' : 'UNVERIFIED',
-        'email_status' => isset($_POST['email_status']) && $_POST['email_status'] === 'VERIFIED' ? 'VERIFIED' : 'UNVERIFIED'
+        'email_status' => isset($_POST['email_status']) && $_POST['email_status'] === 'VERIFIED' ? 'VERIFIED' : 'UNVERIFIED',
+        'counter' => isset($_POST['counter']) ? max(0, intval($_POST['counter'])) : ($user['counter'] ?? 0)
     ];
 
     if (!empty($_FILES['profile_image_file']['tmp_name'])) {
@@ -326,6 +327,12 @@ $all_categories = getCategoriesList();
                     <label class="form-check-label fw-semibold small text-dark" for="email_status">
                         <i class="bi bi-check-circle-fill text-success me-1"></i> Email Address Verified
                     </label>
+                </div>
+
+                <div class="mb-3">
+                    <label for="counter" class="form-label small fw-semibold text-dark"><i class="bi bi-eye-fill text-info me-1"></i>Profile Views Count</label>
+                    <input type="number" min="0" class="form-control form-control-sm" id="counter" name="counter" value="<?php echo intval($user['counter'] ?? 0); ?>">
+                    <small class="text-muted" style="font-size: 0.75rem;">Total public professional profile views</small>
                 </div>
 
                 <hr class="my-3 text-muted">

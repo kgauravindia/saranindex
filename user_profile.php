@@ -34,6 +34,10 @@ if ($is_private && !$is_admin && !$is_owner) {
     exit;
 }
 
+// Increment Profile View Count
+incrementUserProfileViews($user['id']);
+$user['counter'] = ($user['counter'] ?? 0) + 1;
+
 // Fetch user's listings on Saran Index (by user_id OR matching mobile number)
 $user_listings = [];
 $user_mobile = preg_replace('/[^0-9]/', '', (string)($user['mobile'] ?? ''));
@@ -141,8 +145,13 @@ require_once __DIR__ . '/includes/header.php';
                                 </div>
                             <?php endif; ?>
 
-                            <div class="small text-white-50">
-                                <i class="bi bi-geo-alt-fill text-warning me-1"></i><?php echo sanitizeInput($user['block_name'] ?? 'Chapra Sadar'); ?>, Saran District, Bihar
+                            <div class="d-flex flex-wrap align-items-center gap-3">
+                                <div class="small text-white-50">
+                                    <i class="bi bi-geo-alt-fill text-warning me-1"></i><?php echo sanitizeInput($user['block_name'] ?? 'Chapra Sadar'); ?>, Saran District, Bihar
+                                </div>
+                                <div class="small text-white-50">
+                                    <i class="bi bi-eye-fill text-info me-1"></i><?php echo number_format($user['counter'] ?? 1); ?> Profile Views
+                                </div>
                             </div>
                         </div>
                     </div>

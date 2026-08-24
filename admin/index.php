@@ -212,6 +212,38 @@ $recentListings = array_slice($recentListings, 0, 8);
             </div>
         </a>
     </div>
+
+    <!-- Card 9: Total Listing Views -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <a href="listings.php" class="text-decoration-none">
+            <div class="stat-card p-3 h-100 shadow-sm border-0">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small fw-bold text-uppercase">Listing Views</span>
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary rounded-circle p-2 fs-5">
+                        <i class="bi bi-eye-fill"></i>
+                    </div>
+                </div>
+                <h2 class="fw-bold text-primary mb-1"><?php echo number_format($stats['total_listing_views'] ?? 0); ?></h2>
+                <small class="text-muted"><i class="bi bi-graph-up-arrow me-1 text-primary"></i>Total business impressions</small>
+            </div>
+        </a>
+    </div>
+
+    <!-- Card 10: Total Profile Views -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <a href="users.php" class="text-decoration-none">
+            <div class="stat-card p-3 h-100 shadow-sm border-0">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small fw-bold text-uppercase">Profile Views</span>
+                    <div class="stat-icon bg-info bg-opacity-10 text-info rounded-circle p-2 fs-5">
+                        <i class="bi bi-person-lines-fill"></i>
+                    </div>
+                </div>
+                <h2 class="fw-bold text-info mb-1"><?php echo number_format($stats['total_profile_views'] ?? 0); ?></h2>
+                <small class="text-muted"><i class="bi bi-people me-1 text-info"></i>Professional profile views</small>
+            </div>
+        </a>
+    </div>
 </div>
 
 <!-- Detailed Analytics & Breakdown Section -->
@@ -309,6 +341,7 @@ $recentListings = array_slice($recentListings, 0, 8);
                     <th>Title & Category</th>
                     <th>Block / Contact</th>
                     <th>Status</th>
+                    <th>Views</th>
                     <th>Verified</th>
                     <th>Featured</th>
                     <th class="text-end">Actions</th>
@@ -317,7 +350,7 @@ $recentListings = array_slice($recentListings, 0, 8);
             <tbody>
                 <?php if (empty($recentListings)): ?>
                     <tr>
-                        <td colspan="6" class="text-center py-4 text-muted">No listings found in the system.</td>
+                        <td colspan="7" class="text-center py-4 text-muted">No listings found in the system.</td>
                     </tr>
                 <?php else: ?>
                     <?php foreach ($recentListings as $item): ?>
@@ -353,6 +386,11 @@ $recentListings = array_slice($recentListings, 0, 8);
                                         echo '<span class="badge badge-status-rejected"><i class="bi bi-x-circle me-1"></i>Rejected</span>';
                                     }
                                 ?>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border px-2 py-1">
+                                    <i class="bi bi-eye text-primary me-1"></i><?php echo number_format($item['view_count'] ?? 0); ?>
+                                </span>
                             </td>
                             <td>
                                 <?php if (($item['is_verified'] ?? 'NO') === 'YES'): ?>

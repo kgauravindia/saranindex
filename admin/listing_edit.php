@@ -110,7 +110,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'is_featured' => isset($_POST['is_featured']) && $_POST['is_featured'] === 'YES' ? 'YES' : 'NO',
         'status' => sanitizeInput($_POST['status'] ?? 'ACTIVE'),
         'plan_type' => sanitizeInput($_POST['plan_type'] ?? 'FREE'),
-        'plan_expires_at' => !empty($_POST['plan_expires_at']) ? sanitizeInput($_POST['plan_expires_at']) : null
+        'plan_expires_at' => !empty($_POST['plan_expires_at']) ? sanitizeInput($_POST['plan_expires_at']) : null,
+        'view_count' => isset($_POST['view_count']) ? max(0, intval($_POST['view_count'])) : ($listing['view_count'] ?? 0)
     ];
 
     if ($post_data['status'] === 'ACTIVE') {
@@ -525,6 +526,12 @@ if (!empty($listing['category_id'])) {
                     <label class="form-check-label fw-semibold small text-dark" for="is_featured">
                         <i class="bi bi-star-fill text-warning me-1"></i> Featured Listing (YES)
                     </label>
+                </div>
+
+                <div class="mb-4">
+                    <label for="view_count" class="form-label small fw-semibold text-dark"><i class="bi bi-eye-fill text-primary me-1"></i>Listing Views Count</label>
+                    <input type="number" min="0" class="form-control" id="view_count" name="view_count" value="<?php echo intval($listing['view_count'] ?? 0); ?>">
+                    <small class="text-muted" style="font-size: 0.75rem;">Total public page impressions received</small>
                 </div>
 
                 <div class="d-grid gap-2">

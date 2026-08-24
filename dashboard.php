@@ -149,10 +149,13 @@ $all_categories = getCategoriesList();
 
 $active_listings_count = 0;
 $pending_claims_count = 0;
+$total_user_listing_views = 0;
 foreach ($userListings as $ul) {
     if (($ul['status'] ?? '') === 'ACTIVE') $active_listings_count++;
     if (($ul['claim_status'] ?? '') === 'PENDING') $pending_claims_count++;
+    $total_user_listing_views += intval($ul['view_count'] ?? 0);
 }
+$user_profile_views = intval($user['counter'] ?? 0);
 
 $page_title = "My Account Dashboard – Saran Index";
 $meta_description = "User account dashboard on Saran Index. Manage your listings, profile, online payments, and business directory submissions.";
@@ -570,46 +573,68 @@ require_once __DIR__ . '/includes/header.php';
 
         <!-- Stat Metrics Grid Strip -->
         <div class="row g-3 mb-4">
-            <div class="col-6 col-lg-3">
+            <div class="col-6 col-md-4 col-xl-2">
                 <div class="stat-card-modern d-flex align-items-center gap-3">
                     <div class="stat-icon-pill bg-primary-subtle text-primary">
                         <i class="bi bi-shop"></i>
                     </div>
                     <div>
-                        <div class="h3 fw-bold text-dark mb-0 font-heading"><?php echo count($userListings); ?></div>
+                        <div class="h4 fw-bold text-dark mb-0 font-heading"><?php echo count($userListings); ?></div>
                         <div class="text-muted extra-small fw-semibold">Total Listings</div>
                     </div>
                 </div>
             </div>
-            <div class="col-6 col-lg-3">
+            <div class="col-6 col-md-4 col-xl-2">
                 <div class="stat-card-modern d-flex align-items-center gap-3">
                     <div class="stat-icon-pill bg-success-subtle text-success">
                         <i class="bi bi-patch-check-fill"></i>
                     </div>
                     <div>
-                        <div class="h3 fw-bold text-dark mb-0 font-heading"><?php echo $active_listings_count; ?></div>
+                        <div class="h4 fw-bold text-dark mb-0 font-heading"><?php echo $active_listings_count; ?></div>
                         <div class="text-muted extra-small fw-semibold">Active & Live</div>
                     </div>
                 </div>
             </div>
-            <div class="col-6 col-lg-3">
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="stat-card-modern d-flex align-items-center gap-3">
+                    <div class="stat-icon-pill bg-info-subtle text-info">
+                        <i class="bi bi-eye-fill"></i>
+                    </div>
+                    <div>
+                        <div class="h4 fw-bold text-dark mb-0 font-heading"><?php echo number_format($total_user_listing_views); ?></div>
+                        <div class="text-muted extra-small fw-semibold">Listing Views</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="stat-card-modern d-flex align-items-center gap-3">
+                    <div class="stat-icon-pill bg-primary-subtle text-primary">
+                        <i class="bi bi-person-lines-fill"></i>
+                    </div>
+                    <div>
+                        <div class="h4 fw-bold text-dark mb-0 font-heading"><?php echo number_format($user_profile_views); ?></div>
+                        <div class="text-muted extra-small fw-semibold">Profile Views</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
                 <div class="stat-card-modern d-flex align-items-center gap-3">
                     <div class="stat-icon-pill bg-warning-subtle text-warning-emphasis">
                         <i class="bi bi-hourglass-split"></i>
                     </div>
                     <div>
-                        <div class="h3 fw-bold text-dark mb-0 font-heading"><?php echo $pending_claims_count; ?></div>
+                        <div class="h4 fw-bold text-dark mb-0 font-heading"><?php echo $pending_claims_count; ?></div>
                         <div class="text-muted extra-small fw-semibold">Claims in Review</div>
                     </div>
                 </div>
             </div>
-            <div class="col-6 col-lg-3">
+            <div class="col-6 col-md-4 col-xl-2">
                 <div class="stat-card-modern d-flex align-items-center gap-3">
-                    <div class="stat-icon-pill bg-info-subtle text-info">
+                    <div class="stat-icon-pill bg-secondary-subtle text-secondary">
                         <i class="bi bi-receipt"></i>
                     </div>
                     <div>
-                        <div class="h3 fw-bold text-dark mb-0 font-heading"><?php echo count($userPayments); ?></div>
+                        <div class="h4 fw-bold text-dark mb-0 font-heading"><?php echo count($userPayments); ?></div>
                         <div class="text-muted extra-small fw-semibold">Transactions</div>
                     </div>
                 </div>
@@ -824,6 +849,7 @@ require_once __DIR__ . '/includes/header.php';
                                                         <?php if (!empty($l['block_name'])): ?>
                                                             <span><i class="bi bi-geo-alt me-1 text-danger"></i><?php echo htmlspecialchars($l['block_name']); ?></span>
                                                         <?php endif; ?>
+                                                        <span><i class="bi bi-eye-fill me-1 text-info"></i><?php echo number_format($l['view_count'] ?? 0); ?> Views</span>
                                                     </div>
 
                                                     <!-- Public URL Strip -->

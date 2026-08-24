@@ -468,6 +468,20 @@ function incrementViewCount($listing_id) {
     }
 }
 
+function incrementUserProfileViews($user_id) {
+    ensureUsersTable();
+    $db = getDB();
+    if ($db && $user_id) {
+        try {
+            $stmt = $db->prepare("UPDATE users SET counter = COALESCE(counter, 0) + 1 WHERE id = :id");
+            $stmt->execute(['id' => intval($user_id)]);
+        } catch (PDOException $e) {
+            error_log("incrementUserProfileViews error: " . $e->getMessage());
+        }
+    }
+}
+
+
 
 function renderStarRating($rating) {
     $rating = floatval($rating);
@@ -963,6 +977,9 @@ function getAdminStats() {
         'total_payments' => 0,
         'successful_payments' => 0,
         'total_revenue' => 0,
+        'total_listing_views' => 0,
+        'total_profile_views' => 0,
+        'total_views' => 0,
         'block_breakdown' => [],
         'category_breakdown' => []
     ];
@@ -975,6 +992,7 @@ function getAdminStats() {
             $stats['rejected_listings'] = (int)$db->query("SELECT COUNT(*) FROM listings WHERE status = 'REJECTED'")->fetchColumn();
             $stats['verified_listings'] = (int)$db->query("SELECT COUNT(*) FROM listings WHERE is_verified = 'YES'")->fetchColumn();
             $stats['featured_listings'] = (int)$db->query("SELECT COUNT(*) FROM listings WHERE is_featured = 'YES'")->fetchColumn();
+            $stats['total_listing_views'] = (int)$db->query("SELECT COALESCE(SUM(view_count), 0) FROM listings")->fetchColumn();
         } catch (PDOException $e) {}
 
         try {
@@ -1004,6 +1022,8 @@ function getAdminStats() {
 
         try {
             $stats['total_users'] = (int)$db->query("SELECT COUNT(*) FROM users")->fetchColumn();
+            $stats['total_profile_views'] = (int)$db->query("SELECT COALESCE(SUM(counter), 0) FROM users")->fetchColumn();
+            $stats['total_views'] = $stats['total_listing_views'] + $stats['total_profile_views'];
         } catch (PDOException $e) {}
 
         try {
@@ -1231,6 +1251,10 @@ function saveListing($data, $id = null) {
         'plan_expires_at' => !empty($data['plan_expires_at']) ? $data['plan_expires_at'] : null
     ];
 
+    if (isset($data['view_count'])) {
+        $params['view_count'] = max(0, intval($data['view_count']));
+    }
+
     if (strtoupper($params['status']) === 'ACTIVE') {
         $checkData = [
             'id' => $id,
@@ -1276,7 +1300,7 @@ function saveListing($data, $id = null) {
                 is_featured = :is_featured,
                 status = :status,
                 plan_type = :plan_type,
-                plan_expires_at = :plan_expires_at
+                plan_expires_at = :plan_expires_at" . (isset($data['view_count']) ? ", view_count = :view_count" : "") . "
                 WHERE id = :id";
             $params['id'] = intval($id);
             $stmt = $db->prepare($sql);
@@ -3375,6 +3399,12 @@ function saveUserFromAdmin($data, $id) {
         'id' => intval($id)
     ];
 
+    if (isset($data['counter'])) {
+        $params['counter'] = max(0, intval($data['counter']));
+    } elseif (isset($data['view_count'])) {
+        $params['counter'] = max(0, intval($data['view_count']));
+    }
+
     try {
         $sql = "UPDATE users SET 
             full_name = :full_name,
@@ -3404,7 +3434,7 @@ function saveUserFromAdmin($data, $id) {
             email_status = :email_status,
             profile_visibility = :pvis,
             plan_type = :plan_type,
-            plan_expiry = :plan_expiry";
+            plan_expiry = :plan_expiry" . ((isset($data['counter']) || isset($data['view_count'])) ? ", counter = :counter" : "");
 
         if (!empty($data['password'])) {
             $sql .= ", password_hash = :hash, password = :pass";
