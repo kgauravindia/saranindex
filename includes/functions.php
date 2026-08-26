@@ -538,13 +538,6 @@ function renderListingCard($item, $options = []) {
         $planBadgeHtml = '<span class="badge bg-success-subtle text-success border border-success-subtle fw-semibold px-2.5 py-1 rounded-pill small"><i class="bi bi-patch-check-fill me-1"></i> ' . ($isHindi ? 'सत्यापित' : 'Verified') . '</span>';
     }
     
-    // Owner handle badge
-    $ownerBadgeHtml = '';
-    if (!empty($item['owner_handle'])) {
-        $cleanHandle = rawurlencode(ltrim($item['owner_handle'], '@'));
-        $ownerBadgeHtml = '<a href="@' . $cleanHandle . '" class="badge bg-light text-primary border border-primary-subtle text-decoration-none fw-medium px-2 py-1 rounded-pill small" title="' . ($isHindi ? 'प्रोफ़ाइल देखें' : 'View Profile') . '"><i class="bi bi-person-circle me-1"></i>' . sanitizeInput($item['owner_handle']) . '</a>';
-    }
-    
     // Buttons
     $canSeeMobile = isMobileNumberVisibleToVisitor($item);
     $callBtnHtml = '';
@@ -580,7 +573,6 @@ function renderListingCard($item, $options = []) {
                             <?php echo sanitizeInput($subcatName); ?>
                         </span>
                     <?php endif; ?>
-                    <?php echo $ownerBadgeHtml; ?>
                 </div>
                 <div>
                     <?php echo $planBadgeHtml; ?>

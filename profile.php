@@ -413,8 +413,8 @@ require_once __DIR__ . '/includes/header.php';
                                 <?php echo sanitizeInput($listing['owner_name']); ?>
                                 <i class="bi bi-patch-check-fill text-primary ms-1" title="Verified Member"></i>
                             </a>
-                            <small class="text-primary fw-medium" style="font-size: 0.8rem;">
-                                <?php echo !empty($listing['owner_handle']) ? '@' . ltrim(sanitizeInput($listing['owner_handle']), '@') : sanitizeInput($listing['owner_designation'] ?: 'Verified Directory Member'); ?>
+                            <small class="text-secondary fw-medium" style="font-size: 0.8rem;">
+                                <?php echo sanitizeInput($listing['owner_designation'] ?: 'Verified Directory Member'); ?>
                             </small>
                         </div>
                         <a href="<?php echo $ownerProfileUrl; ?>" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold flex-shrink-0">
