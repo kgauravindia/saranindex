@@ -196,7 +196,7 @@ $blocks = getBlocks();
                     $vHi = !empty($p['village_hindi']) ? explode(',', $p['village_hindi']) : [];
                     $vEn = !empty($p['village']) ? explode(',', $p['village']) : [];
                     $vCount = max(count($vHi), count($vEn));
-                    $vSearchStr = strtolower(($p['panchayat_name'] ?? '') . ' ' . ($p['hindi_name'] ?? '') . ' ' . ($p['village'] ?? '') . ' ' . ($p['village_hindi'] ?? ''));
+                    $vSearchStr = strtolower(($p['panchayat_name'] ?? '') . ' ' . ($p['hindi_name'] ?? '') . ' ' . ($p['village'] ?? '') . ' ' . ($p['village_hindi'] ?? '') . ' ' . ($p['mukhiya_name'] ?? '') . ' ' . ($p['sarpanch_name'] ?? ''));
                 ?>
                     <div class="col-lg-4 col-md-6 panchayat-card-item" 
                          data-block="<?php echo sanitizeInput($p['block_slug']); ?>" 
@@ -222,8 +222,26 @@ $blocks = getBlocks();
                                         <div class="text-muted fw-semibold small mb-2"><?php echo sanitizeInput($pSubTitle); ?> Gram Panchayat</div>
                                     <?php endif; ?>
                                     <?php if (!empty($p['panchayat_samiti_no'])): ?>
-                                        <div class="badge bg-primary-subtle text-primary border border-primary-subtle fw-semibold px-2.5 py-1 rounded-pill small mb-3">
+                                        <div class="badge bg-primary-subtle text-primary border border-primary-subtle fw-semibold px-2.5 py-1 rounded-pill small mb-2">
                                             <i class="bi bi-award me-1"></i>पं.सं. क्षेत्र: <?php echo sanitizeInput($p['panchayat_samiti_no']); ?>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <!-- Elected Representatives Snippet (Hindi) -->
+                                    <?php if (!empty($p['mukhiya_name']) || !empty($p['sarpanch_name'])): ?>
+                                        <div class="mb-3 p-2.5 rounded-3 bg-light border small">
+                                            <?php if (!empty($p['mukhiya_name'])): ?>
+                                                <div class="d-flex align-items-center justify-content-between <?php echo !empty($p['sarpanch_name']) ? 'mb-1 pb-1 border-bottom border-secondary-subtle border-opacity-25' : ''; ?>">
+                                                    <span class="text-muted fw-bold" style="font-size: 0.76rem;"><i class="bi bi-person-badge-fill text-primary me-1"></i>मुखिया:</span>
+                                                    <span class="fw-bold text-dark" style="font-size: 0.84rem;"><?php echo sanitizeInput($p['mukhiya_name']); ?></span>
+                                                </div>
+                                            <?php endif; ?>
+                                            <?php if (!empty($p['sarpanch_name'])): ?>
+                                                <div class="d-flex align-items-center justify-content-between">
+                                                    <span class="text-muted fw-bold" style="font-size: 0.76rem;"><i class="bi bi-bank2 text-warning me-1"></i>सरपंच:</span>
+                                                    <span class="fw-bold text-dark" style="font-size: 0.84rem;"><?php echo sanitizeInput($p['sarpanch_name']); ?></span>
+                                                </div>
+                                            <?php endif; ?>
                                         </div>
                                     <?php endif; ?>
 
@@ -252,7 +270,7 @@ $blocks = getBlocks();
 
                                 <div class="pt-3 border-top d-flex align-items-center justify-content-between mt-2">
                                     <a href="panchayat/<?php echo urlencode($p['slug']); ?>" class="btn btn-outline-primary rounded-pill px-3 py-1.5 btn-sm fw-semibold w-100">
-                                        पंचायत व गाँव देखें <i class="bi bi-chevron-right ms-1"></i>
+                                        पंचायत व जनप्रतिनिधि देखें <i class="bi bi-chevron-right ms-1"></i>
                                     </a>
                                 </div>
                             </div>
@@ -264,7 +282,7 @@ $blocks = getBlocks();
             <div id="noResultsAlert" class="alert alert-info rounded-4 text-center py-5 d-none mt-4 shadow-sm">
                 <i class="bi bi-search fs-1 text-primary mb-2 d-block"></i>
                 <h5 class="fw-bold text-dark mb-1">कोई ग्राम पंचायत नहीं मिली</h5>
-                <p class="text-muted mb-3">कृपया अपनी खोज या प्रखंड फ़िल्टर बदलें।</p>
+                <p class="text-muted mb-3">कृपया अपनी खोज बदले या कोई अन्य प्रखंड फ़िल्टर चुनें।</p>
                 <button class="btn btn-primary rounded-pill px-4 py-2 fw-semibold" onclick="clearSearch()">फ़िल्टर हटाएं</button>
             </div>
         </div>
@@ -336,6 +354,148 @@ $blocks = getBlocks();
     <!-- Single Panchayat View (matching index.php UI) -->
     <section class="py-5 bg-light">
         <div class="container">
+
+            <!-- Elected Representatives: Mukhiya & Sarpanch (Hindi) -->
+            <?php if (!empty($panchayat['mukhiya_name']) || !empty($panchayat['sarpanch_name'])): ?>
+                <div class="mb-5">
+                    <div class="text-center mb-4">
+                        <span class="badge bg-warning text-dark fw-bold px-3 py-2 rounded-pill uppercase tracking-wider small shadow-xs">
+                            <i class="bi bi-people-fill me-1"></i> निर्वाचित जनप्रतिनिधि
+                        </span>
+                        <h2 class="fw-bold font-heading text-dark mt-2">पंचायत नेतृत्व एवं जनप्रतिनिधि</h2>
+                        <p class="text-muted mx-auto" style="max-width: 580px;"><?php echo sanitizeInput($pName); ?> ग्राम पंचायत एवं ग्राम कचहरी के निर्वाचित जनप्रतिनिधि (राज्य निर्वाचन आयोग बिहार आधिकारिक डेटा)।</p>
+                    </div>
+
+                    <div class="row g-4 justify-content-center">
+                        <!-- Mukhiya Card -->
+                        <?php if (!empty($panchayat['mukhiya_name'])): 
+                            $mMob = preg_replace('/[^0-9]/', '', $panchayat['mukhiya_mobile'] ?? '');
+                        ?>
+                            <div class="col-lg-6">
+                                <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-white hover-lift transition-all">
+                                    <div class="p-4 border-bottom bg-primary-subtle bg-opacity-25 d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="rounded-circle bg-primary text-white p-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 52px; height: 52px;">
+                                                <i class="bi bi-person-badge-fill fs-3"></i>
+                                            </div>
+                                            <div>
+                                                <span class="badge bg-primary text-white fw-semibold rounded-pill px-2.5 py-1 small">ग्राम पंचायत के मुखिया</span>
+                                                <h4 class="fw-bold font-heading text-dark mb-0 mt-1"><?php echo sanitizeInput($panchayat['mukhiya_name']); ?></h4>
+                                            </div>
+                                        </div>
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-bold small">
+                                            <i class="bi bi-check-circle-fill me-1"></i>निर्वाचित
+                                        </span>
+                                    </div>
+                                    <div class="card-body p-4">
+                                        <ul class="list-unstyled mb-4 small text-secondary">
+                                            <?php if (!empty($panchayat['mukhiya_father_husband'])): ?>
+                                                <li class="mb-2 d-flex align-items-start">
+                                                    <i class="bi bi-person-fill text-muted me-2 mt-0.5"></i>
+                                                    <div><strong>पिता / पति:</strong> <?php echo sanitizeInput($panchayat['mukhiya_father_husband']); ?></div>
+                                                </li>
+                                            <?php endif; ?>
+                                            <?php if (!empty($panchayat['mukhiya_category']) || !empty($panchayat['mukhiya_reservation'])): ?>
+                                                <li class="mb-2 d-flex align-items-start">
+                                                    <i class="bi bi-tag-fill text-muted me-2 mt-0.5"></i>
+                                                    <div><strong>आरक्षण / वर्ग:</strong> <?php echo sanitizeInput($panchayat['mukhiya_category'] ?? ''); ?> <?php if (!empty($panchayat['mukhiya_reservation'])): ?>(<?php echo sanitizeInput($panchayat['mukhiya_reservation']); ?>)<?php endif; ?></div>
+                                                </li>
+                                            <?php endif; ?>
+                                            <?php if (!empty($panchayat['mukhiya_gender']) || !empty($panchayat['mukhiya_age'])): ?>
+                                                <li class="mb-2 d-flex align-items-start">
+                                                    <i class="bi bi-info-circle-fill text-muted me-2 mt-0.5"></i>
+                                                    <div><strong>विवरण:</strong> <?php echo sanitizeInput($panchayat['mukhiya_gender'] ?? ''); ?><?php if (!empty($panchayat['mukhiya_age'])): ?>, उम्र: <?php echo sanitizeInput($panchayat['mukhiya_age']); ?> वर्ष<?php endif; ?></div>
+                                                </li>
+                                            <?php endif; ?>
+                                            <?php if (!empty($panchayat['mukhiya_address'])): ?>
+                                                <li class="mb-2 d-flex align-items-start">
+                                                    <i class="bi bi-geo-alt-fill text-muted me-2 mt-0.5"></i>
+                                                    <div><strong>पता:</strong> <?php echo sanitizeInput($panchayat['mukhiya_address']); ?></div>
+                                                </li>
+                                            <?php endif; ?>
+                                        </ul>
+
+                                        <?php if (!empty($mMob)): ?>
+                                            <div class="d-flex gap-2">
+                                                <a href="tel:<?php echo $mMob; ?>" class="btn btn-primary rounded-pill px-3 py-2 flex-grow-1 fw-semibold btn-sm shadow-xs">
+                                                    <i class="bi bi-telephone-fill me-1"></i> कॉल करें: <?php echo $mMob; ?>
+                                                </a>
+                                                <a href="https://wa.me/91<?php echo $mMob; ?>" target="_blank" rel="noopener" class="btn btn-outline-success rounded-pill px-3 py-2 fw-semibold btn-sm">
+                                                    <i class="bi bi-whatsapp me-1"></i> व्हाट्सऐप
+                                                </a>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
+                        <!-- Sarpanch Card -->
+                        <?php if (!empty($panchayat['sarpanch_name'])): 
+                            $sMob = preg_replace('/[^0-9]/', '', $panchayat['sarpanch_mobile'] ?? '');
+                        ?>
+                            <div class="col-lg-6">
+                                <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-white hover-lift transition-all">
+                                    <div class="p-4 border-bottom bg-warning-subtle bg-opacity-25 d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="rounded-circle bg-warning text-dark p-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 52px; height: 52px;">
+                                                <i class="bi bi-bank2 fs-3"></i>
+                                            </div>
+                                            <div>
+                                                <span class="badge bg-warning text-dark fw-semibold rounded-pill px-2.5 py-1 small">ग्राम कचहरी के सरपंच</span>
+                                                <h4 class="fw-bold font-heading text-dark mb-0 mt-1"><?php echo sanitizeInput($panchayat['sarpanch_name']); ?></h4>
+                                            </div>
+                                        </div>
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-bold small">
+                                            <i class="bi bi-check-circle-fill me-1"></i>निर्वाचित
+                                        </span>
+                                    </div>
+                                    <div class="card-body p-4">
+                                        <ul class="list-unstyled mb-4 small text-secondary">
+                                            <?php if (!empty($panchayat['sarpanch_father_husband'])): ?>
+                                                <li class="mb-2 d-flex align-items-start">
+                                                    <i class="bi bi-person-fill text-muted me-2 mt-0.5"></i>
+                                                    <div><strong>पिता / पति:</strong> <?php echo sanitizeInput($panchayat['sarpanch_father_husband']); ?></div>
+                                                </li>
+                                            <?php endif; ?>
+                                            <?php if (!empty($panchayat['sarpanch_category']) || !empty($panchayat['sarpanch_reservation'])): ?>
+                                                <li class="mb-2 d-flex align-items-start">
+                                                    <i class="bi bi-tag-fill text-muted me-2 mt-0.5"></i>
+                                                    <div><strong>आरक्षण / वर्ग:</strong> <?php echo sanitizeInput($panchayat['sarpanch_category'] ?? ''); ?> <?php if (!empty($panchayat['sarpanch_reservation'])): ?>(<?php echo sanitizeInput($panchayat['sarpanch_reservation']); ?>)<?php endif; ?></div>
+                                                </li>
+                                            <?php endif; ?>
+                                            <?php if (!empty($panchayat['sarpanch_gender']) || !empty($panchayat['sarpanch_age'])): ?>
+                                                <li class="mb-2 d-flex align-items-start">
+                                                    <i class="bi bi-info-circle-fill text-muted me-2 mt-0.5"></i>
+                                                    <div><strong>विवरण:</strong> <?php echo sanitizeInput($panchayat['sarpanch_gender'] ?? ''); ?><?php if (!empty($panchayat['sarpanch_age'])): ?>, उम्र: <?php echo sanitizeInput($panchayat['sarpanch_age']); ?> वर्ष<?php endif; ?></div>
+                                                </li>
+                                            <?php endif; ?>
+                                            <?php if (!empty($panchayat['sarpanch_address'])): ?>
+                                                <li class="mb-2 d-flex align-items-start">
+                                                    <i class="bi bi-geo-alt-fill text-muted me-2 mt-0.5"></i>
+                                                    <div><strong>पता:</strong> <?php echo sanitizeInput($panchayat['sarpanch_address']); ?></div>
+                                                </li>
+                                            <?php endif; ?>
+                                        </ul>
+
+                                        <?php if (!empty($sMob)): ?>
+                                            <div class="d-flex gap-2">
+                                                <a href="tel:<?php echo $sMob; ?>" class="btn btn-warning text-dark rounded-pill px-3 py-2 flex-grow-1 fw-semibold btn-sm shadow-xs">
+                                                    <i class="bi bi-telephone-fill me-1"></i> कॉल करें: <?php echo $sMob; ?>
+                                                </a>
+                                                <a href="https://wa.me/91<?php echo $sMob; ?>" target="_blank" rel="noopener" class="btn btn-outline-success rounded-pill px-3 py-2 fw-semibold btn-sm">
+                                                    <i class="bi bi-whatsapp me-1"></i> व्हाट्सऐप
+                                                </a>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+
             <?php 
             $listings = getListings('', '', $panchayat['block_slug'], 20, 0);
             if (!empty($listings)): 
