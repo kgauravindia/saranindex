@@ -104,10 +104,35 @@ $listingTitle = !empty($listing['hindi_title']) ? $listing['hindi_title'] : $lis
 $listingSubTitle = !empty($listing['hindi_title']) ? $listing['title'] : '';
 
 $page_title = $listingTitle . " – सारण इंडेक्स निर्देशिका";
-$meta_description = $listingTitle . " (" . $listing['block_name'] . ", सारण जिला) के संपर्क विवरण, फोन नंबर, पता और सेवाएं।";
+$meta_description = $listingTitle . " (" . ($listing['block_name'] ?? 'सारण') . ", सारण जिला) के संपर्क विवरण, फोन नंबर, पता और सेवाएं।";
+
+$rawBase = defined('BASE_URL') ? BASE_URL : 'https://saranindex.com/';
+$baseUrl = preg_replace('~/\./~', '/', rtrim($rawBase, '/') . '/');
+$canonical_url = $baseUrl . 'hindi/' . rawurlencode($listing['slug']);
+$og_type = 'place';
 
 require_once __DIR__ . '/includes/header.php';
 ?>
+
+<!-- Schema.org JSON-LD Structured Data for Local SEO -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": <?php echo json_encode($listingTitle); ?>,
+  "description": <?php echo json_encode($meta_description); ?>,
+  "url": <?php echo json_encode($canonical_url); ?>,
+  "telephone": <?php echo json_encode('+91' . preg_replace('/[^0-9]/', '', $listing['mobile'])); ?>,
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": <?php echo json_encode($listing['address'] ?: $listing['block_name']); ?>,
+    "addressLocality": <?php echo json_encode($listing['block_name'] ?: 'छपरा'); ?>,
+    "addressRegion": "Bihar",
+    "postalCode": <?php echo json_encode($listing['pincode'] ?: '841301'); ?>,
+    "addressCountry": "IN"
+  }
+}
+</script>
 
 <!-- Profile Hero Header -->
 <div class="bg-dark text-white py-5 position-relative">

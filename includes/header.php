@@ -32,12 +32,23 @@ $meta_description = $meta_description ?? 'Saran Index is the digital directory o
     <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
 
+    <!-- Canonical Tag & SEO -->
+    <?php $currentCanonical = !empty($canonical_url) ? $canonical_url : (defined('BASE_URL') ? BASE_URL : 'https://saranindex.com/'); ?>
+    <link rel="canonical" href="<?php echo htmlspecialchars($currentCanonical); ?>">
+
     <!-- Open Graph Meta Tags -->
     <meta property="og:title" content="<?php echo sanitizeInput($page_title); ?>">
     <meta property="og:description" content="<?php echo sanitizeInput($meta_description); ?>">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="<?php echo BASE_URL; ?>">
-    <meta property="og:image" content="<?php echo BASE_URL; ?>assets/logo.png">
+    <meta property="og:type" content="<?php echo !empty($og_type) ? htmlspecialchars($og_type) : 'website'; ?>">
+    <meta property="og:url" content="<?php echo htmlspecialchars($currentCanonical); ?>">
+    <meta property="og:image" content="<?php echo !empty($og_image) ? htmlspecialchars($og_image) : (BASE_URL . 'assets/logo.png'); ?>">
+    <meta property="og:site_name" content="Saran Index">
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<?php echo sanitizeInput($page_title); ?>">
+    <meta name="twitter:description" content="<?php echo sanitizeInput($meta_description); ?>">
+    <meta name="twitter:image" content="<?php echo !empty($og_image) ? htmlspecialchars($og_image) : (BASE_URL . 'assets/logo.png'); ?>">
 
     <!-- Bootstrap 5 CSS & Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">

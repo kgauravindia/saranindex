@@ -384,7 +384,7 @@ require_once __DIR__ . '/includes/header.php';
                                 <div>
                                     <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
                                         <h5 class="fw-bold text-dark mb-0 font-heading">
-                                            <a href="../listing_detail.php?id=<?php echo $l['id']; ?>" class="text-dark text-decoration-none hover-primary">
+                                            <a href="../<?php echo getListingUrl($l['slug']); ?>" class="text-dark text-decoration-none hover-primary">
                                                 <?php echo htmlspecialchars($l['title']); ?>
                                             </a>
                                         </h5>
@@ -407,7 +407,7 @@ require_once __DIR__ . '/includes/header.php';
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                                    <a href="../listing_detail.php?id=<?php echo $l['id']; ?>" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold">देखें</a>
+                                    <a href="../<?php echo getListingUrl($l['slug']); ?>" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold">देखें</a>
                                     <a href="../add-contact.php?edit=<?php echo $l['id']; ?>" class="btn btn-light btn-sm rounded-pill px-3 fw-semibold border">संपादित करें</a>
                                     <button type="button" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold text-dark" data-bs-toggle="modal" data-bs-target="#upgradePlanModal<?php echo $l['id']; ?>">
                                         <i class="bi bi-lightning-charge-fill me-1"></i>अपग्रेड

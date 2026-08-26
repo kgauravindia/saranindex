@@ -11,12 +11,66 @@ function sanitizeInput($data) {
     return htmlspecialchars(trim((string)$data), ENT_QUOTES, 'UTF-8');
 }
 
+function devanagariToLatin($text) {
+    if (empty($text)) return '';
+    $charMap = [
+        // Common abbreviations & honorifics
+        'डॉ.' => 'dr-', 'डॉ०' => 'dr-', 'डा.' => 'dr-', 'डा०' => 'dr-', 'पं.' => 'pt-', 'पं०' => 'pt-',
+        'प्रो.' => 'prof-', 'प्रो०' => 'prof-', 'श्री' => 'shri-', 'श्रीमती' => 'shrimati-',
+        'कु.' => 'ku-', 'कु०' => 'ku-', 'मु.' => 'md-', 'मो.' => 'mohd-', 'मोहम्मद' => 'mohammad-',
+        'वार्ड' => 'ward-', 'सं.' => 'no-', 'सं०' => 'no-',
+
+        // Vowels
+        'अ' => 'a', 'आ' => 'aa', 'इ' => 'i', 'ई' => 'ee', 'उ' => 'u', 'ऊ' => 'oo',
+        'ऋ' => 'ri', 'ए' => 'e', 'ऐ' => 'ai', 'ओ' => 'o', 'औ' => 'au',
+        'अं' => 'an', 'अः' => 'ah', 'ऑ' => 'o', 'ऍ' => 'e',
+        
+        // Matras (Vowel signs)
+        'ा' => 'a', 'ि' => 'i', 'ी' => 'ee', 'ु' => 'u', 'ू' => 'oo',
+        'ृ' => 'ri', 'े' => 'e', 'ै' => 'ai', 'ो' => 'o', 'ौ' => 'au',
+        'ं' => 'n', 'ँ' => 'n', 'ः' => 'h', '़' => '', '्' => '', 'ॉ' => 'o', 'ॅ' => 'e',
+        
+        // Consonants
+        'क' => 'k', 'ख' => 'kh', 'ग' => 'g', 'घ' => 'gh', 'ङ' => 'ng',
+        'च' => 'ch', 'छ' => 'chh', 'ज' => 'j', 'झ' => 'jh', 'ञ' => 'ny',
+        'ट' => 't', 'ठ' => 'th', 'ड' => 'd', 'ढ' => 'dh', 'ण' => 'n',
+        'त' => 't', 'थ' => 'th', 'द' => 'd', 'ध' => 'dh', 'न' => 'n',
+        'प' => 'p', 'फ' => 'ph', 'ब' => 'b', 'भ' => 'bh', 'म' => 'm',
+        'य' => 'y', 'र' => 'r', 'ल' => 'l', 'व' => 'v', 'ळ' => 'l',
+        'श' => 'sh', 'ष' => 'sh', 'स' => 's', 'ह' => 'h',
+        'क्ष' => 'ksh', 'त्र' => 'tr', 'ज्ञ' => 'gya', 'श्र' => 'shr',
+        'क़' => 'q', 'ख़' => 'kh', 'ग़' => 'gh', 'ज़' => 'z', 'ड़' => 'r', 'ढ़' => 'rh', 'फ़' => 'f'
+    ];
+
+    return str_replace(array_keys($charMap), array_values($charMap), $text);
+}
+
 function slugify($text) {
-    $text = preg_replace('~[^\pL\d]+~u', '-', $text);
-    $text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
-    $text = preg_replace('~[^-\w]+~', '', $text);
+    if (empty($text)) return '';
+    
+    // Transliterate if Hindi / Devanagari characters are present
+    if (preg_match('/[\x{0900}-\x{097F}]/u', $text)) {
+        $text = devanagariToLatin($text);
+    }
+    
+    // Convert to lowercase
+    $text = mb_strtolower($text, 'UTF-8');
+    
+    // Replace non alphanumeric characters with hyphens
+    $text = preg_replace('~[^\p{L}\p{Nd}]+~u', '-', $text);
+    
+    // Transliterate accents if transliterator or iconv is available
+    if (function_exists('transliterator_transliterate')) {
+        $text = transliterator_transliterate('Any-Latin; Latin-ASCII; [\u0080-\u7fff] remove', $text);
+    } else {
+        $text = iconv('utf-8', 'us-ascii//TRANSLIT//IGNORE', $text);
+    }
+    
+    // Strip any remaining unwanted characters
+    $text = preg_replace('~[^a-z0-9\-_]+~i', '', (string)$text);
     $text = trim($text, '-');
     $text = preg_replace('~-+~', '-', $text);
+    
     return strtolower($text);
 }
 
@@ -446,14 +500,45 @@ function getRecentListings($limit = 6) {
 
 
 function getListingBySlug($slug) {
+    if (empty($slug)) return null;
     $db = getDB();
     if ($db) {
         try {
-            $stmt = $db->prepare("SELECT l.*, c.name as category_name, b.name as block_name, u.full_name as owner_name, u.name as owner_short_name, u.username_handle as owner_handle, u.profile_image as owner_image, u.designation as owner_designation, u.profile_visibility as owner_visibility FROM listings l LEFT JOIN categories c ON l.category_id = c.id LEFT JOIN blocks b ON l.block_id = b.id LEFT JOIN users u ON l.user_id = u.id WHERE l.slug = :slug LIMIT 1");
-            $stmt->execute(['slug' => $slug]);
+            $cleanSlug = trim($slug, '/');
+            if (strpos($cleanSlug, 'listing/') === 0) {
+                $cleanSlug = substr($cleanSlug, 8);
+            }
+            $cleanSlug = preg_replace('~\.html?$~i', '', $cleanSlug);
+
+            $sql = "SELECT l.*, c.name as category_name, b.name as block_name, u.full_name as owner_name, u.name as owner_short_name, u.username_handle as owner_handle, u.profile_image as owner_image, u.designation as owner_designation, u.profile_visibility as owner_visibility 
+                    FROM listings l 
+                    LEFT JOIN categories c ON l.category_id = c.id 
+                    LEFT JOIN blocks b ON l.block_id = b.id 
+                    LEFT JOIN users u ON l.user_id = u.id 
+                    WHERE l.slug = :slug LIMIT 1";
+            
+            $stmt = $db->prepare($sql);
+            $stmt->execute(['slug' => $cleanSlug]);
             $res = $stmt->fetch();
             if ($res) return $res;
-        } catch (PDOException $e) {}
+
+            // Fallback: If not matched, try URL-decoded / slugified match or numeric ID
+            $decodedSlug = urldecode($cleanSlug);
+            if ($decodedSlug !== $cleanSlug) {
+                $stmt->execute(['slug' => $decodedSlug]);
+                $res = $stmt->fetch();
+                if ($res) return $res;
+            }
+
+            if (is_numeric($cleanSlug)) {
+                $stmtId = $db->prepare(str_replace('WHERE l.slug = :slug', 'WHERE l.id = :id', $sql));
+                $stmtId->execute(['id' => intval($cleanSlug)]);
+                $resId = $stmtId->fetch();
+                if ($resId) return $resId;
+            }
+        } catch (PDOException $e) {
+            error_log("getListingBySlug error: " . $e->getMessage());
+        }
     }
     return null;
 }
