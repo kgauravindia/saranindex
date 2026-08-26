@@ -795,60 +795,24 @@ function addReview($listing_id, $reviewer_name, $rating, $comment, $user_id = nu
 
 // --- CLAIM BUSINESS HELPER FUNCTIONS ---
 
-function removeTableDependencies() {
+function ensureAppTables() {
+    static $executed = false;
+    if ($executed) return;
+    $executed = true;
+
     $db = getDB();
     if (!$db) return;
-    try {
-        $fks = $db->query("SELECT TABLE_NAME, CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = DATABASE() AND REFERENCED_TABLE_NAME IS NOT NULL")->fetchAll(PDO::FETCH_ASSOC);
-        foreach ($fks as $fk) {
-            $t = $fk['TABLE_NAME'];
-            $c = $fk['CONSTRAINT_NAME'];
-            try {
-                $db->exec("ALTER TABLE `$t` DROP FOREIGN KEY `$c`");
-            } catch (Exception $e) {
-                // Ignore if already dropped
-            }
-        }
-        try {
-            $db->exec("ALTER TABLE `listings` DROP COLUMN `entity_type`");
-        } catch (Exception $e) {
-            // Already dropped
-        }
-    } catch (Exception $e) {
-        error_log("removeTableDependencies error: " . $e->getMessage());
-    }
-}
 
-function ensureClaimsTable() {
-    $db = getDB();
-    if (!$db) return;
-    removeTableDependencies();
     try {
-        // Ensure listings table has PRIMARY KEY on id column
+        // Ensure listings table user_id column
         try {
-            $db->exec("ALTER TABLE `listings` ADD PRIMARY KEY (`id`);");
-        } catch (Exception $ex) {
-            // Already has primary key
-        }
-
-        // Auto-add user_id column to listings table if missing on production database
-        try {
-            $checkCol = $db->query("SHOW COLUMNS FROM `listings` LIKE 'user_id'")->fetch();
-            if (!$checkCol) {
+            $col = $db->query("SHOW COLUMNS FROM `listings` LIKE 'user_id'")->fetch();
+            if (!$col) {
                 $db->exec("ALTER TABLE `listings` ADD COLUMN `user_id` INT DEFAULT NULL AFTER `id`, ADD KEY `idx_listing_user_id` (`user_id`);");
-            }
-        } catch (Exception $ex) {
-            error_log("ensureClaimsTable user_id column add: " . $ex->getMessage());
-        }
-
-        // Auto-add reset columns to users table if missing
-        try {
-            $checkResetToken = $db->query("SHOW COLUMNS FROM `users` LIKE 'reset_token'")->fetch();
-            if (!$checkResetToken) {
-                $db->exec("ALTER TABLE `users` ADD COLUMN `reset_token` VARCHAR(100) DEFAULT NULL, ADD COLUMN `reset_expiry` DATETIME DEFAULT NULL;");
             }
         } catch (Exception $ex) {}
 
+        // Ensure claims table exists
         $db->exec("CREATE TABLE IF NOT EXISTS `claims` (
             `id` INT AUTO_INCREMENT PRIMARY KEY,
             `listing_id` INT NOT NULL,
@@ -863,9 +827,45 @@ function ensureClaimsTable() {
             KEY `idx_claim_user_id` (`user_id`),
             KEY `idx_claim_status` (`status`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
-    } catch (PDOException $e) {
-        error_log("ensureClaimsTable error: " . $e->getMessage());
+
+        // Ensure payments table exists
+        $db->exec("CREATE TABLE IF NOT EXISTS `payments` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `user_id` INT DEFAULT NULL,
+            `listing_id` INT DEFAULT NULL,
+            `plan_type` ENUM('GOLD','PLATINUM') NOT NULL,
+            `amount` DECIMAL(10,2) NOT NULL,
+            `payment_gateway` VARCHAR(50) DEFAULT 'RAZORPAY',
+            `transaction_id` VARCHAR(100) NOT NULL,
+            `payment_id` VARCHAR(100) DEFAULT NULL,
+            `payment_status` ENUM('PENDING','SUCCESS','FAILED') DEFAULT 'PENDING',
+            `payment_response` TEXT DEFAULT NULL,
+            `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+            `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY `idx_txn_id` (`transaction_id`),
+            KEY `idx_pay_user_id` (`user_id`),
+            KEY `idx_pay_listing_id` (`listing_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
+        // Ensure panchayats new representative columns
+        try {
+            $checkSamiti = $db->query("SHOW COLUMNS FROM `panchayats` LIKE 'samiti_member_name'")->fetch();
+            if (!$checkSamiti) {
+                $db->exec("ALTER TABLE `panchayats` 
+                           ADD COLUMN `samiti_member_name` VARCHAR(150) NULL DEFAULT NULL AFTER `mukhiya_mobile_visibility`,
+                           ADD COLUMN `samiti_member_mobile` VARCHAR(50) NULL DEFAULT NULL AFTER `samiti_member_name`,
+                           ADD COLUMN `jila_parishad_name` VARCHAR(150) NULL DEFAULT NULL AFTER `samiti_member_mobile`,
+                           ADD COLUMN `jila_parishad_mobile` VARCHAR(50) NULL DEFAULT NULL AFTER `jila_parishad_name`;");
+            }
+        } catch (Exception $ex) {}
+
+    } catch (Exception $e) {
+        error_log("ensureAppTables error: " . $e->getMessage());
     }
+}
+
+function ensureClaimsTable() {
+    ensureAppTables();
 }
 
 function submitBusinessClaim($listingId, $userId, $name, $mobile, $role, $proof) {
@@ -2495,31 +2495,38 @@ function getUserListings($mobileOrUserId) {
 
     $userId = 0;
     $mobile = '';
+    $email = '';
 
     if (is_numeric($mobileOrUserId) && intval($mobileOrUserId) > 0 && strlen((string)$mobileOrUserId) < 10) {
         $userId = intval($mobileOrUserId);
-        $uStmt = $db->prepare("SELECT mobile, email FROM users WHERE id = :id LIMIT 1");
-        $uStmt->execute(['id' => $userId]);
-        $uRow = $uStmt->fetch(PDO::FETCH_ASSOC);
-        $mobile = $uRow['mobile'] ?? '';
-        $email = $uRow['email'] ?? '';
+        try {
+            $uStmt = $db->prepare("SELECT mobile, email FROM users WHERE id = :id LIMIT 1");
+            $uStmt->execute(['id' => $userId]);
+            $uRow = $uStmt->fetch(PDO::FETCH_ASSOC);
+            if ($uRow) {
+                $mobile = $uRow['mobile'] ?? '';
+                $email = $uRow['email'] ?? '';
+            }
+        } catch (Exception $e) {}
     } else {
         $rawInput = (string)$mobileOrUserId;
         $digitsOnly = preg_replace('/[^0-9]/', '', $rawInput);
         if (!empty($digitsOnly)) {
             $m10In = (strlen($digitsOnly) >= 10) ? substr($digitsOnly, -10) : $digitsOnly;
-            $uStmt = $db->prepare("SELECT id, mobile, email FROM users WHERE id = :uid OR mobile = :m OR mobile LIKE :m_like LIMIT 1");
-            $uStmt->execute([
-                'uid' => is_numeric($rawInput) ? intval($rawInput) : 0,
-                'm' => $rawInput,
-                'm_like' => '%' . $m10In . '%'
-            ]);
-            $userRow = $uStmt->fetch(PDO::FETCH_ASSOC);
-            if ($userRow) {
-                $userId = intval($userRow['id']);
-                $mobile = $userRow['mobile'];
-                $email = $userRow['email'] ?? '';
-            }
+            try {
+                $uStmt = $db->prepare("SELECT id, mobile, email FROM users WHERE id = :uid OR mobile = :m OR mobile LIKE :m_like LIMIT 1");
+                $uStmt->execute([
+                    'uid' => is_numeric($rawInput) ? intval($rawInput) : 0,
+                    'm' => $rawInput,
+                    'm_like' => '%' . $m10In . '%'
+                ]);
+                $userRow = $uStmt->fetch(PDO::FETCH_ASSOC);
+                if ($userRow) {
+                    $userId = intval($userRow['id']);
+                    $mobile = $userRow['mobile'];
+                    $email = $userRow['email'] ?? '';
+                }
+            } catch (Exception $e) {}
         }
     }
 
@@ -2529,106 +2536,78 @@ function getUserListings($mobileOrUserId) {
 
     if (empty($cleanMobile) && $userId <= 0) return [];
 
-    // Auto-heal orphaned claims & listings for user
-    if ($userId > 0) {
+    // Ensure database tables exist safely without running heavy ALTERs every time
+    ensureAppTables();
+
+    // Auto-heal: Link user_id in listings table where mobile number matches
+    if ($userId > 0 && !empty($cleanMobile)) {
         try {
-            ensureClaimsTable();
-            if (!empty($cleanMobile)) {
-                $db->prepare("UPDATE claims SET user_id = :uid WHERE status IN ('APPROVED', 'PENDING') AND (user_id IS NULL OR user_id = 0) AND (claimant_mobile = :mob OR claimant_mobile LIKE :m_like OR RIGHT(REPLACE(REPLACE(REPLACE(claimant_mobile, ' ', ''), '-', ''), '+91', ''), 10) = :m10)")
-                   ->execute(['uid' => $userId, 'mob' => $mobile, 'm_like' => $cleanLike, 'm10' => $cleanMobile]);
-            }
-
-            $db->prepare("UPDATE listings SET user_id = :uid WHERE (user_id IS NULL OR user_id = 0) AND ((:mob != '' AND (mobile = :mob2 OR mobile LIKE :m_like OR RIGHT(REPLACE(REPLACE(REPLACE(mobile, ' ', ''), '-', ''), '+91', ''), 10) = :m10_2)) OR (:em != '' AND email = :em2))")
-               ->execute(['uid' => $userId, 'mob' => $mobile, 'mob2' => $mobile, 'm_like' => $cleanLike, 'm10_2' => $cleanMobile, 'em' => $email, 'em2' => $email]);
-
-            $db->prepare("UPDATE listings SET user_id = :uid, is_verified = 'YES' WHERE id IN (SELECT listing_id FROM claims WHERE user_id = :uid2 AND status = 'APPROVED') AND (user_id IS NULL OR user_id = 0)")
-               ->execute(['uid' => $userId, 'uid2' => $userId]);
+            $db->prepare("UPDATE listings SET user_id = :uid WHERE (user_id IS NULL OR user_id = 0) AND ((:mob != '' AND (mobile = :mob2 OR mobile LIKE :m_like OR RIGHT(REPLACE(REPLACE(REPLACE(mobile, ' ', ''), '-', ''), '+91', ''), 10) = :m10)) OR (:em != '' AND email = :em2))")
+               ->execute(['uid' => $userId, 'mob' => $mobile, 'mob2' => $mobile, 'm_like' => $cleanLike, 'm10' => $cleanMobile, 'em' => $email, 'em2' => $email]);
         } catch (Exception $e) {
             error_log("getUserListings autoheal error: " . $e->getMessage());
         }
     }
 
+    // Direct clean query with LEFT JOINs and in-memory deduplication
     try {
-        ensureClaimsTable();
         $sql = "SELECT l.*, c.name as category_name, b.name as block_name,
-                       (SELECT cl.id FROM claims cl WHERE cl.listing_id = l.id AND ((cl.user_id IS NOT NULL AND cl.user_id = :uid1) OR (cl.claimant_mobile = :mob1 OR cl.claimant_mobile LIKE :mob_like1)) ORDER BY FIELD(cl.status, 'APPROVED', 'PENDING', 'REJECTED') ASC, cl.id DESC LIMIT 1) as claim_id,
-                       (SELECT cl.status FROM claims cl WHERE cl.listing_id = l.id AND ((cl.user_id IS NOT NULL AND cl.user_id = :uid3) OR (cl.claimant_mobile = :mob3 OR cl.claimant_mobile LIKE :mob_like2)) ORDER BY FIELD(cl.status, 'APPROVED', 'PENDING', 'REJECTED') ASC, cl.id DESC LIMIT 1) as claim_status,
-                       (SELECT cl.role_title FROM claims cl WHERE cl.listing_id = l.id AND ((cl.user_id IS NOT NULL AND cl.user_id = :uid5) OR (cl.claimant_mobile = :mob5 OR cl.claimant_mobile LIKE :mob_like3)) ORDER BY FIELD(cl.status, 'APPROVED', 'PENDING', 'REJECTED') ASC, cl.id DESC LIMIT 1) as claim_role
-                FROM listings l 
-                LEFT JOIN categories c ON l.category_id = c.id 
-                LEFT JOIN blocks b ON l.block_id = b.id 
-                WHERE 
-                (
-                    (:uid7 > 0 AND l.user_id = :uid8) OR
-                    (:mob7 != '' AND (l.mobile = :mob8 OR l.mobile LIKE :mob_like4)) OR
-                    l.id IN (
-                        SELECT cl2.listing_id FROM claims cl2 
-                        WHERE cl2.status IN ('APPROVED', 'PENDING') 
-                        AND ((:uid10 > 0 AND cl2.user_id = :uid11) OR (:mob10 != '' AND (cl2.claimant_mobile = :mob11 OR cl2.claimant_mobile LIKE :mob_like5)))
-                    )
-                )
+                       cl.id as claim_id,
+                       cl.status as claim_status,
+                       cl.role_title as claim_role
+                FROM listings l
+                LEFT JOIN categories c ON l.category_id = c.id
+                LEFT JOIN blocks b ON l.block_id = b.id
+                LEFT JOIN claims cl ON (l.id = cl.listing_id AND ((:uid_c > 0 AND cl.user_id = :uid_c2) OR cl.claimant_mobile = :cmob OR cl.claimant_mobile LIKE :cmob_like))
+                WHERE (:uid > 0 AND l.user_id = :uid2)
+                   OR (:cmob_chk != '' AND (l.mobile = :mob OR l.mobile LIKE :mob_like OR RIGHT(REPLACE(REPLACE(REPLACE(l.mobile, ' ', ''), '-', ''), '+91', ''), 10) = :m10_match))
+                   OR (:em_chk != '' AND l.email = :email_match)
                 ORDER BY l.id DESC";
 
         $stmt = $db->prepare($sql);
         $stmt->execute([
-            'uid1' => $userId,
-            'mob1' => $mobile,
-            'mob_like1' => $cleanLike,
-            'uid3' => $userId,
-            'mob3' => $mobile,
-            'mob_like2' => $cleanLike,
-            'uid5' => $userId,
-            'mob5' => $mobile,
-            'mob_like3' => $cleanLike,
-            'uid7' => $userId,
-            'uid8' => $userId,
-            'mob7' => $cleanMobile,
-            'mob8' => $mobile,
-            'mob_like4' => $cleanLike,
-            'uid10' => $userId,
-            'uid11' => $userId,
-            'mob10' => $cleanMobile,
-            'mob11' => $mobile,
-            'mob_like5' => $cleanLike
-        ]);
-        $listings = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        if (!empty($listings)) return $listings;
-    } catch (Exception $e) {
-        error_log("getUserListings primary query error: " . $e->getMessage());
-    }
-
-    // Resilient direct query fallback including claims table
-    try {
-        $sqlFallback = "SELECT l.*, c.name as category_name, b.name as block_name,
-                               cl.id as claim_id, cl.status as claim_status, cl.role_title as claim_role
-                        FROM listings l 
-                        LEFT JOIN categories c ON l.category_id = c.id 
-                        LEFT JOIN blocks b ON l.block_id = b.id 
-                        LEFT JOIN claims cl ON (l.id = cl.listing_id AND ((:uid3 > 0 AND cl.user_id = :uid4) OR cl.claimant_mobile = :cmob1 OR cl.claimant_mobile LIKE :cmob2))
-                        WHERE (:uid > 0 AND l.user_id = :uid2) 
-                           OR (:mob != '' AND (l.mobile = :mob2 OR l.mobile LIKE :mob_like OR RIGHT(REPLACE(REPLACE(REPLACE(l.mobile, ' ', ''), '-', ''), '+91', ''), 10) = :m10))
-                           OR l.id IN (SELECT cl2.listing_id FROM claims cl2 WHERE (cl2.user_id = :uid5 OR cl2.claimant_mobile = :cmob3 OR cl2.claimant_mobile LIKE :cmob4) AND cl2.status IN ('APPROVED', 'PENDING'))
-                        GROUP BY l.id
-                        ORDER BY l.id DESC";
-        $stmtF = $db->prepare($sqlFallback);
-        $stmtF->execute([
             'uid' => $userId,
             'uid2' => $userId,
-            'uid3' => $userId,
-            'uid4' => $userId,
-            'uid5' => $userId,
+            'uid_c' => $userId,
+            'uid_c2' => $userId,
+            'cmob' => $mobile,
+            'cmob_like' => $cleanLike,
+            'cmob_chk' => $cleanMobile,
             'mob' => $mobile,
-            'mob2' => $mobile,
             'mob_like' => $cleanLike,
-            'cmob1' => $mobile,
-            'cmob2' => $cleanLike,
-            'cmob3' => $mobile,
-            'cmob4' => $cleanLike,
-            'm10' => !empty($cleanMobile) ? $cleanMobile : '___NO_MATCH___'
+            'm10_match' => $cleanMobile,
+            'em_chk' => $email,
+            'email_match' => $email
         ]);
-        return $stmtF->fetchAll(PDO::FETCH_ASSOC);
-    } catch (PDOException $ex) {
-        error_log("getUserListings fallback error: " . $ex->getMessage());
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Deduplicate rows by listing ID in PHP (avoids ONLY_FULL_GROUP_BY SQL errors in MySQL 8)
+        $uniqueListings = [];
+        $seenIds = [];
+        foreach ($rows as $row) {
+            if (!isset($seenIds[$row['id']])) {
+                $seenIds[$row['id']] = true;
+                $uniqueListings[] = $row;
+            }
+        }
+        return $uniqueListings;
+    } catch (Exception $e) {
+        error_log("getUserListings query error: " . $e->getMessage());
+
+        // Resilient fallback query
+        try {
+            $stmtF = $db->prepare("SELECT l.*, c.name as category_name, b.name as block_name FROM listings l LEFT JOIN categories c ON l.category_id = c.id LEFT JOIN blocks b ON l.block_id = b.id WHERE (:uid > 0 AND l.user_id = :uid2) OR (:mob != '' AND (l.mobile = :mob2 OR l.mobile LIKE :m_like)) ORDER BY l.id DESC");
+            $stmtF->execute([
+                'uid' => $userId,
+                'uid2' => $userId,
+                'mob' => $cleanMobile,
+                'mob2' => $mobile,
+                'm_like' => $cleanLike
+            ]);
+            return $stmtF->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $ex) {
+            error_log("getUserListings fallback error: " . $ex->getMessage());
+        }
     }
 
     return [];
@@ -2941,6 +2920,8 @@ function completeOnlinePayment($transactionId, $paymentIdStr = '', $status = 'SU
 function getUserPayments($userId) {
     $db = getDB();
     if (!$db || empty($userId)) return [];
+
+    ensureAppTables();
 
     $uid = intval($userId);
     try {
