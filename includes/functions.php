@@ -2498,15 +2498,17 @@ function getUserListings($mobileOrUserId) {
 
     if (is_numeric($mobileOrUserId) && intval($mobileOrUserId) > 0 && strlen((string)$mobileOrUserId) < 10) {
         $userId = intval($mobileOrUserId);
-        $uStmt = $db->prepare("SELECT mobile FROM users WHERE id = :id LIMIT 1");
+        $uStmt = $db->prepare("SELECT mobile, email FROM users WHERE id = :id LIMIT 1");
         $uStmt->execute(['id' => $userId]);
-        $mobile = $uStmt->fetchColumn() ?: '';
+        $uRow = $uStmt->fetch(PDO::FETCH_ASSOC);
+        $mobile = $uRow['mobile'] ?? '';
+        $email = $uRow['email'] ?? '';
     } else {
         $rawInput = (string)$mobileOrUserId;
         $digitsOnly = preg_replace('/[^0-9]/', '', $rawInput);
         if (!empty($digitsOnly)) {
             $m10In = (strlen($digitsOnly) >= 10) ? substr($digitsOnly, -10) : $digitsOnly;
-            $uStmt = $db->prepare("SELECT id, mobile FROM users WHERE id = :uid OR mobile = :m OR mobile LIKE :m_like LIMIT 1");
+            $uStmt = $db->prepare("SELECT id, mobile, email FROM users WHERE id = :uid OR mobile = :m OR mobile LIKE :m_like LIMIT 1");
             $uStmt->execute([
                 'uid' => is_numeric($rawInput) ? intval($rawInput) : 0,
                 'm' => $rawInput,
@@ -2516,6 +2518,7 @@ function getUserListings($mobileOrUserId) {
             if ($userRow) {
                 $userId = intval($userRow['id']);
                 $mobile = $userRow['mobile'];
+                $email = $userRow['email'] ?? '';
             }
         }
     }
@@ -2527,14 +2530,16 @@ function getUserListings($mobileOrUserId) {
     if (empty($cleanMobile) && $userId <= 0) return [];
 
     // Auto-heal orphaned claims & listings for user
-    if ($userId > 0 && !empty($cleanMobile)) {
+    if ($userId > 0) {
         try {
             ensureClaimsTable();
-            $db->prepare("UPDATE claims SET user_id = :uid WHERE status IN ('APPROVED', 'PENDING') AND (user_id IS NULL OR user_id = 0) AND (claimant_mobile = :mob OR claimant_mobile LIKE :m_like OR RIGHT(REPLACE(REPLACE(REPLACE(claimant_mobile, ' ', ''), '-', ''), '+91', ''), 10) = :m10)")
-               ->execute(['uid' => $userId, 'mob' => $mobile, 'm_like' => $cleanLike, 'm10' => $cleanMobile]);
+            if (!empty($cleanMobile)) {
+                $db->prepare("UPDATE claims SET user_id = :uid WHERE status IN ('APPROVED', 'PENDING') AND (user_id IS NULL OR user_id = 0) AND (claimant_mobile = :mob OR claimant_mobile LIKE :m_like OR RIGHT(REPLACE(REPLACE(REPLACE(claimant_mobile, ' ', ''), '-', ''), '+91', ''), 10) = :m10)")
+                   ->execute(['uid' => $userId, 'mob' => $mobile, 'm_like' => $cleanLike, 'm10' => $cleanMobile]);
+            }
 
-            $db->prepare("UPDATE listings SET user_id = :uid WHERE (user_id IS NULL OR user_id = 0) AND (mobile = :mob OR mobile LIKE :m_like OR RIGHT(REPLACE(REPLACE(REPLACE(mobile, ' ', ''), '-', ''), '+91', ''), 10) = :m10_2)")
-               ->execute(['uid' => $userId, 'mob' => $mobile, 'm_like' => $cleanLike, 'm10_2' => $cleanMobile]);
+            $db->prepare("UPDATE listings SET user_id = :uid WHERE (user_id IS NULL OR user_id = 0) AND ((:mob != '' AND (mobile = :mob2 OR mobile LIKE :m_like OR RIGHT(REPLACE(REPLACE(REPLACE(mobile, ' ', ''), '-', ''), '+91', ''), 10) = :m10_2)) OR (:em != '' AND email = :em2))")
+               ->execute(['uid' => $userId, 'mob' => $mobile, 'mob2' => $mobile, 'm_like' => $cleanLike, 'm10_2' => $cleanMobile, 'em' => $email, 'em2' => $email]);
 
             $db->prepare("UPDATE listings SET user_id = :uid, is_verified = 'YES' WHERE id IN (SELECT listing_id FROM claims WHERE user_id = :uid2 AND status = 'APPROVED') AND (user_id IS NULL OR user_id = 0)")
                ->execute(['uid' => $userId, 'uid2' => $userId]);

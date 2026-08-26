@@ -8,6 +8,32 @@ if (!isUserLoggedIn()) {
 }
 
 $user = getLoggedInUser();
+
+$msg = '';
+$msg_type = '';
+
+// Handle Business Claim POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'claim_business') {
+    $listingId = intval($_POST['listing_id'] ?? 0);
+    $c_name = sanitizeInput($_POST['claimant_name'] ?? '');
+    $c_mobile = sanitizeInput($_POST['claimant_mobile'] ?? '');
+    $c_role = sanitizeInput($_POST['role_title'] ?? 'Owner / Manager');
+    $c_proof = sanitizeInput($_POST['verification_proof'] ?? '');
+
+    if ($listingId > 0 && !empty($c_name) && !empty($c_mobile)) {
+        if (submitBusinessClaim($listingId, $user['id'], $c_name, $c_mobile, $c_role, $c_proof)) {
+            $msg = "Business claim submitted successfully! Our team will verify and link your ownership access.";
+            $msg_type = 'success';
+        } else {
+            $msg = "Failed to submit business claim. Please try again or contact support.";
+            $msg_type = 'danger';
+        }
+    } else {
+        $msg = "Please select a valid business listing and fill in your name and contact mobile number.";
+        $msg_type = 'warning';
+    }
+}
+
 $userListings = getUserListings($user['id']);
 
 $page_title = "My Business Listings – Saran Index";
@@ -19,6 +45,14 @@ require_once __DIR__ . '/includes/header.php';
 <div class="bg-light py-4 py-md-5">
     <div class="container">
         
+        <?php if (!empty($msg)): ?>
+            <div class="alert alert-<?php echo $msg_type; ?> alert-dismissible fade show rounded-3 mb-4 shadow-sm" role="alert">
+                <i class="bi <?php echo $msg_type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'; ?> me-2"></i>
+                <?php echo htmlspecialchars($msg); ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+
         <!-- Header Banner & Breadcrumb -->
         <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
             <div>
@@ -37,11 +71,11 @@ require_once __DIR__ . '/includes/header.php';
 
             <!-- Quick Actions -->
             <div class="d-flex align-items-center gap-2 flex-wrap">
+                <button type="button" class="btn btn-warning text-dark rounded-pill px-3 py-2 fw-bold shadow-sm d-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#claimSearchModal">
+                    <i class="bi bi-shield-check"></i> Claim Business
+                </button>
                 <a href="add-contact.php" class="btn btn-primary rounded-pill px-3.5 py-2 fw-bold shadow-sm d-flex align-items-center gap-1.5">
                     <i class="bi bi-plus-circle-fill"></i> Add New Listing
-                </a>
-                <a href="dashboard.php" class="btn btn-outline-secondary rounded-pill px-3 py-2 fw-semibold d-flex align-items-center gap-1.5">
-                    <i class="bi bi-speedometer2"></i> Dashboard
                 </a>
             </div>
         </div>
@@ -245,6 +279,81 @@ require_once __DIR__ . '/includes/header.php';
     </div>
 </div>
 
+<!-- Claim Existing Business Modal -->
+<div class="modal fade" id="claimSearchModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-dark text-white p-4">
+                <div>
+                    <h5 class="modal-title fw-bold font-heading text-white mb-1"><i class="bi bi-shield-check text-warning me-2"></i>Claim Ownership of Existing Business</h5>
+                    <p class="text-white-50 extra-small mb-0">Search directory listings in Saran District to request owner management access.</p>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-4">
+                    <label for="claim_search_input" class="form-label small fw-semibold">Search Business Name, Mobile, or Category</label>
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" id="claim_search_input" class="form-control fs-6" placeholder="Type business title, shop name, or phone number in Saran..." autocomplete="off">
+                    </div>
+                    <small class="text-muted extra-small mt-1 d-block"><i class="bi bi-info-circle me-1"></i>Start typing to search across verified Saran directory entries.</small>
+                </div>
+
+                <div id="claim_search_results" class="mb-3" style="max-height: 280px; overflow-y: auto;">
+                    <div class="text-center py-4 text-muted extra-small">
+                        Type business name above to search listings.
+                    </div>
+                </div>
+
+                <!-- Claim Request Form (Hidden until listing selected) -->
+                <div id="claim_form_wrapper" class="bg-light p-3.5 rounded-3 border" style="display: none;">
+                    <h6 class="fw-bold text-dark mb-3 border-bottom pb-2"><i class="bi bi-file-earmark-check text-primary me-2"></i>Submit Business Claim Verification</h6>
+                    <form action="my-listings.php" method="POST">
+                        <input type="hidden" name="action" value="claim_business">
+                        <input type="hidden" name="listing_id" id="selected_claim_listing_id" value="">
+
+                        <div class="mb-3 p-2.5 bg-white rounded-3 border">
+                            <span class="extra-small text-muted d-block">Selected Business:</span>
+                            <strong id="selected_claim_listing_title" class="text-primary font-heading fs-6"></strong>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="claimant_name" class="form-label extra-small fw-semibold">Your Full Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control form-control-sm" id="claimant_name" name="claimant_name" value="<?php echo htmlspecialchars($user['full_name']); ?>" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="claimant_mobile" class="form-label extra-small fw-semibold">Contact Mobile <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control form-control-sm" id="claimant_mobile" name="claimant_mobile" value="<?php echo htmlspecialchars($user['mobile']); ?>" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="role_title" class="form-label extra-small fw-semibold">Role / Designation</label>
+                                <select class="form-select form-select-sm" id="role_title" name="role_title">
+                                    <option value="Owner / Proprietor">Owner / Proprietor</option>
+                                    <option value="General Manager">General Manager</option>
+                                    <option value="Authorized Representative">Authorized Representative</option>
+                                    <option value="Employee">Employee</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="verification_proof" class="form-label extra-small fw-semibold">Verification Proof (GST / Visiting Card / Note)</label>
+                                <input type="text" class="form-control form-control-sm" id="verification_proof" name="verification_proof" placeholder="e.g. GSTIN, Shop License, or Visiting Card details">
+                            </div>
+                        </div>
+
+                        <div class="mt-3 text-end">
+                            <button type="submit" class="btn btn-warning text-dark btn-sm rounded-pill px-4 fw-bold shadow-xs">
+                                <i class="bi bi-send-fill me-1"></i> Submit Claim Request
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Copy URL helper
@@ -266,7 +375,75 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // AJAX Business Claim Search
+    const searchInput = document.getElementById('claim_search_input');
+    const resultsBox = document.getElementById('claim_search_results');
+    const formWrapper = document.getElementById('claim_form_wrapper');
+    const listingIdInput = document.getElementById('selected_claim_listing_id');
+    const listingTitleBox = document.getElementById('selected_claim_listing_title');
+
+    let searchTimer = null;
+    if (searchInput && resultsBox) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimer);
+            const query = this.value.trim();
+            if (query.length < 2) {
+                resultsBox.innerHTML = '<div class="text-center py-4 text-muted extra-small">Type at least 2 characters to search listings.</div>';
+                return;
+            }
+
+            resultsBox.innerHTML = '<div class="text-center py-4 text-muted extra-small"><span class="spinner-border spinner-border-sm me-2 text-primary"></span>Searching directory...</div>';
+
+            searchTimer = setTimeout(() => {
+                fetch('ajax_claim_search.php?q=' + encodeURIComponent(query))
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data || data.length === 0) {
+                            resultsBox.innerHTML = '<div class="text-center py-4 text-muted extra-small"><i class="bi bi-info-circle me-1"></i>No matching listings found in Saran. You can <a href="add-contact.php" class="text-primary fw-bold text-decoration-none">Add a New Listing</a> instead.</div>';
+                            return;
+                        }
+
+                        let html = '<div class="list-group list-group-flush border rounded-3">';
+                        data.forEach(item => {
+                            html += `
+                                <div class="list-group-item list-group-item-action p-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                    <div>
+                                        <h6 class="fw-bold text-dark mb-1 font-heading">${item.title}</h6>
+                                        <div class="extra-small text-muted">
+                                            <span class="badge bg-light text-dark border me-1">${item.category_name || 'Business'}</span>
+                                            <i class="bi bi-geo-alt text-danger me-1"></i>${item.block_name || 'Saran'} &bull; 
+                                            <i class="bi bi-telephone text-success me-1"></i>+91 ${item.mobile || 'N/A'}
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold btn-select-claim" data-id="${item.id}" data-title="${item.title.replace(/"/g, '&quot;')}">
+                                        <i class="bi bi-check-lg me-1"></i>Claim This
+                                    </button>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                        resultsBox.innerHTML = html;
+
+                        document.querySelectorAll('.btn-select-claim').forEach(btn => {
+                            btn.addEventListener('click', function() {
+                                const id = this.getAttribute('data-id');
+                                const title = this.getAttribute('data-title');
+                                listingIdInput.value = id;
+                                listingTitleBox.textContent = title;
+                                formWrapper.style.display = 'block';
+                                formWrapper.scrollIntoView({ behavior: 'smooth' });
+                            });
+                        });
+                    })
+                    .catch(err => {
+                        resultsBox.innerHTML = '<div class="text-center py-4 text-danger extra-small">An error occurred while searching.</div>';
+                    });
+            }, 300);
+        });
+    }
 });
 </script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
+
