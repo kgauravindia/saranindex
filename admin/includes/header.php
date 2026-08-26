@@ -304,6 +304,11 @@ $admin_name = $_SESSION['admin_full_name'] ?? 'Administrator';
                     <i class="bi bi-envelope"></i> <span class="nav-text">Contact Messages</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link <?php echo $current_page === 'sitemap.php' ? 'active' : ''; ?>" href="sitemap.php" title="Sitemap Generator">
+                    <i class="bi bi-diagram-2-fill text-info"></i> <span class="nav-text">Sitemap Generator</span>
+                </a>
+            </li>
         </ul>
 
         <div class="px-3 mt-4 mb-2 text-uppercase text-white-50 fw-bold nav-section-title" style="font-size: 0.68rem; letter-spacing: 0.08em;">Quick Actions</div>
