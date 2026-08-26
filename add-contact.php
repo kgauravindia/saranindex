@@ -9,6 +9,7 @@ if (function_exists('isUserLoggedIn') && isUserLoggedIn()) {
 
 $categories = getCategories();
 $blocks = getBlocks();
+$all_subcategories = getAllSubcategories();
 
 $success_msg = false;
 $error_msg = '';
@@ -242,6 +243,38 @@ require_once __DIR__ . '/includes/header.php';
                                     <div class="input-group">
                                         <span class="input-group-text bg-light border-secondary-subtle text-muted"><i class="bi bi-translate"></i></span>
                                         <input type="text" name="hindi_title" class="form-control border-secondary-subtle rounded-end-3 py-2.5">
+                                    </div>
+                                </div>
+
+                                <!-- Quick Profession / Subcategory Search & Auto-Fill Box -->
+                                <div class="col-12">
+                                    <div class="p-3 rounded-3 bg-light border border-primary-subtle shadow-xs position-relative">
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <label for="quickSubSearch" class="form-label fw-bold fs-7 text-primary mb-0 d-flex align-items-center gap-1.5">
+                                                <i class="bi bi-search-heart-fill text-warning fs-6"></i>
+                                                Search Profession / Business / Service (Auto-fills Category & Subcategory)
+                                            </label>
+                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill small">Auto-Detection</span>
+                                        </div>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white border-secondary-subtle text-primary"><i class="bi bi-search"></i></span>
+                                            <input type="text" id="quickSubSearch" class="form-control border-secondary-subtle py-2.5" placeholder="Type your profession or business (e.g. Dentist, Advocate, School, Plumber, Sweet Shop, Salon...)" autocomplete="off">
+                                            <button class="btn btn-outline-secondary px-3" type="button" id="clearSubSearch" style="display: none;" title="Clear search">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Autocomplete Results Dropdown -->
+                                        <div id="quickSubResults" class="dropdown-menu-suggest w-100 shadow-lg border rounded-3 mt-1 position-absolute start-0 end-0 bg-white" style="display: none; z-index: 1050; max-height: 280px; overflow-y: auto;"></div>
+
+                                        <!-- Selected Feedback Pill -->
+                                        <div id="subSelectedBadge" class="mt-2 text-success small fw-semibold d-flex align-items-center gap-1.5" style="display: none;">
+                                            <i class="bi bi-check-circle-fill fs-6 text-success"></i> 
+                                            <span>Auto-filled: <strong id="subSelectedCategoryText" class="text-dark"></strong> &bull; <span id="subSelectedText" class="text-primary fw-bold"></span></span>
+                                        </div>
+                                        <small class="text-muted d-block mt-1" style="font-size: 0.78rem;">
+                                            💡 <em>Don't know which category your business belongs to? Type above to auto-select the right Category & Subcategory instantly.</em>
+                                        </small>
                                     </div>
                                 </div>
 
@@ -494,58 +527,270 @@ require_once __DIR__ . '/includes/header.php';
 </style>
 
 <script>
+const ALL_SUBCATEGORIES = <?php echo json_encode($all_subcategories ?: [], JSON_UNESCAPED_UNICODE); ?>;
+
 document.addEventListener('DOMContentLoaded', function() {
     const catSelect = document.getElementById('category_select');
     const subSelect = document.getElementById('subcategory_select');
     const blockSelect = document.getElementById('block_select');
     const villageSelect = document.getElementById('village_select');
+    
+    const quickSubSearch = document.getElementById('quickSubSearch');
+    const quickSubResults = document.getElementById('quickSubResults');
+    const clearSubSearch = document.getElementById('clearSubSearch');
+    const subSelectedBadge = document.getElementById('subSelectedBadge');
+    const subSelectedText = document.getElementById('subSelectedText');
+    const subSelectedCategoryText = document.getElementById('subSelectedCategoryText');
 
-    if (catSelect && subSelect) {
-        catSelect.addEventListener('change', function() {
-            const catId = this.value;
-            subSelect.innerHTML = '<option value="">Loading Subcategories...</option>';
-            if (!catId) {
-                subSelect.innerHTML = '<option value="">Select Category First</option>';
-                return;
+    let activeSuggestionIndex = -1;
+
+    // Helper: Populate Subcategories dropdown for a given Category ID
+    function populateSubcategories(catId, selectedSubId = null) {
+        if (!subSelect) return;
+        if (!catId) {
+            subSelect.innerHTML = '<option value="">Select Category First</option>';
+            return;
+        }
+
+        const subList = ALL_SUBCATEGORIES.filter(s => parseInt(s.category_id) === parseInt(catId));
+        if (subList.length > 0) {
+            const profList = subList.filter(s => s.type === 'PROFESSIONAL' || !s.type || s.type !== 'BUSINESS');
+            const bizList = subList.filter(s => s.type === 'BUSINESS');
+
+            let html = '<option value="">-- Choose Subcategory --</option>';
+            if (profList.length > 0) {
+                html += '<optgroup label="👨‍💼 Professional Services & Skilled Personnel">';
+                profList.forEach(sub => {
+                    let isSel = (selectedSubId && parseInt(sub.id) === parseInt(selectedSubId)) ? 'selected' : '';
+                    let displayName = sub.name + (sub.hindi_name ? ' (' + sub.hindi_name + ')' : '');
+                    html += `<option value="${sub.id}" ${isSel}>${displayName}</option>`;
+                });
+                html += '</optgroup>';
             }
-
+            if (bizList.length > 0) {
+                html += '<optgroup label="🏪 Businesses & Establishments">';
+                bizList.forEach(sub => {
+                    let isSel = (selectedSubId && parseInt(sub.id) === parseInt(selectedSubId)) ? 'selected' : '';
+                    let displayName = sub.name + (sub.hindi_name ? ' (' + sub.hindi_name + ')' : '');
+                    html += `<option value="${sub.id}" ${isSel}>${displayName}</option>`;
+                });
+                html += '</optgroup>';
+            }
+            subSelect.innerHTML = html;
+            if (selectedSubId) {
+                subSelect.value = selectedSubId;
+            }
+        } else {
+            // Fallback via API if not in local cache
+            subSelect.innerHTML = '<option value="">Loading Subcategories...</option>';
             fetch('api/subcategories_api.php?category_id=' + encodeURIComponent(catId))
                 .then(res => res.json())
                 .then(data => {
-                    const subList = Array.isArray(data) ? data : (data.subcategories || []);
-                    if (subList.length > 0) {
-                        const profList = subList.filter(s => s.type === 'PROFESSIONAL' || !s.type || s.type !== 'BUSINESS');
-                        const bizList = subList.filter(s => s.type === 'BUSINESS');
-
+                    const fetchedSubs = Array.isArray(data) ? data : (data.subcategories || []);
+                    if (fetchedSubs.length > 0) {
                         let html = '<option value="">-- Choose Subcategory --</option>';
-                        if (profList.length > 0) {
-                            html += '<optgroup label="👨‍💼 Professional Services & Skilled Personnel">';
-                            profList.forEach(sub => {
-                                let displayName = sub.name + (sub.hindi_name ? ' (' + sub.hindi_name + ')' : '');
-                                html += `<option value="${sub.id}">${displayName}</option>`;
-                            });
-                            html += '</optgroup>';
-                        }
-                        if (bizList.length > 0) {
-                            html += '<optgroup label="🏪 Businesses & Establishments">';
-                            bizList.forEach(sub => {
-                                let displayName = sub.name + (sub.hindi_name ? ' (' + sub.hindi_name + ')' : '');
-                                html += `<option value="${sub.id}">${displayName}</option>`;
-                            });
-                            html += '</optgroup>';
-                        }
+                        fetchedSubs.forEach(sub => {
+                            let isSel = (selectedSubId && parseInt(sub.id) === parseInt(selectedSubId)) ? 'selected' : '';
+                            let displayName = sub.name + (sub.hindi_name ? ' (' + sub.hindi_name + ')' : '');
+                            html += `<option value="${sub.id}" ${isSel}>${displayName}</option>`;
+                        });
                         subSelect.innerHTML = html;
+                        if (selectedSubId) subSelect.value = selectedSubId;
                     } else {
-
                         subSelect.innerHTML = '<option value="">No Subcategories Available</option>';
                     }
                 })
                 .catch(() => {
                     subSelect.innerHTML = '<option value="">Error Loading Subcategories</option>';
                 });
+        }
+    }
+
+    // Function: Select and auto-fill Category + Subcategory
+    window.selectProfessionSubcategory = function(subId) {
+        const sub = ALL_SUBCATEGORIES.find(s => parseInt(s.id) === parseInt(subId));
+        if (!sub) return;
+
+        // 1. Set Category
+        if (catSelect) {
+            catSelect.value = sub.category_id;
+        }
+
+        // 2. Populate and set Subcategory
+        populateSubcategories(sub.category_id, sub.id);
+
+        // 3. Update Search Box and Feedback Badge
+        if (quickSubSearch) {
+            quickSubSearch.value = sub.name + (sub.hindi_name ? ' (' + sub.hindi_name + ')' : '');
+        }
+        if (clearSubSearch) {
+            clearSubSearch.style.display = 'block';
+        }
+        if (subSelectedBadge && subSelectedText && subSelectedCategoryText) {
+            subSelectedCategoryText.textContent = sub.category_name || ('Category #' + sub.category_id);
+            subSelectedText.textContent = sub.name + (sub.hindi_name ? ' (' + sub.hindi_name + ')' : '');
+            subSelectedBadge.style.display = 'flex';
+        }
+
+        // 4. Hide Dropdown
+        if (quickSubResults) {
+            quickSubResults.style.display = 'none';
+            quickSubResults.innerHTML = '';
+        }
+    };
+
+    // Live Search Autocomplete Filtering
+    if (quickSubSearch && quickSubResults) {
+        quickSubSearch.addEventListener('input', function() {
+            const query = this.value.trim().toLowerCase();
+            activeSuggestionIndex = -1;
+
+            if (clearSubSearch) {
+                clearSubSearch.style.display = query.length > 0 ? 'block' : 'none';
+            }
+
+            if (query.length < 1) {
+                quickSubResults.style.display = 'none';
+                quickSubResults.innerHTML = '';
+                return;
+            }
+
+            const matches = ALL_SUBCATEGORIES.filter(s => {
+                const name = (s.name || '').toLowerCase();
+                const hname = (s.hindi_name || '').toLowerCase();
+                const kw = (s.keywords || '').toLowerCase();
+                const cat = (s.category_name || '').toLowerCase();
+                return name.includes(query) || hname.includes(query) || kw.includes(query) || cat.includes(query);
+            }).slice(0, 15); // Show top 15 matches
+
+            if (matches.length === 0) {
+                quickSubResults.innerHTML = `
+                    <div class="p-3 text-center text-muted small">
+                        <i class="bi bi-emoji-neutral me-1"></i> No matching profession or subcategory found for "<strong>${query}</strong>".<br>
+                        <span class="text-secondary">You can select your main Category from the dropdown below directly.</span>
+                    </div>
+                `;
+                quickSubResults.style.display = 'block';
+                return;
+            }
+
+            let html = '<div class="list-group list-group-flush rounded-3">';
+            matches.forEach((sub, idx) => {
+                const catName = sub.category_name || ('Category #' + sub.category_id);
+                const isBiz = (sub.type === 'BUSINESS');
+                const typeIcon = isBiz ? '<i class="bi bi-shop text-secondary me-1"></i>' : '<i class="bi bi-person-badge text-primary me-1"></i>';
+                
+                html += `
+                    <button type="button" class="list-group-item list-group-item-action p-2.5 d-flex align-items-center justify-content-between sub-suggestion-item" data-index="${idx}" onclick="selectProfessionSubcategory(${sub.id})">
+                        <div class="d-flex align-items-center gap-2">
+                            ${typeIcon}
+                            <div>
+                                <strong class="text-dark d-block" style="font-size: 0.92rem;">${sub.name}</strong>
+                                ${sub.hindi_name ? `<small class="text-muted">${sub.hindi_name}</small>` : ''}
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-semibold rounded-pill" style="font-size: 0.73rem;">
+                                <i class="bi bi-folder2-open me-1"></i>${catName}
+                            </span>
+                        </div>
+                    </button>
+                `;
+            });
+            html += '</div>';
+
+            quickSubResults.innerHTML = html;
+            quickSubResults.style.display = 'block';
+        });
+
+        // Keyboard Navigation in suggestions
+        quickSubSearch.addEventListener('keydown', function(e) {
+            const items = quickSubResults.querySelectorAll('.sub-suggestion-item');
+            if (quickSubResults.style.display !== 'block' || items.length === 0) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                activeSuggestionIndex = (activeSuggestionIndex + 1) % items.length;
+                updateActiveSuggestion(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                activeSuggestionIndex = (activeSuggestionIndex - 1 + items.length) % items.length;
+                updateActiveSuggestion(items);
+            } else if (e.key === 'Enter') {
+                if (activeSuggestionIndex >= 0 && items[activeSuggestionIndex]) {
+                    e.preventDefault();
+                    items[activeSuggestionIndex].click();
+                }
+            } else if (e.key === 'Escape') {
+                quickSubResults.style.display = 'none';
+            }
+        });
+
+        function updateActiveSuggestion(items) {
+            items.forEach((item, i) => {
+                if (i === activeSuggestionIndex) {
+                    item.classList.add('active', 'bg-primary', 'text-white');
+                    item.scrollIntoView({ block: 'nearest' });
+                } else {
+                    item.classList.remove('active', 'bg-primary', 'text-white');
+                }
+            });
+        }
+
+        // Hide results on clicking outside
+        document.addEventListener('click', function(e) {
+            if (!quickSubSearch.contains(e.target) && !quickSubResults.contains(e.target)) {
+                quickSubResults.style.display = 'none';
+            }
         });
     }
 
+    // Clear search button
+    if (clearSubSearch) {
+        clearSubSearch.addEventListener('click', function() {
+            if (quickSubSearch) quickSubSearch.value = '';
+            if (quickSubResults) {
+                quickSubResults.innerHTML = '';
+                quickSubResults.style.display = 'none';
+            }
+            if (subSelectedBadge) subSelectedBadge.style.display = 'none';
+            clearSubSearch.style.display = 'none';
+            if (catSelect) catSelect.value = '';
+            if (subSelect) subSelect.innerHTML = '<option value="">Select Category First</option>';
+        });
+    }
+
+    // Direct Category dropdown change
+    if (catSelect) {
+        catSelect.addEventListener('change', function() {
+            const catId = this.value;
+            populateSubcategories(catId);
+            if (subSelectedBadge) {
+                subSelectedBadge.style.display = 'none';
+            }
+        });
+    }
+
+    // Direct Subcategory dropdown change
+    if (subSelect) {
+        subSelect.addEventListener('change', function() {
+            const subId = this.value;
+            if (subId) {
+                const sub = ALL_SUBCATEGORIES.find(s => parseInt(s.id) === parseInt(subId));
+                if (sub && quickSubSearch) {
+                    quickSubSearch.value = sub.name + (sub.hindi_name ? ' (' + sub.hindi_name + ')' : '');
+                    if (clearSubSearch) clearSubSearch.style.display = 'block';
+                    if (subSelectedBadge && subSelectedText && subSelectedCategoryText) {
+                        subSelectedCategoryText.textContent = sub.category_name || ('Category #' + sub.category_id);
+                        subSelectedText.textContent = sub.name + (sub.hindi_name ? ' (' + sub.hindi_name + ')' : '');
+                        subSelectedBadge.style.display = 'flex';
+                    }
+                }
+            }
+        });
+    }
+
+    // Location: CD Block -> Mauja / Village loader
     if (blockSelect && villageSelect) {
         blockSelect.addEventListener('change', function() {
             const blockId = this.value;
@@ -579,5 +824,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
+
