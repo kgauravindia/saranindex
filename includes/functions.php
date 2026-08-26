@@ -1487,19 +1487,29 @@ function deleteCategory($id) {
     return false;
 }
 
-function saveSubcategory($name, $hindi_name, $category_id, $keywords = '', $id = null) {
+function saveSubcategory($name, $hindi_name, $category_id, $keywords = '', $id = null, $type = 'PROFESSIONAL') {
     $db = getDB();
     if (!$db) return false;
     $slug = slugify($name);
     try {
         if ($id) {
-            $stmt = $db->prepare("UPDATE subcategories SET name = :name, hindi_name = :hname, category_id = :cat_id, slug = :slug, keywords = :kw WHERE id = :id");
-            return $stmt->execute(['name' => $name, 'hname' => $hindi_name, 'cat_id' => $category_id, 'slug' => $slug, 'kw' => $keywords, 'id' => $id]);
+            $stmt = $db->prepare("UPDATE subcategories SET name = :name, hindi_name = :hname, category_id = :cat_id, slug = :slug, keywords = :kw, type = :type WHERE id = :id");
+            return $stmt->execute(['name' => $name, 'hname' => $hindi_name, 'cat_id' => $category_id, 'slug' => $slug, 'kw' => $keywords, 'type' => $type, 'id' => $id]);
         } else {
-            $stmt = $db->prepare("INSERT INTO subcategories (name, hindi_name, category_id, slug, keywords) VALUES (:name, :hname, :cat_id, :slug, :kw)");
-            return $stmt->execute(['name' => $name, 'hname' => $hindi_name, 'cat_id' => $category_id, 'slug' => $slug, 'kw' => $keywords]);
+            $stmt = $db->prepare("INSERT INTO subcategories (name, hindi_name, category_id, slug, keywords, type) VALUES (:name, :hname, :cat_id, :slug, :kw, :type)");
+            return $stmt->execute(['name' => $name, 'hname' => $hindi_name, 'cat_id' => $category_id, 'slug' => $slug, 'kw' => $keywords, 'type' => $type]);
         }
-    } catch (PDOException $e) {}
+    } catch (PDOException $e) {
+        try {
+            if ($id) {
+                $stmt = $db->prepare("UPDATE subcategories SET name = :name, hindi_name = :hname, category_id = :cat_id, slug = :slug, keywords = :kw WHERE id = :id");
+                return $stmt->execute(['name' => $name, 'hname' => $hindi_name, 'cat_id' => $category_id, 'slug' => $slug, 'kw' => $keywords, 'id' => $id]);
+            } else {
+                $stmt = $db->prepare("INSERT INTO subcategories (name, hindi_name, category_id, slug, keywords) VALUES (:name, :hname, :cat_id, :slug, :kw)");
+                return $stmt->execute(['name' => $name, 'hname' => $hindi_name, 'cat_id' => $category_id, 'slug' => $slug, 'kw' => $keywords]);
+            }
+        } catch (PDOException $e2) {}
+    }
     return false;
 }
 
