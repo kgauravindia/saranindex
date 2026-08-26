@@ -124,9 +124,20 @@ $meta_description = $meta_description ?? 'Saran Index is the digital directory o
                 <?php if (isUserLoggedIn()): 
                     $headerUser = getLoggedInUser();
                 ?>
-                    <a href="dashboard" class="btn btn-outline-primary rounded-pill px-3 py-1.5 btn-sm fw-bold" title="My Account Dashboard">
-                        <i class="bi bi-person-circle me-1"></i><?php echo htmlspecialchars($headerUser['full_name'] ?? 'Dashboard'); ?>
-                    </a>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-primary dropdown-toggle rounded-pill px-3 py-1.5 btn-sm fw-bold d-flex align-items-center gap-1.5" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle"></i>
+                            <span><?php echo htmlspecialchars($headerUser['full_name'] ?? 'Account'); ?></span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border rounded-3 mt-1 py-1">
+                            <li><a class="dropdown-item small py-2 d-flex align-items-center gap-2" href="dashboard"><i class="bi bi-speedometer2 text-primary"></i> Dashboard</a></li>
+                            <li><a class="dropdown-item small py-2 d-flex align-items-center gap-2" href="my-listings"><i class="bi bi-list-stars text-warning"></i> My Listings</a></li>
+                            <li><a class="dropdown-item small py-2 d-flex align-items-center gap-2" href="add-contact"><i class="bi bi-plus-circle text-success"></i> Add New Listing</a></li>
+                            <li><a class="dropdown-item small py-2 d-flex align-items-center gap-2" href="edit-profile"><i class="bi bi-person-gear text-secondary"></i> Edit Profile</a></li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li><a class="dropdown-item small py-2 d-flex align-items-center gap-2 text-danger" href="logout"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+                        </ul>
+                    </div>
                 <?php else: ?>
                     <a href="login" class="btn btn-outline-primary rounded-pill px-3 py-1.5 btn-sm fw-bold" title="User Login">
                         <i class="bi bi-box-arrow-in-right me-1"></i>Login

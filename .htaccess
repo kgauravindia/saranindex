@@ -34,6 +34,8 @@ ErrorDocument 404 /saranindex/404.php
     RewriteRule ^forgot-password/?$ forgot-password.php [L,QSA]
     RewriteRule ^reset-password/?$ forgot-password.php [L,QSA]
     RewriteRule ^dashboard/?$ dashboard.php [L,QSA]
+    RewriteRule ^my-listings/?$ my-listings.php [L,QSA]
+    RewriteRule ^pay/?$ pay.php [L,QSA]
     RewriteRule ^change-password/?$ change-password.php [L,QSA]
     RewriteRule ^logout/?$ logout.php [L,QSA]
     RewriteRule ^university/?$ university.php [L,QSA]

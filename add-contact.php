@@ -380,7 +380,7 @@ require_once __DIR__ . '/includes/header.php';
                                     <label class="form-label fw-semibold fs-7 text-dark mb-1">
                                         Contact Person / Owner Name
                                     </label>
-                                    <input type="text" name="contact_person" class="form-control border-secondary-subtle rounded-3 py-2.5">
+                                    <input type="text" name="contact_person" class="form-control border-secondary-subtle rounded-3 py-2.5" value="<?php echo htmlspecialchars($_POST['contact_person'] ?? ($currentUser['full_name'] ?? ($currentUser['name'] ?? ''))); ?>">
                                 </div>
 
                                 <!-- Mobile Number -->
@@ -390,7 +390,7 @@ require_once __DIR__ . '/includes/header.php';
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light border-secondary-subtle text-muted">+91</span>
-                                        <input type="tel" name="mobile" class="form-control border-secondary-subtle rounded-end-3 py-2.5" required maxlength="10">
+                                        <input type="tel" name="mobile" class="form-control border-secondary-subtle rounded-end-3 py-2.5" required maxlength="10" value="<?php echo htmlspecialchars($_POST['mobile'] ?? ($currentUser['mobile'] ?? '')); ?>">
                                     </div>
                                 </div>
 
@@ -401,7 +401,7 @@ require_once __DIR__ . '/includes/header.php';
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light border-secondary-subtle text-success"><i class="bi bi-whatsapp"></i></span>
-                                        <input type="tel" name="whatsapp" class="form-control border-secondary-subtle rounded-end-3 py-2.5" maxlength="10">
+                                        <input type="tel" name="whatsapp" class="form-control border-secondary-subtle rounded-end-3 py-2.5" maxlength="10" value="<?php echo htmlspecialchars($_POST['whatsapp'] ?? ($currentUser['whatsapp'] ?? ($currentUser['mobile'] ?? ''))); ?>">
                                     </div>
                                 </div>
 
@@ -410,7 +410,7 @@ require_once __DIR__ . '/includes/header.php';
                                     <label class="form-label fw-semibold fs-7 text-dark mb-1">
                                         Official Email Address <span class="text-muted fw-normal">(Optional)</span>
                                     </label>
-                                    <input type="email" name="email" class="form-control border-secondary-subtle rounded-3 py-2.5">
+                                    <input type="email" name="email" class="form-control border-secondary-subtle rounded-3 py-2.5" value="<?php echo htmlspecialchars($_POST['email'] ?? ($currentUser['email'] ?? '')); ?>">
                                 </div>
                             </div>
                         </div>
