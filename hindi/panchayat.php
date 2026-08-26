@@ -416,10 +416,10 @@ $blocks = getBlocks();
                                                     <div><strong>आरक्षण / वर्ग:</strong> <?php echo sanitizeInput($panchayat['mukhiya_category'] ?? ''); ?> <?php if (!empty($panchayat['mukhiya_reservation'])): ?>(<?php echo sanitizeInput($panchayat['mukhiya_reservation']); ?>)<?php endif; ?></div>
                                                 </li>
                                             <?php endif; ?>
-                                            <?php if (!empty($panchayat['mukhiya_gender']) || !empty($panchayat['mukhiya_age'])): ?>
+                                            <?php if (!empty($panchayat['mukhiya_gender'])): ?>
                                                 <li class="mb-2 d-flex align-items-start">
-                                                    <i class="bi bi-info-circle-fill text-muted me-2 mt-0.5"></i>
-                                                    <div><strong>विवरण:</strong> <?php echo sanitizeInput($panchayat['mukhiya_gender'] ?? ''); ?><?php if (!empty($panchayat['mukhiya_age'])): ?>, उम्र: <?php echo sanitizeInput($panchayat['mukhiya_age']); ?> वर्ष<?php endif; ?></div>
+                                                    <i class="bi bi-person-circle text-muted me-2 mt-0.5"></i>
+                                                    <div><strong>लिंग (Gender):</strong> <?php echo sanitizeInput($panchayat['mukhiya_gender']); ?></div>
                                                 </li>
                                             <?php endif; ?>
                                             <?php if (!empty($panchayat['mukhiya_address'])): ?>
@@ -497,10 +497,10 @@ $blocks = getBlocks();
                                                     <div><strong>आरक्षण / वर्ग:</strong> <?php echo sanitizeInput($panchayat['sarpanch_category'] ?? ''); ?> <?php if (!empty($panchayat['sarpanch_reservation'])): ?>(<?php echo sanitizeInput($panchayat['sarpanch_reservation']); ?>)<?php endif; ?></div>
                                                 </li>
                                             <?php endif; ?>
-                                            <?php if (!empty($panchayat['sarpanch_gender']) || !empty($panchayat['sarpanch_age'])): ?>
+                                            <?php if (!empty($panchayat['sarpanch_gender'])): ?>
                                                 <li class="mb-2 d-flex align-items-start">
-                                                    <i class="bi bi-info-circle-fill text-muted me-2 mt-0.5"></i>
-                                                    <div><strong>विवरण:</strong> <?php echo sanitizeInput($panchayat['sarpanch_gender'] ?? ''); ?><?php if (!empty($panchayat['sarpanch_age'])): ?>, उम्र: <?php echo sanitizeInput($panchayat['sarpanch_age']); ?> वर्ष<?php endif; ?></div>
+                                                    <i class="bi bi-person-circle text-muted me-2 mt-0.5"></i>
+                                                    <div><strong>लिंग (Gender):</strong> <?php echo sanitizeInput($panchayat['sarpanch_gender']); ?></div>
                                                 </li>
                                             <?php endif; ?>
                                             <?php if (!empty($panchayat['sarpanch_address'])): ?>
