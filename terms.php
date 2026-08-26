@@ -88,21 +88,33 @@ require_once __DIR__ . '/includes/header.php';
 
                     <hr class="my-4">
 
-                    <h4 class="fw-bold text-dark font-heading mb-3">7. Governing Law & Dispute Resolution</h4>
+                    <h4 class="fw-bold text-dark font-heading mb-3">7. AI-Generated & Automated Content Disclaimer</h4>
+                    <p>
+                        Saran Index utilizes automated data processing, algorithmic indexing, and Artificial Intelligence (AI) models to assist in data aggregation, bilingual translations (English & Hindi), transliterations, demographic summaries, and categorization.
+                    </p>
+                    <ul class="mb-4">
+                        <li><strong>No Warranty on Automated Content:</strong> While algorithms strive for high fidelity, AI-assisted summaries or translations may occasionally contain inaccuracies, phonetic approximations, or incomplete records.</li>
+                        <li><strong>Independent Verification Required:</strong> Users, customers, and researchers are strongly advised to independently verify all telephone numbers, addresses, pricing, certifications, and representative details directly with the respective business owner, professional, or government authority before entering into any transaction or reliance.</li>
+                        <li><strong>Correction Requests:</strong> If you identify any AI-generated discrepancy or wish to update your listing data, please report it via our <a href="contact.php" class="text-primary text-decoration-underline">Contact Page</a> or submit a business claim for instant ownership.</li>
+                    </ul>
+
+                    <hr class="my-4">
+
+                    <h4 class="fw-bold text-dark font-heading mb-3">8. Governing Law & Dispute Resolution</h4>
                     <p>
                         These Terms & Conditions shall be governed by and construed in accordance with the laws of India. Any legal dispute or proceeding arising under or in connection with Saran Index shall be subject to the exclusive jurisdiction of the competent courts in <strong>Chapra, Saran District, Bihar, India</strong>.
                     </p>
 
                     <hr class="my-4">
 
-                    <h4 class="fw-bold text-dark font-heading mb-3">8. Changes to Terms</h4>
+                    <h4 class="fw-bold text-dark font-heading mb-3">9. Changes to Terms</h4>
                     <p>
                         We reserve the right to update or modify these Terms & Conditions at any time. Changes will be effective immediately upon posting on this page.
                     </p>
 
                     <hr class="my-4">
 
-                    <h4 class="fw-bold text-dark font-heading mb-3">9. Contact Information</h4>
+                    <h4 class="fw-bold text-dark font-heading mb-3">10. Contact Information</h4>
                     <div class="bg-light p-4 rounded-3 border">
                         <div class="fw-bold text-dark mb-1">OfferPlant Technologies Private Limited</div>
                         <div class="small text-muted mb-1"><i class="bi bi-geo-alt me-1 text-primary"></i>Chapra, Saran District, Bihar - 841301</div>

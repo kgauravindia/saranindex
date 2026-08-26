@@ -97,7 +97,7 @@ require_once __DIR__ . '/includes/header.php';
                     </ul>
                 </div>
 
-                <a href="<?php echo isUserLoggedIn() ? 'dashboard.php' : 'login.php?redirect=dashboard.php'; ?>" class="btn btn-primary rounded-pill py-3 fw-bold w-100 shadow-sm">
+                <a href="add-contact.php?plan=GOLD" class="btn btn-primary rounded-pill py-3 fw-bold w-100 shadow-sm">
                     <i class="bi bi-rocket-takeoff-fill me-1"></i> Select Gold Plan (₹499)
                 </a>
             </div>
@@ -133,7 +133,7 @@ require_once __DIR__ . '/includes/header.php';
                     </ul>
                 </div>
 
-                <a href="<?php echo isUserLoggedIn() ? 'dashboard.php' : 'login.php?redirect=dashboard.php'; ?>" class="btn btn-warning text-dark rounded-pill py-3 fw-bold w-100 shadow-sm">
+                <a href="add-contact.php?plan=PLATINUM" class="btn btn-warning text-dark rounded-pill py-3 fw-bold w-100 shadow-sm">
                     <i class="bi bi-crown-fill me-1"></i> Upgrade to VIP Platinum (₹1,499)
                 </a>
             </div>

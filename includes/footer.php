@@ -292,12 +292,14 @@ $social_wa = defined('SOCIAL_WHATSAPP') ? SOCIAL_WHATSAPP : 'https://whatsapp.co
                         </div>
                     </div>
                 </div>
-                <p class="mb-3">
-                    <strong>Saran Index</strong> (<code>saranindex.com</code>) is an independent private digital directory dedicated to connecting local businesses, services, and citizens across Saran District (Bihar).
-                </p>
-                <div class="p-3 bg-light rounded-3 border text-secondary small">
+                <div class="p-3 bg-light rounded-3 border text-secondary small mb-3">
                     <i class="bi bi-shield-x text-danger me-1 fs-6"></i>
                     Please note: This website is <strong>NOT associated with, affiliated with, endorsed by, or representing any Government Department, Government Authority, or Political Organization</strong>.
+                </div>
+
+                <div class="p-3 bg-light rounded-3 border text-secondary small">
+                    <i class="bi bi-robot text-primary me-1 fs-6"></i>
+                    <strong>AI & Automated Content Disclaimer:</strong> Certain summaries, transliterations, translations, geographic categorizations, and data points on this directory are compiled with the assistance of <strong>Artificial Intelligence (AI) and automated algorithms</strong>. Users are advised to independently verify all contact numbers, services, and official credentials before making financial or legal commitments.
                 </div>
             </div>
             <div class="modal-footer bg-light border-0 py-3 px-4">

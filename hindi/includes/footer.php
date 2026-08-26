@@ -292,12 +292,14 @@ $social_wa = defined('SOCIAL_WHATSAPP') ? SOCIAL_WHATSAPP : 'https://whatsapp.co
                         </div>
                     </div>
                 </div>
-                <p class="mb-3">
-                    <strong>सारण इंडेक्स</strong> (<code>saranindex.com</code>) एक स्वतंत्र निजी डिजिटल निर्देशिका है जो सारण जिले (बिहार) के स्थानीय व्यवसायों, सेवाओं और नागरिकों को जोड़ने के लिए समर्पित है।
-                </p>
-                <div class="p-3 bg-light rounded-3 border text-secondary small">
+                <div class="p-3 bg-light rounded-3 border text-secondary small mb-3">
                     <i class="bi bi-shield-x text-danger me-1 fs-6"></i>
                     कृपया ध्यान दें: यह वेबसाइट किसी भी <strong>सरकारी विभाग, सरकारी प्राधिकरण, या राजनीतिक संगठन से संबद्ध, समर्थित या प्रतिनिधित्व नहीं करती है।</strong>
+                </div>
+
+                <div class="p-3 bg-light rounded-3 border text-secondary small">
+                    <i class="bi bi-robot text-primary me-1 fs-6"></i>
+                    <strong>एआई (AI) एवं स्वचालित डेटा अस्वीकरण:</strong> इस पोर्टल पर कुछ विवरण, अनुवाद, लिप्यंतरण और वर्गीकरण <strong>कृत्रिम बुद्धिमत्ता (Artificial Intelligence - AI) एवं स्वचालित एल्गोरिदम</strong> की सहायता से तैयार किए गए हैं। कृपया किसी भी वित्तीय या कानूनी निर्णय से पूर्व संबंधित संस्थान अथवा आधिकारिक स्रोत से सीधे पुष्टि कर लें।
                 </div>
             </div>
             <div class="modal-footer bg-light border-0 py-3 px-4">

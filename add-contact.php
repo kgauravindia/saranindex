@@ -105,7 +105,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'ver' => $is_verified_val,
                     'status' => $initial_status
                 ]);
+                $newListingId = $db->lastInsertId();
                 $submitted_title = $title;
+
+                if (in_array($plan_type, ['GOLD', 'PLATINUM'])) {
+                    header("Location: pay.php?listing_id=" . $newListingId . "&plan=" . urlencode($plan_type));
+                    exit;
+                }
+
                 $success_msg = true;
                 } // End if (!$duplicate)
             } catch (PDOException $e) {

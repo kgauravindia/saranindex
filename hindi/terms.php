@@ -88,21 +88,33 @@ require_once __DIR__ . '/includes/header.php';
 
                     <hr class="my-4">
 
-                    <h4 class="fw-bold text-dark font-heading mb-3">7. लागू कानून एवं विवाद समाधान (Governing Law & Dispute Resolution)</h4>
+                    <h4 class="fw-bold text-dark font-heading mb-3">7. कृत्रिम बुद्धिमत्ता (AI) एवं स्वचालित सामग्री अस्वीकरण</h4>
+                    <p>
+                        सारण इंडेक्स डेटा एकत्रीकरण, द्विभाषी अनुवाद (अंग्रेजी एवं हिंदी), लिप्यंतरण, जनसांख्यिकी सारांश और वर्गीकरण में सहायता के लिए स्वचालित डेटा प्रोसेसिंग, एल्गोरिदम और कृत्रिम बुद्धिमत्ता (AI) मॉडल का उपयोग करता है।
+                    </p>
+                    <ul class="mb-4">
+                        <li><strong>स्वचालित सामग्री पर कोई पूर्ण वारंटी नहीं:</strong> यद्यपि एल्गोरिदम उच्च सटीकता के लिए काम करते हैं, फिर भी एआई-सहायता प्राप्त सारांश या अनुवाद में कभी-कभार विसंगतियां या अपूर्ण जानकारी हो सकती है।</li>
+                        <li><strong>स्वतंत्र सत्यापन आवश्यक:</strong> उपयोगकर्ताओं और शोधकर्ताओं को दृढ़तापूर्वक सलाह दी जाती है कि वे किसी भी वित्तीय या कानूनी लेन-देन से पहले संबंधित व्यवसाय मालिक, पेशेवर या आधिकारिक प्राधिकरण से सीधे फोन नंबर, पते, मूल्य और क्रेडेंशियल की पुष्टि करें।</li>
+                        <li><strong>सुधार अनुरोध:</strong> यदि आप किसी एआई-जनित विसंगति की पहचान करते हैं या अपनी लिस्टिंग को अपडेट करना चाहते हैं, तो कृपया हमारे <a href="contact.php" class="text-primary text-decoration-underline">संपर्क पृष्ठ</a> के माध्यम से रिपोर्ट करें या तत्काल स्वामित्व के लिए व्यवसाय क्लेम दर्ज करें।</li>
+                    </ul>
+
+                    <hr class="my-4">
+
+                    <h4 class="fw-bold text-dark font-heading mb-3">8. लागू कानून एवं विवाद समाधान (Governing Law & Dispute Resolution)</h4>
                     <p>
                         ये नियम और शर्तें भारत के कानूनों के अनुसार शासित और विश्लेषित की जाएंगी। सारण इंडेक्स के संबंध में उत्पन्न होने वाला कोई भी कानूनी विवाद <strong>छपरा, सारण जिला, बिहार, भारत</strong> के सक्षम न्यायालयों के अनन्य क्षेत्राधिकार के अधीन होगा।
                     </p>
 
                     <hr class="my-4">
 
-                    <h4 class="fw-bold text-dark font-heading mb-3">8. शर्तों में बदलाव (Changes to Terms)</h4>
+                    <h4 class="fw-bold text-dark font-heading mb-3">9. शर्तों में बदलाव (Changes to Terms)</h4>
                     <p>
                         हम किसी भी समय इन नियमों और शर्तों को अपडेट या संशोधित करने का अधिकार सुरक्षित रखते हैं। इस पृष्ठ पर पोस्ट किए जाने पर परिवर्तन तुरंत प्रभावी होंगे।
                     </p>
 
                     <hr class="my-4">
 
-                    <h4 class="fw-bold text-dark font-heading mb-3">9. संपर्क जानकारी (Contact Information)</h4>
+                    <h4 class="fw-bold text-dark font-heading mb-3">10. संपर्क जानकारी (Contact Information)</h4>
                     <div class="bg-light p-4 rounded-3 border">
                         <div class="fw-bold text-dark mb-1">ऑफ़रप्लांट टेक्नोलॉजीज प्राइवेट लिमिटेड</div>
                         <div class="small text-muted mb-1"><i class="bi bi-geo-alt me-1 text-primary"></i>छपरा, सारण जिला, बिहार - 841301</div>

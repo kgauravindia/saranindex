@@ -7,10 +7,10 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 $user = getLoggedInUser();
-if (!$user) {
-    echo json_encode(['status' => 'error', 'message' => 'User authentication required.']);
-    exit;
-}
+$userId = $user['id'] ?? null;
+$userName = $user['full_name'] ?? '';
+$userMobile = $user['mobile'] ?? '';
+$userEmail = $user['email'] ?? '';
 
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
 
@@ -18,6 +18,27 @@ $action = $_POST['action'] ?? $_GET['action'] ?? '';
 if ($action === 'create_order') {
     $listingId = intval($_POST['listing_id'] ?? 0);
     $planType = strtoupper(trim($_POST['plan_type'] ?? 'FREE'));
+
+    if (!$user) {
+        if ($listingId > 0) {
+            $db = getDB();
+            $stmtL = $db->prepare("SELECT * FROM listings WHERE id = :id LIMIT 1");
+            $stmtL->execute(['id' => $listingId]);
+            $listingObj = $stmtL->fetch(PDO::FETCH_ASSOC);
+            if ($listingObj) {
+                $userName = $listingObj['contact_person'] ?: $listingObj['title'];
+                $userMobile = $listingObj['mobile'];
+                $userEmail = $listingObj['email'] ?? '';
+                $userId = $listingObj['user_id'] ?? null;
+            } else {
+                echo json_encode(['status' => 'error', 'message' => 'Listing not found for payment.']);
+                exit;
+            }
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'User authentication or listing ID required.']);
+            exit;
+        }
+    }
     
     $amountInRupees = 0;
     if ($planType === 'GOLD') {
@@ -30,10 +51,10 @@ if ($action === 'create_order') {
     }
 
     $amountInPaise = $amountInRupees * 100;
-    $receiptId = 'order_' . $user['id'] . '_' . time();
+    $receiptId = 'order_' . ($userId ?: 'guest') . '_' . time();
 
     // Log transaction order in payments table
-    $paymentLog = createOnlinePayment($user['id'], $listingId, $planType, $amountInRupees, 'RAZORPAY');
+    $paymentLog = createOnlinePayment($userId, $listingId, $planType, $amountInRupees, 'RAZORPAY');
     if (!$paymentLog) {
         echo json_encode(['status' => 'error', 'message' => 'Failed to initialize payment transaction in database.']);
         exit;
@@ -45,11 +66,11 @@ if ($action === 'create_order') {
         'amount' => $amountInPaise,
         'currency' => 'INR',
         'notes' => [
-            'user_id' => $user['id'],
+            'user_id' => $userId,
             'listing_id' => $listingId,
             'plan_type' => $planType,
             'transaction_id' => $paymentLog['transaction_id'],
-            'mobile' => $user['mobile']
+            'mobile' => $userMobile
         ]
     ];
 
@@ -75,9 +96,9 @@ if ($action === 'create_order') {
             'currency' => 'INR',
             'plan_type' => $planType,
             'user' => [
-                'name' => $user['full_name'],
-                'mobile' => $user['mobile'],
-                'email' => $user['email'] ?? ''
+                'name' => $userName,
+                'mobile' => $userMobile,
+                'email' => $userEmail
             ]
         ]);
     } else {
@@ -91,9 +112,9 @@ if ($action === 'create_order') {
             'currency' => 'INR',
             'plan_type' => $planType,
             'user' => [
-                'name' => $user['full_name'],
-                'mobile' => $user['mobile'],
-                'email' => $user['email'] ?? ''
+                'name' => $userName,
+                'mobile' => $userMobile,
+                'email' => $userEmail
             ]
         ]);
     }

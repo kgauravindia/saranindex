@@ -98,7 +98,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'ver' => $is_verified_val,
                     'status' => $initial_status
                 ]);
+                $newListingId = $db->lastInsertId();
                 $submitted_title = !empty($hindi_title) ? $hindi_title : $title;
+
+                if (in_array($plan_type, ['GOLD', 'PLATINUM'])) {
+                    header("Location: pay.php?listing_id=" . $newListingId . "&plan=" . urlencode($plan_type));
+                    exit;
+                }
+
                 $success_msg = true;
             } catch (PDOException $e) {
                 error_log("Listing insert failed: " . $e->getMessage());

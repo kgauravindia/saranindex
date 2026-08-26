@@ -2865,13 +2865,13 @@ function getAllListings() {
 
 function createOnlinePayment($userId, $listingId, $planType, $amount, $paymentGateway = 'ONLINE') {
     $db = getDB();
-    if (!$db || empty($userId)) return null;
+    if (!$db) return null;
 
     $txnId = 'TXN_' . time() . '_' . rand(1000, 9999);
     try {
         $stmt = $db->prepare("INSERT INTO payments (user_id, listing_id, plan_type, amount, payment_gateway, transaction_id, payment_status) VALUES (:uid, :lid, :plan, :amt, :gw, :txnid, 'PENDING')");
         $stmt->execute([
-            'uid' => intval($userId),
+            'uid' => !empty($userId) ? intval($userId) : null,
             'lid' => !empty($listingId) ? intval($listingId) : null,
             'plan' => $planType,
             'amt' => floatval($amount),
