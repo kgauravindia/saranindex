@@ -726,12 +726,9 @@ require_once __DIR__ . '/includes/header.php';
                         <h6 class="fw-bold mb-0 text-white">Online Helpdesk</h6>
                     </div>
                     <p class="small text-white-50 mb-3">Need assistance with listing claims, tax receipts, or membership upgrades?</p>
-                    <div class="d-flex gap-2">
-                        <a href="https://wa.me/919934220000" target="_blank" class="btn btn-success btn-sm rounded-pill flex-fill fw-bold py-2 shadow-xs">
-                            <i class="bi bi-whatsapp me-1"></i>WhatsApp
-                        </a>
-                        <a href="contact.php" class="btn btn-outline-light btn-sm rounded-pill flex-fill fw-semibold py-2">
-                            Contact Us
+                    <div>
+                        <a href="contact.php" class="btn btn-warning text-dark btn-sm rounded-pill w-100 fw-bold py-2 shadow-xs">
+                            <i class="bi bi-envelope-fill me-1"></i>Contact Support
                         </a>
                     </div>
                 </div>

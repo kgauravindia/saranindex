@@ -4315,11 +4315,35 @@ function performGitPull() {
     ];
 }
 
+function parseRepresentativeDetails($desc) {
+    $info = [
+        'father_husband' => '',
+        'reservation' => '',
+        'gender' => '',
+        'category' => '',
+        'address' => '',
+        'constituency' => ''
+    ];
+    if (empty($desc)) return $info;
 
-
-
-
-
-
-
+    if (preg_match('/(पिता\/पति का नाम|पिता\/पति|Father\/Husband|Father):\s*([^\n\r]+)/u', $desc, $m)) {
+        $info['father_husband'] = trim($m[2]);
+    }
+    if (preg_match('/(आरक्षण स्थिति|आरक्षण|Reservation Status|Reservation):\s*([^\n\r]+)/u', $desc, $m)) {
+        $info['reservation'] = trim($m[2]);
+    }
+    if (preg_match('/(लिंग|Gender):\s*([^\n\r\|]+)/u', $desc, $m)) {
+        $info['gender'] = trim($m[2]);
+    }
+    if (preg_match('/(वर्ग|Category):\s*([^\n\r]+)/u', $desc, $m)) {
+        $info['category'] = trim($m[2]);
+    }
+    if (preg_match('/(पता|Address):\s*([^\n\r]+)/u', $desc, $m)) {
+        $info['address'] = trim($m[2]);
+    }
+    if (preg_match('/(प्रादेशिक निर्वाचन क्षेत्र संख्या|क्षेत्र संख्या|क्षेत्र सं०|Constituency #?):\s*([^\n\r\|\,]+)/u', $desc, $m)) {
+        $info['constituency'] = trim($m[2]);
+    }
+    return $info;
+}
 
