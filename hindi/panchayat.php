@@ -356,14 +356,22 @@ $blocks = getBlocks();
         <div class="container">
 
             <!-- Elected Representatives: Mukhiya & Sarpanch (Hindi) -->
-            <?php if (!empty($panchayat['mukhiya_name']) || !empty($panchayat['sarpanch_name'])): ?>
+            <?php if (!empty($panchayat['mukhiya_name']) || !empty($panchayat['sarpanch_name'])): 
+                $isLoggedIn = function_exists('isUserLoggedIn') && isUserLoggedIn();
+                $loginRedirectUrl = '../login?redirect=' . urlencode('hindi/panchayat/' . ($panchayat['slug'] ?? ''));
+            ?>
                 <div class="mb-5">
                     <div class="text-center mb-4">
-                        <span class="badge bg-warning text-dark fw-bold px-3 py-2 rounded-pill uppercase tracking-wider small shadow-xs">
-                            <i class="bi bi-people-fill me-1"></i> निर्वाचित जनप्रतिनिधि
-                        </span>
-                        <h2 class="fw-bold font-heading text-dark mt-2">पंचायत नेतृत्व एवं जनप्रतिनिधि</h2>
-                        <p class="text-muted mx-auto" style="max-width: 580px;"><?php echo sanitizeInput($pName); ?> ग्राम पंचायत एवं ग्राम कचहरी के निर्वाचित जनप्रतिनिधि (राज्य निर्वाचन आयोग बिहार आधिकारिक डेटा)।</p>
+                        <div class="d-inline-flex align-items-center gap-2 mb-2">
+                            <span class="badge bg-warning text-dark fw-bold px-3 py-1.5 rounded-pill uppercase tracking-wider small shadow-xs">
+                                <i class="bi bi-people-fill me-1"></i> निर्वाचित जनप्रतिनिधि
+                            </span>
+                            <span class="badge bg-primary text-white fw-bold px-3 py-1.5 rounded-pill small shadow-xs">
+                                <i class="bi bi-calendar-check me-1"></i> कार्यकाल: 2021 - 2026
+                            </span>
+                        </div>
+                        <h2 class="fw-bold font-heading text-dark mt-1">पंचायत नेतृत्व एवं जनप्रतिनिधि</h2>
+                        <p class="text-muted mx-auto" style="max-width: 580px;"><?php echo sanitizeInput($pName); ?> ग्राम पंचायत एवं ग्राम कचहरी के निर्वाचित जनप्रतिनिधि (राज्य निर्वाचन आयोग बिहार आधिकारिक डेटा • कार्यकाल: 2021 - 2026)।</p>
                     </div>
 
                     <div class="row g-4 justify-content-center">
@@ -379,7 +387,10 @@ $blocks = getBlocks();
                                                 <i class="bi bi-person-badge-fill fs-3"></i>
                                             </div>
                                             <div>
-                                                <span class="badge bg-primary text-white fw-semibold rounded-pill px-2.5 py-1 small">ग्राम पंचायत के मुखिया</span>
+                                                <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                                                    <span class="badge bg-primary text-white fw-semibold rounded-pill px-2.5 py-1 small">ग्राम पंचायत के मुखिया</span>
+                                                    <span class="badge bg-warning text-dark fw-semibold rounded-pill px-2 py-0.5" style="font-size: 0.72rem;">2021 - 2026</span>
+                                                </div>
                                                 <h4 class="fw-bold font-heading text-dark mb-0 mt-1"><?php echo sanitizeInput($panchayat['mukhiya_name']); ?></h4>
                                             </div>
                                         </div>
@@ -389,6 +400,10 @@ $blocks = getBlocks();
                                     </div>
                                     <div class="card-body p-4">
                                         <ul class="list-unstyled mb-4 small text-secondary">
+                                            <li class="mb-2 d-flex align-items-start">
+                                                <i class="bi bi-hourglass-split text-primary me-2 mt-0.5"></i>
+                                                <div><strong>निर्वाचित कार्यकाल:</strong> <span class="badge bg-primary-subtle text-primary fw-bold">2021 - 2026</span> (वर्तमान सत्र)</div>
+                                            </li>
                                             <?php if (!empty($panchayat['mukhiya_father_husband'])): ?>
                                                 <li class="mb-2 d-flex align-items-start">
                                                     <i class="bi bi-person-fill text-muted me-2 mt-0.5"></i>
@@ -416,14 +431,25 @@ $blocks = getBlocks();
                                         </ul>
 
                                         <?php if (!empty($mMob)): ?>
-                                            <div class="d-flex gap-2">
-                                                <a href="tel:<?php echo $mMob; ?>" class="btn btn-primary rounded-pill px-3 py-2 flex-grow-1 fw-semibold btn-sm shadow-xs">
-                                                    <i class="bi bi-telephone-fill me-1"></i> कॉल करें: <?php echo $mMob; ?>
-                                                </a>
-                                                <a href="https://wa.me/91<?php echo $mMob; ?>" target="_blank" rel="noopener" class="btn btn-outline-success rounded-pill px-3 py-2 fw-semibold btn-sm">
-                                                    <i class="bi bi-whatsapp me-1"></i> व्हाट्सऐप
-                                                </a>
-                                            </div>
+                                            <?php if ($isLoggedIn): ?>
+                                                <div class="d-flex gap-2">
+                                                    <a href="tel:<?php echo $mMob; ?>" class="btn btn-primary rounded-pill px-3 py-2 flex-grow-1 fw-semibold btn-sm shadow-xs">
+                                                        <i class="bi bi-telephone-fill me-1"></i> कॉल करें: <?php echo $mMob; ?>
+                                                    </a>
+                                                    <a href="https://wa.me/91<?php echo $mMob; ?>" target="_blank" rel="noopener" class="btn btn-outline-success rounded-pill px-3 py-2 fw-semibold btn-sm">
+                                                        <i class="bi bi-whatsapp me-1"></i> व्हाट्सऐप
+                                                    </a>
+                                                </div>
+                                            <?php else: ?>
+                                                <div class="p-2.5 rounded-3 bg-light border text-center">
+                                                    <div class="text-muted small mb-2">
+                                                        <i class="bi bi-shield-lock text-warning me-1"></i> मोबाइल: <span class="font-monospace text-secondary fw-semibold">+91 XXXXX •••••</span>
+                                                    </div>
+                                                    <a href="<?php echo $loginRedirectUrl; ?>" class="btn btn-outline-primary rounded-pill px-3 py-1.5 w-100 fw-semibold btn-sm">
+                                                        <i class="bi bi-person-check-fill me-1"></i> नंबर व संपर्क देखने के लिए लॉगिन करें
+                                                    </a>
+                                                </div>
+                                            <?php endif; ?>
                                         <?php endif; ?>
                                     </div>
                                 </div>
@@ -442,7 +468,10 @@ $blocks = getBlocks();
                                                 <i class="bi bi-bank2 fs-3"></i>
                                             </div>
                                             <div>
-                                                <span class="badge bg-warning text-dark fw-semibold rounded-pill px-2.5 py-1 small">ग्राम कचहरी के सरपंच</span>
+                                                <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                                                    <span class="badge bg-warning text-dark fw-semibold rounded-pill px-2.5 py-1 small">ग्राम कचहरी के सरपंच</span>
+                                                    <span class="badge bg-dark text-white fw-semibold rounded-pill px-2 py-0.5" style="font-size: 0.72rem;">2021 - 2026</span>
+                                                </div>
                                                 <h4 class="fw-bold font-heading text-dark mb-0 mt-1"><?php echo sanitizeInput($panchayat['sarpanch_name']); ?></h4>
                                             </div>
                                         </div>
@@ -452,6 +481,10 @@ $blocks = getBlocks();
                                     </div>
                                     <div class="card-body p-4">
                                         <ul class="list-unstyled mb-4 small text-secondary">
+                                            <li class="mb-2 d-flex align-items-start">
+                                                <i class="bi bi-hourglass-split text-warning me-2 mt-0.5"></i>
+                                                <div><strong>निर्वाचित कार्यकाल:</strong> <span class="badge bg-warning-subtle text-dark fw-bold">2021 - 2026</span> (वर्तमान सत्र)</div>
+                                            </li>
                                             <?php if (!empty($panchayat['sarpanch_father_husband'])): ?>
                                                 <li class="mb-2 d-flex align-items-start">
                                                     <i class="bi bi-person-fill text-muted me-2 mt-0.5"></i>
@@ -479,14 +512,25 @@ $blocks = getBlocks();
                                         </ul>
 
                                         <?php if (!empty($sMob)): ?>
-                                            <div class="d-flex gap-2">
-                                                <a href="tel:<?php echo $sMob; ?>" class="btn btn-warning text-dark rounded-pill px-3 py-2 flex-grow-1 fw-semibold btn-sm shadow-xs">
-                                                    <i class="bi bi-telephone-fill me-1"></i> कॉल करें: <?php echo $sMob; ?>
-                                                </a>
-                                                <a href="https://wa.me/91<?php echo $sMob; ?>" target="_blank" rel="noopener" class="btn btn-outline-success rounded-pill px-3 py-2 fw-semibold btn-sm">
-                                                    <i class="bi bi-whatsapp me-1"></i> व्हाट्सऐप
-                                                </a>
-                                            </div>
+                                            <?php if ($isLoggedIn): ?>
+                                                <div class="d-flex gap-2">
+                                                    <a href="tel:<?php echo $sMob; ?>" class="btn btn-warning text-dark rounded-pill px-3 py-2 flex-grow-1 fw-semibold btn-sm shadow-xs">
+                                                        <i class="bi bi-telephone-fill me-1"></i> कॉल करें: <?php echo $sMob; ?>
+                                                    </a>
+                                                    <a href="https://wa.me/91<?php echo $sMob; ?>" target="_blank" rel="noopener" class="btn btn-outline-success rounded-pill px-3 py-2 fw-semibold btn-sm">
+                                                        <i class="bi bi-whatsapp me-1"></i> व्हाट्सऐप
+                                                    </a>
+                                                </div>
+                                            <?php else: ?>
+                                                <div class="p-2.5 rounded-3 bg-light border text-center">
+                                                    <div class="text-muted small mb-2">
+                                                        <i class="bi bi-shield-lock text-warning me-1"></i> मोबाइल: <span class="font-monospace text-secondary fw-semibold">+91 XXXXX •••••</span>
+                                                    </div>
+                                                    <a href="<?php echo $loginRedirectUrl; ?>" class="btn btn-outline-primary rounded-pill px-3 py-1.5 w-100 fw-semibold btn-sm">
+                                                        <i class="bi bi-person-check-fill me-1"></i> नंबर व संपर्क देखने के लिए लॉगिन करें
+                                                    </a>
+                                                </div>
+                                            <?php endif; ?>
                                         <?php endif; ?>
                                     </div>
                                 </div>
