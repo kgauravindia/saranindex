@@ -1,6 +1,4 @@
 /* SaranIndex.com Modern CSS Design System */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap');
-@import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css');
 
 :root {
     --primary: #1e40af;
@@ -363,17 +361,52 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 /* Listing Item Card */
 .listing-card {
     background: #ffffff;
-    border-radius: var(--border-radius);
+    border-radius: 16px;
     border: 1px solid #e2e8f0;
-    box-shadow: var(--card-shadow);
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .listing-card:hover {
-    box-shadow: var(--hover-shadow);
-    border-color: #94a3b8;
-    transform: translateY(-5px);
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+    border-color: #cbd5e1;
+    transform: translateY(-3px);
+}
+
+.listing-card .listing-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.35;
+    margin-bottom: 0.25rem;
+}
+
+.listing-card .listing-title a {
+    color: #0f172a;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.listing-card .listing-title a:hover {
+    color: var(--primary);
+}
+
+.listing-card .listing-location {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 /* Badges System */
@@ -382,7 +415,7 @@ h1, h2, h3, h4, h5, h6, .font-heading {
     color: #15803d;
     font-size: 0.75rem;
     font-weight: 700;
-    padding: 5px 12px;
+    padding: 4px 10px;
     border-radius: 50px;
     display: inline-flex;
     align-items: center;
@@ -395,7 +428,7 @@ h1, h2, h3, h4, h5, h6, .font-heading {
     color: #b45309;
     font-size: 0.75rem;
     font-weight: 700;
-    padding: 5px 12px;
+    padding: 4px 10px;
     border-radius: 50px;
 }
 
@@ -404,15 +437,9 @@ h1, h2, h3, h4, h5, h6, .font-heading {
     color: #ffffff;
     font-weight: 700;
     font-size: 0.75rem;
-    padding: 5px 14px;
+    padding: 4px 12px;
     border-radius: 50px;
-    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
-    animation: vipGlow 2s infinite alternate;
-}
-
-@keyframes vipGlow {
-    0% { box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3); }
-    100% { box-shadow: 0 6px 20px rgba(245, 158, 11, 0.6); }
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
 }
 
 .gold-business-badge {
@@ -420,54 +447,92 @@ h1, h2, h3, h4, h5, h6, .font-heading {
     color: #ffffff;
     font-weight: 700;
     font-size: 0.75rem;
-    padding: 5px 14px;
+    padding: 4px 12px;
     border-radius: 50px;
     box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
 }
 
 /* Action Buttons */
 .btn-whatsapp {
-    background-color: #25d366;
-    color: #ffffff;
+    background-color: #16a34a;
+    color: #ffffff !important;
     font-weight: 600;
+    font-size: 0.875rem;
     border-radius: 50px;
-    padding: 9px 20px;
+    padding: 7px 16px;
     border: none;
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    text-decoration: none;
+    text-decoration: none !important;
     transition: all 0.2s ease;
-    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+    box-shadow: 0 2px 8px rgba(22, 163, 74, 0.25);
 }
 
 .btn-whatsapp:hover {
-    background-color: #1da851;
-    color: #ffffff;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(37, 211, 102, 0.4);
+    background-color: #15803d;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.35);
 }
 
 .btn-call {
     background-color: #2563eb;
-    color: #ffffff;
+    color: #ffffff !important;
     font-weight: 600;
+    font-size: 0.875rem;
     border-radius: 50px;
-    padding: 9px 20px;
+    padding: 7px 16px;
     border: none;
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    text-decoration: none;
+    text-decoration: none !important;
     transition: all 0.2s ease;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
 }
 
 .btn-call:hover {
     background-color: #1d4ed8;
-    color: #ffffff;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+    color: #ffffff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+.btn-call-masked {
+    background-color: #f8fafc;
+    color: #475569 !important;
+    border: 1px solid #e2e8f0;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: 50px;
+    padding: 6px 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none !important;
+    transition: all 0.2s ease;
+}
+
+.btn-call-masked:hover {
+    background-color: #f1f5f9;
+    color: #1e293b !important;
+    border-color: #cbd5e1;
+}
+
+@media (max-width: 576px) {
+    .listing-actions-group {
+        width: 100%;
+        display: flex;
+        gap: 8px;
+    }
+    .listing-actions-group .btn-call,
+    .listing-actions-group .btn-whatsapp,
+    .listing-actions-group .btn-call-masked {
+        flex: 1;
+        justify-content: center;
+        text-align: center;
+    }
 }
 
 /* Block Cards Grid */

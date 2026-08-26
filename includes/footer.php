@@ -20,7 +20,7 @@ $social_wa = defined('SOCIAL_WHATSAPP') ? SOCIAL_WHATSAPP : 'https://whatsapp.co
                         <span class="badge bg-info-subtle text-info border border-info rounded-pill px-3 py-1.5 ms-auto ms-sm-0 small">100% Free Public Directory</span>
                     </div>
                     <div class="d-flex align-items-center gap-3 mb-2">
-                        <img src="assets/logo.png" alt="Saran Index Logo" height="48" class="bg-white p-1 rounded-3 shadow-sm flex-shrink-0" style="object-fit: contain;">
+                        <img src="assets/logo.png" alt="Saran Index Logo" width="48" height="48" loading="lazy" decoding="async" class="bg-white p-1 rounded-3 shadow-sm flex-shrink-0" style="object-fit: contain;">
                         <h3 class="fw-bold mb-0 font-heading text-white fs-4">Saran Index – Connecting Saran Digitally</h3>
                     </div>
                     <p class="text-white-50 mb-0" style="max-width: 600px; font-size: 0.95rem; line-height: 1.6;">
@@ -45,7 +45,7 @@ $social_wa = defined('SOCIAL_WHATSAPP') ? SOCIAL_WHATSAPP : 'https://whatsapp.co
             <!-- Column 1: Brand & Social Hub -->
             <div class="col-lg-3 col-md-6">
                 <div class="d-flex align-items-center gap-2 mb-3">
-                    <img src="assets/logo.png" alt="Saran Index" height="36" class="bg-white p-1 rounded-2">
+                    <img src="assets/logo.png" alt="Saran Index" width="36" height="36" loading="lazy" decoding="async" class="bg-white p-1 rounded-2">
                     <h5 class="fw-bold text-white font-heading mb-0">Saran Index</h5>
                 </div>
                 <p class="text-white-50 small mb-3" style="line-height: 1.6;">

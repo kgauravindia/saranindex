@@ -181,78 +181,9 @@ $blocks = getBlocks();
     <!-- Listings Grid -->
     <div class="row g-3 g-md-4">
         <?php if (!empty($listings)): ?>
-            <?php foreach ($listings as $item): 
-                $itemTitle = !empty($item['hindi_title']) ? $item['hindi_title'] : $item['title'];
-            ?>
+            <?php foreach ($listings as $item): ?>
                 <div class="col-12 col-md-6">
-                    <div class="listing-card p-3 p-md-4 h-100 d-flex flex-column justify-content-between rounded-4 shadow-sm border bg-white">
-                        <div>
-                            <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
-                                <div class="d-flex align-items-center gap-1 flex-wrap">
-                                    <span class="badge bg-primary-subtle text-primary fw-semibold px-2.5 py-1 rounded-pill small">
-                                        <?php echo sanitizeInput(!empty($item['category_hindi_name']) ? $item['category_hindi_name'] : $item['category_name']); ?>
-                                    </span>
-                                    <?php if (!empty($item['subcategory_name'])): ?>
-                                        <span class="badge bg-secondary-subtle text-secondary fw-medium px-2 py-1 rounded-pill small">
-                                            <?php echo sanitizeInput(!empty($item['subcategory_hindi_name']) ? $item['subcategory_hindi_name'] : $item['subcategory_name']); ?>
-                                        </span>
-                                    <?php endif; ?>
-                                </div>
-                                <div class="d-flex align-items-center gap-1 flex-wrap">
-                                    <?php if (isset($item['plan_type']) && $item['plan_type'] === 'PLATINUM'): ?>
-                                        <span class="badge bg-warning text-dark fw-bold px-2.5 py-1 rounded-pill small shadow-xs">
-                                            <i class="bi bi-crown-fill me-1 text-danger"></i> वीआईपी प्लैटिनम
-                                        </span>
-                                    <?php elseif (isset($item['plan_type']) && $item['plan_type'] === 'GOLD'): ?>
-                                        <span class="badge bg-primary text-white fw-bold px-2.5 py-1 rounded-pill small shadow-xs">
-                                            <i class="bi bi-patch-check-fill me-1"></i> गोल्ड बिजनेस
-                                        </span>
-                                    <?php elseif ($item['is_verified'] === 'YES'): ?>
-                                        <span class="verified-badge"><i class="bi bi-patch-check-fill"></i> सत्यापित</span>
-                                    <?php endif; ?>
-                                </div>
-
-                            </div>
-
-                            <h3 class="fw-bold text-dark mb-1 font-heading fs-5">
-                                <a href="<?php echo getListingUrl($item['slug']); ?>" class="text-dark text-decoration-none hover-primary">
-                                    <?php echo sanitizeInput($itemTitle); ?>
-                                </a>
-                            </h3>
-
-                            <div class="text-muted small mb-2">
-                                <i class="bi bi-geo-alt me-1 text-primary"></i><?php echo sanitizeInput(formatListingLocation($item, 'hi')); ?>
-                            </div>
-
-                            <?php if (!empty($item['description'])): ?>
-                                <p class="small text-secondary mb-3 text-truncate-2" style="line-height: 1.5;">
-                                    <?php echo sanitizeInput($item['description']); ?>
-                                </p>
-                            <?php endif; ?>
-                        </div>
-
-                        <div class="border-top pt-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
-                            <div>
-                                <?php echo renderStarRating($item['star_rating']); ?>
-                            </div>
-                            <div class="d-flex gap-2 w-100-mobile">
-                                <?php if (isMobileNumberVisibleToVisitor($item)): ?>
-                                    <?php if (!empty($item['whatsapp'])): ?>
-                                        <a href="https://wa.me/91<?php echo sanitizeInput($item['whatsapp']); ?>" target="_blank" class="btn btn-sm btn-success rounded-pill px-3 py-1.5 flex-grow-1 flex-md-grow-0">
-                                            <i class="bi bi-whatsapp me-1"></i> व्हाट्सएप
-                                        </a>
-                                    <?php endif; ?>
-                                    <a href="tel:<?php echo sanitizeInput($item['mobile']); ?>" class="btn btn-sm btn-primary rounded-pill px-3 py-1.5 flex-grow-1 flex-md-grow-0">
-                                        <i class="bi bi-telephone-fill me-1"></i> कॉल करें
-                                    </a>
-                                <?php else: ?>
-                                    <a href="login.php?redirect=<?php echo urlencode('listing/' . $item['slug']); ?>" class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1.5 flex-grow-1 flex-md-grow-0 text-dark fw-semibold" title="पूरा नंबर देखने के लिए लॉग इन करें">
-                                        <i class="bi bi-lock-fill text-warning me-1"></i><?php echo sanitizeInput(maskPhoneNumber($item['mobile'])); ?>
-                                    </a>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    </div>
+                    <?php echo renderListingCard($item, ['lang' => 'hi']); ?>
                 </div>
             <?php endforeach; ?>
         <?php else: ?>

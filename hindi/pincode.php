@@ -19,51 +19,9 @@ $listings = getListings('', '', '', 20, 0);
 
 <div class="container py-5">
     <div class="row g-4">
-        <?php foreach ($listings as $item): 
-            $itemTitle = !empty($item['hindi_title']) ? $item['hindi_title'] : $item['title'];
-            $itemSubTitle = !empty($item['hindi_title']) ? $item['title'] : '';
-        ?>
+        <?php foreach ($listings as $item): ?>
             <div class="col-lg-6">
-                <div class="listing-card p-4 h-100 d-flex flex-column justify-content-between">
-                    <div>
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="badge bg-primary-subtle text-primary fw-semibold px-2.5 py-1 rounded-pill small">
-                                <?php echo sanitizeInput($item['category_name']); ?>
-                            </span>
-                            <?php if ($item['is_verified'] === 'YES'): ?>
-                                <span class="verified-badge"><i class="bi bi-patch-check-fill"></i> सत्यापित</span>
-                            <?php endif; ?>
-                        </div>
-
-                        <h4 class="fw-bold text-dark mb-1 font-heading fs-5">
-                            <a href="<?php echo getListingUrl($item['slug']); ?>" class="text-dark text-decoration-none hover-primary">
-                                <?php echo sanitizeInput($itemTitle); ?>
-                            </a>
-                        </h4>
-                        <?php if (!empty($itemSubTitle)): ?>
-                            <div class="text-muted small fw-medium mb-2"><?php echo sanitizeInput($itemSubTitle); ?></div>
-                        <?php endif; ?>
-
-                        <div class="text-muted small mb-3">
-                            <i class="bi bi-geo-alt me-1 text-primary"></i><?php echo sanitizeInput(formatListingLocation($item, 'hi')); ?> (पिन: <?php echo sanitizeInput($code); ?>)
-                        </div>
-                    </div>
-
-                    <div class="border-top pt-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
-                        <div>
-                            <?php echo renderStarRating($item['star_rating']); ?>
-                        </div>
-                        <?php if (isMobileNumberVisibleToVisitor($item)): ?>
-                            <a href="tel:<?php echo sanitizeInput($item['mobile']); ?>" class="btn-call">
-                                <i class="bi bi-telephone-fill"></i> कॉल करें
-                            </a>
-                        <?php else: ?>
-                            <a href="../login.php?redirect=<?php echo urlencode('hindi/pincode.php?code=' . $code); ?>" class="btn-call text-muted" title="नंबर देखने के लिए लॉग इन करें">
-                                <i class="bi bi-lock-fill text-warning me-1"></i><?php echo sanitizeInput(maskPhoneNumber($item['mobile'])); ?>
-                            </a>
-                        <?php endif; ?>
-                    </div>
-                </div>
+                <?php echo renderListingCard($item, ['lang' => 'hi', 'pincode' => $code]); ?>
             </div>
         <?php endforeach; ?>
     </div>

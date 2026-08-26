@@ -26,7 +26,7 @@ $panchayat_count = $db_stat ? intval($db_stat->query("SELECT COUNT(*) FROM panch
 
         <div class="carousel-inner">
             <!-- Slide 1: Businesses & Commerce -->
-            <div class="carousel-item active" style="background-image: url('assets/img/slider1.png');">
+            <div class="carousel-item active" style="background-image: url('assets/img/slider1.webp');">
                 <div class="hero-slider-overlay"></div>
                 <div class="container hero-slider-content">
                     <div class="d-inline-flex align-items-center mb-3 hero-badge-pill">
@@ -47,7 +47,7 @@ $panchayat_count = $db_stat ? intval($db_stat->query("SELECT COUNT(*) FROM panch
             </div>
 
             <!-- Slide 2: Healthcare & Emergency Services -->
-            <div class="carousel-item" style="background-image: url('assets/img/slider2.png');">
+            <div class="carousel-item" style="background-image: url('assets/img/slider2.webp');">
                 <div class="hero-slider-overlay"></div>
                 <div class="container hero-slider-content">
                     <div class="d-inline-flex align-items-center mb-3 hero-badge-pill">
@@ -68,7 +68,7 @@ $panchayat_count = $db_stat ? intval($db_stat->query("SELECT COUNT(*) FROM panch
             </div>
 
             <!-- Slide 3: Advocates, Education & Administration -->
-            <div class="carousel-item" style="background-image: url('assets/img/slider3.png');">
+            <div class="carousel-item" style="background-image: url('assets/img/slider3.webp');">
                 <div class="hero-slider-overlay"></div>
                 <div class="container hero-slider-content">
                     <div class="d-inline-flex align-items-center mb-3 hero-badge-pill">
@@ -243,73 +243,7 @@ $panchayat_count = $db_stat ? intval($db_stat->query("SELECT COUNT(*) FROM panch
         <div class="row g-4">
             <?php foreach ($listings as $item): ?>
                 <div class="col-lg-6">
-                    <div class="listing-card p-4 h-100 d-flex flex-column justify-content-between">
-                        <div>
-                            <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
-                                <div class="d-flex align-items-center gap-1">
-                                    <span class="badge bg-primary-subtle text-primary fw-semibold px-2.5 py-1 rounded-pill small">
-                                        <?php echo sanitizeInput($item['category_name']); ?>
-                                    </span>
-                                    <?php if (!empty($item['subcategory_name'])): ?>
-                                        <span class="badge bg-secondary-subtle text-secondary fw-medium px-2 py-1 rounded-pill small">
-                                            <?php echo sanitizeInput($item['subcategory_name']); ?>
-                                        </span>
-                                    <?php endif; ?>
-                                </div>
-                                <div class="d-flex align-items-center gap-1.5 flex-wrap">
-                                    <?php if (isset($item['plan_type']) && $item['plan_type'] === 'PLATINUM'): ?>
-                                        <span class="badge bg-warning text-dark fw-bold px-2.5 py-1 rounded-pill small shadow-xs">
-                                            <i class="bi bi-crown-fill me-1 text-danger"></i> VIP Platinum
-                                        </span>
-                                    <?php elseif (isset($item['plan_type']) && $item['plan_type'] === 'GOLD'): ?>
-                                        <span class="badge bg-primary text-white fw-bold px-2.5 py-1 rounded-pill small shadow-xs">
-                                            <i class="bi bi-patch-check-fill me-1"></i> Gold Business
-                                        </span>
-                                    <?php elseif ($item['is_verified'] === 'YES'): ?>
-                                        <span class="verified-badge"><i class="bi bi-patch-check-fill"></i> Verified</span>
-                                    <?php endif; ?>
-                                </div>
-
-                            </div>
-
-                            <h4 class="fw-bold text-dark mb-1 font-heading fs-5">
-                                <a href="<?php echo getListingUrl($item['slug']); ?>" class="text-dark text-decoration-none hover-primary">
-                                    <?php echo sanitizeInput($item['title']); ?>
-                                </a>
-                            </h4>
-
-
-                            <div class="text-muted small mb-3">
-                                <i class="bi bi-geo-alt me-1 text-primary"></i><?php echo sanitizeInput(formatListingLocation($item)); ?>
-                            </div>
-
-                            <p class="small text-secondary mb-3" style="line-height: 1.5;">
-                                <?php echo sanitizeInput($item['description']); ?>
-                            </p>
-                        </div>
-
-                        <div class="border-top pt-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
-                            <div>
-                                <?php echo renderStarRating($item['star_rating']); ?>
-                            </div>
-                            <div class="d-flex gap-2">
-                                <?php if (isMobileNumberVisibleToVisitor($item)): ?>
-                                    <?php if (!empty($item['whatsapp'])): ?>
-                                        <a href="https://wa.me/91<?php echo sanitizeInput($item['whatsapp']); ?>" target="_blank" class="btn-whatsapp">
-                                            <i class="bi bi-whatsapp"></i> Chat
-                                        </a>
-                                    <?php endif; ?>
-                                    <a href="tel:<?php echo sanitizeInput($item['mobile']); ?>" class="btn-call">
-                                        <i class="bi bi-telephone-fill"></i> Call
-                                    </a>
-                                <?php else: ?>
-                                    <a href="login.php?redirect=<?php echo urlencode('listing/' . $item['slug']); ?>" class="btn-call bg-warning-subtle text-dark border-warning-subtle text-decoration-none" title="Log in to view full mobile number">
-                                        <i class="bi bi-lock-fill text-warning me-1"></i><?php echo sanitizeInput(maskPhoneNumber($item['mobile'])); ?>
-                                    </a>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    </div>
+                    <?php echo renderListingCard($item); ?>
                 </div>
             <?php endforeach; ?>
         </div>

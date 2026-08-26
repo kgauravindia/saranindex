@@ -503,6 +503,129 @@ function renderStarRating($rating) {
     return $html;
 }
 
+function renderListingCard($item, $options = []) {
+    $lang = $options['lang'] ?? 'en';
+    $isHindi = ($lang === 'hi');
+    $pincode = $options['pincode'] ?? '';
+    
+    // Title
+    $title = $isHindi ? (!empty($item['hindi_title']) ? $item['hindi_title'] : $item['title']) : $item['title'];
+    $subTitle = $isHindi ? ((!empty($item['hindi_title']) && $item['hindi_title'] !== $item['title']) ? $item['title'] : '') : '';
+    
+    // Category & Subcategory
+    $catName = $isHindi ? (!empty($item['category_hindi_name']) ? $item['category_hindi_name'] : ($item['category_name'] ?? '')) : ($item['category_name'] ?? '');
+    $subcatName = $isHindi ? (!empty($item['subcategory_hindi_name']) ? $item['subcategory_hindi_name'] : ($item['subcategory_name'] ?? '')) : ($item['subcategory_name'] ?? '');
+    
+    // URL
+    $listingUrl = getListingUrl($item['slug']);
+    
+    // Location
+    $location = formatListingLocation($item, $lang);
+    if (!empty($pincode)) {
+        $location .= ' (PIN: ' . sanitizeInput($pincode) . ')';
+    }
+    
+    // Description
+    $desc = !empty($item['description']) ? sanitizeInput($item['description']) : '';
+    
+    // Badges
+    $planBadgeHtml = '';
+    if (isset($item['plan_type']) && $item['plan_type'] === 'PLATINUM') {
+        $planBadgeHtml = '<span class="badge bg-warning-subtle text-dark border border-warning-subtle fw-bold px-2.5 py-1 rounded-pill small"><i class="bi bi-crown-fill text-warning me-1"></i> ' . ($isHindi ? 'वीआईपी प्लैटिनम' : 'VIP Platinum') . '</span>';
+    } elseif (isset($item['plan_type']) && $item['plan_type'] === 'GOLD') {
+        $planBadgeHtml = '<span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-bold px-2.5 py-1 rounded-pill small"><i class="bi bi-patch-check-fill me-1"></i> ' . ($isHindi ? 'गोल्ड बिजनेस' : 'Gold Business') . '</span>';
+    } elseif (isset($item['is_verified']) && $item['is_verified'] === 'YES') {
+        $planBadgeHtml = '<span class="badge bg-success-subtle text-success border border-success-subtle fw-semibold px-2.5 py-1 rounded-pill small"><i class="bi bi-patch-check-fill me-1"></i> ' . ($isHindi ? 'सत्यापित' : 'Verified') . '</span>';
+    }
+    
+    // Owner handle badge
+    $ownerBadgeHtml = '';
+    if (!empty($item['owner_handle'])) {
+        $cleanHandle = rawurlencode(ltrim($item['owner_handle'], '@'));
+        $ownerBadgeHtml = '<a href="@' . $cleanHandle . '" class="badge bg-light text-primary border border-primary-subtle text-decoration-none fw-medium px-2 py-1 rounded-pill small" title="' . ($isHindi ? 'प्रोफ़ाइल देखें' : 'View Profile') . '"><i class="bi bi-person-circle me-1"></i>' . sanitizeInput($item['owner_handle']) . '</a>';
+    }
+    
+    // Buttons
+    $canSeeMobile = isMobileNumberVisibleToVisitor($item);
+    $callBtnHtml = '';
+    $whatsappBtnHtml = '';
+    
+    if ($canSeeMobile && !empty($item['mobile'])) {
+        $callBtnHtml = '<a href="tel:' . sanitizeInput($item['mobile']) . '" class="btn-call"><i class="bi bi-telephone-fill"></i> ' . ($isHindi ? 'कॉल करें' : 'Call') . '</a>';
+        if (!empty($item['whatsapp'])) {
+            $whatsappBtnHtml = '<a href="https://wa.me/91' . sanitizeInput($item['whatsapp']) . '" target="_blank" class="btn-whatsapp"><i class="bi bi-whatsapp"></i> ' . ($isHindi ? 'व्हाट्सएप' : 'WhatsApp') . '</a>';
+        }
+    } elseif (!empty($item['mobile'])) {
+        $redirectParam = urlencode('listing/' . $item['slug']);
+        $loginUrl = ($isHindi ? '../login.php' : 'login.php') . '?redirect=' . $redirectParam;
+        $callBtnHtml = '<a href="' . $loginUrl . '" class="btn-call-masked" title="' . ($isHindi ? 'पूरा नंबर देखने के लिए लॉग इन करें' : 'Log in to view phone number') . '"><i class="bi bi-lock-fill text-warning"></i> ' . sanitizeInput(maskPhoneNumber($item['mobile'])) . '</a>';
+    }
+    
+    $starHtml = renderStarRating($item['star_rating'] ?? 5);
+
+    ob_start();
+    ?>
+    <div class="listing-card p-3 p-md-3.5 h-100">
+        <div>
+            <!-- Top Badges -->
+            <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                    <?php if (!empty($catName)): ?>
+                        <span class="badge bg-primary-subtle text-primary fw-semibold px-2.5 py-1 rounded-pill small">
+                            <?php echo sanitizeInput($catName); ?>
+                        </span>
+                    <?php endif; ?>
+                    <?php if (!empty($subcatName)): ?>
+                        <span class="badge bg-secondary-subtle text-secondary fw-medium px-2 py-1 rounded-pill small">
+                            <?php echo sanitizeInput($subcatName); ?>
+                        </span>
+                    <?php endif; ?>
+                    <?php echo $ownerBadgeHtml; ?>
+                </div>
+                <div>
+                    <?php echo $planBadgeHtml; ?>
+                </div>
+            </div>
+
+            <!-- Title -->
+            <h3 class="listing-title font-heading fs-5">
+                <a href="<?php echo $listingUrl; ?>">
+                    <?php echo sanitizeInput($title); ?>
+                </a>
+            </h3>
+            <?php if (!empty($subTitle)): ?>
+                <div class="text-muted small fw-medium mb-1"><?php echo sanitizeInput($subTitle); ?></div>
+            <?php endif; ?>
+
+            <!-- Location -->
+            <div class="listing-location">
+                <i class="bi bi-geo-alt-fill text-danger flex-shrink-0"></i>
+                <span class="text-truncate"><?php echo sanitizeInput($location); ?></span>
+            </div>
+
+            <!-- Description -->
+            <?php if (!empty($desc)): ?>
+                <p class="small text-secondary mb-3 text-truncate-2" style="line-height: 1.5;">
+                    <?php echo $desc; ?>
+                </p>
+            <?php endif; ?>
+        </div>
+
+        <!-- Footer / Action Buttons -->
+        <div class="border-top pt-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div class="d-flex align-items-center">
+                <?php echo $starHtml; ?>
+            </div>
+            <div class="listing-actions-group d-flex align-items-center gap-2 flex-wrap">
+                <?php echo $whatsappBtnHtml; ?>
+                <?php echo $callBtnHtml; ?>
+            </div>
+        </div>
+    </div>
+    <?php
+    return ob_get_clean();
+}
+
 function getReviewsByListingId($listing_id) {
     $db = getDB();
     if ($db) {

@@ -15,6 +15,16 @@ $meta_description = $meta_description ?? 'Saran Index is the digital directory o
     <meta name="keywords" content="<?php echo sanitizeInput($meta_keywords ?? 'Saran Index, Chapra Directory, Saran Bihar Directory, Chapra Advocates, Chapra Doctors, Chapra Hospitals, Saran Blocks, Chapra News'); ?>">
 
     
+    <!-- DNS Prefetch & Resource Preconnects -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+
+    <!-- Google Fonts with display=swap for instantaneous FCP -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+
     <!-- Favicon & App Icons -->
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32x32.png">
@@ -27,17 +37,24 @@ $meta_description = $meta_description ?? 'Saran Index is the digital directory o
     <meta property="og:description" content="<?php echo sanitizeInput($meta_description); ?>">
     <meta property="og:type" content="website">
     <meta property="og:url" content="<?php echo BASE_URL; ?>">
-    <meta property="og:image" content="<?php echo BASE_URL; ?>assets/img/logo.png">
+    <meta property="og:image" content="<?php echo BASE_URL; ?>assets/logo.png">
 
     <!-- Bootstrap 5 CSS & Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     
-    <!-- Custom Design System CSS -->
-    <link href="<?php echo BASE_URL; ?>assets/css/style.css?v=<?php echo time(); ?>" rel="stylesheet">
+    <!-- Custom Design System CSS (Leveraging Browser Cache with versioning) -->
+    <link href="<?php echo BASE_URL; ?>assets/css/style.css?v=<?php echo @filemtime(__DIR__ . '/../assets/css/style.css') ?: '1.2.0'; ?>" rel="stylesheet">
+
+    <!-- Preload Largest Contentful Paint Hero for Instant Render on Homepage -->
+    <?php 
+    $isHome = in_array(basename($_SERVER['PHP_SELF'] ?? ''), ['index.php', '']) && empty($_SERVER['QUERY_STRING']);
+    if ($isHome): ?>
+        <link rel="preload" as="image" href="<?php echo BASE_URL; ?>assets/img/slider1.webp" type="image/webp" fetchpriority="high">
+    <?php endif; ?>
     
-    <!-- Razorpay Online Payment Checkout SDK -->
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <!-- Razorpay Checkout SDK (Deferred to prevent render blocking) -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
     <script>const BASE_URL = "<?php echo BASE_URL; ?>";</script>
 </head>
 
@@ -67,7 +84,7 @@ $meta_description = $meta_description ?? 'Saran Index is the digital directory o
 <nav class="navbar navbar-expand-lg sticky-top bg-white border-bottom shadow-sm py-2">
     <div class="container">
         <a class="navbar-brand d-flex align-items-center me-4" href="./">
-            <img src="assets/logo.png" alt="Saran Index Logo" height="46" class="me-2 rounded-2 shadow-sm" style="object-fit: contain;">
+            <img src="assets/logo.png" alt="Saran Index Logo" width="46" height="46" class="me-2 rounded-2 shadow-sm" style="object-fit: contain;">
             <div class="d-none d-sm-block">
                 <div class="fw-bold text-dark lh-1" style="font-size: 0.9rem;">Saran Index</div>
                 <div class="text-muted" style="font-size: 0.7rem; font-weight: 500;">Connecting Saran Digitally</div>

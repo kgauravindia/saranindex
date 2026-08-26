@@ -14,6 +14,16 @@ $meta_description = $meta_description ?? 'सारण इंडेक्स स
     <meta name="description" content="<?php echo sanitizeInput($meta_description); ?>">
     <meta name="keywords" content="सारण इंडेक्स, छपरा निर्देशिका, सारण बिहार, छपरा डॉक्टर, छपरा वकील, सारण प्रखंड, आपातकालीन नंबर">
     
+    <!-- DNS Prefetch & Resource Preconnects -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+
+    <!-- Google Fonts with display=swap for instantaneous FCP -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+    
     <!-- Favicon & App Icons -->
     <link rel="icon" type="image/x-icon" href="<?php echo BASE_URL; ?>favicon.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="<?php echo BASE_URL; ?>assets/img/favicon-32x32.png">
@@ -32,11 +42,18 @@ $meta_description = $meta_description ?? 'सारण इंडेक्स स
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     
-    <!-- Custom Design System CSS -->
-    <link href="<?php echo BASE_URL; ?>assets/css/style.css?v=<?php echo time(); ?>" rel="stylesheet">
+    <!-- Custom Design System CSS (Leveraging Browser Cache with versioning) -->
+    <link href="<?php echo BASE_URL; ?>assets/css/style.css?v=<?php echo @filemtime(__DIR__ . '/../../assets/css/style.css') ?: '1.2.0'; ?>" rel="stylesheet">
+
+    <!-- Preload Largest Contentful Paint Hero for Instant Render on Homepage -->
+    <?php 
+    $isHome = in_array(basename($_SERVER['PHP_SELF'] ?? ''), ['index.php', '']) && empty($_SERVER['QUERY_STRING']);
+    if ($isHome): ?>
+        <link rel="preload" as="image" href="<?php echo BASE_URL; ?>assets/img/slider1.webp" type="image/webp" fetchpriority="high">
+    <?php endif; ?>
     
-    <!-- Razorpay Online Payment Checkout SDK -->
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <!-- Razorpay Online Payment Checkout SDK (Deferred to prevent render blocking) -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
     
     <script>
         const BASE_URL = "<?php echo BASE_URL; ?>";
