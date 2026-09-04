@@ -30,6 +30,9 @@ require_once __DIR__ . '/includes/header.php';
             <a href="https://akubihar.ac.in/" target="_blank" rel="noopener" class="btn btn-light text-primary fw-bold px-4 py-2.5 rounded-pill shadow">
                 <i class="bi bi-mortarboard-fill me-1"></i> AKU Bihar Portal (akubihar.ac.in) <i class="bi bi-box-arrow-up-right ms-1"></i>
             </a>
+            <a href="https://www.youtube.com/@saranGuruDigitalDuniya" target="_blank" rel="noopener" class="btn btn-danger text-white fw-bold px-4 py-2.5 rounded-pill shadow">
+                <i class="bi bi-youtube me-1"></i> Saran Guru Digital Duniya <i class="bi bi-box-arrow-up-right ms-1"></i>
+            </a>
             <a href="#colleges" class="btn btn-outline-light fw-bold px-4 py-2.5 rounded-pill">
                 <i class="bi bi-building me-1"></i> View Colleges
             </a>
@@ -374,7 +377,7 @@ require_once __DIR__ . '/includes/header.php';
             <!-- Official Links Box -->
             <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
                 <h5 class="fw-bold text-dark mb-3 font-heading border-bottom pb-3">
-                    <i class="bi bi-globe2 text-success me-2"></i> Official University Portals
+                    <i class="bi bi-globe2 text-success me-2"></i> Official Portals & Updates
                 </h5>
 
                 <div class="d-grid gap-2">
@@ -387,7 +390,29 @@ require_once __DIR__ . '/includes/header.php';
                     <a href="https://aishe.gov.in" target="_blank" rel="noopener" class="btn btn-outline-secondary text-start fw-semibold py-2">
                         <i class="bi bi-award me-2"></i>AISHE Code Directory <i class="bi bi-box-arrow-up-right float-end mt-1"></i>
                     </a>
+                    <a href="https://www.youtube.com/@saranGuruDigitalDuniya" target="_blank" rel="noopener" class="btn btn-outline-danger text-start fw-semibold py-2">
+                        <i class="bi bi-youtube me-2"></i>Saran Guru Digital Duniya <i class="bi bi-box-arrow-up-right float-end mt-1"></i>
+                    </a>
                 </div>
+            </div>
+
+            <!-- YouTube Channel / Video Updates Box -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white border-start border-4 border-danger">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="bg-danger bg-opacity-10 text-danger rounded-circle p-2 d-inline-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
+                        <i class="bi bi-youtube fs-4"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold text-dark mb-0">Saran Guru Digital Duniya</h6>
+                        <small class="text-muted">Education & JPU Updates</small>
+                    </div>
+                </div>
+                <p class="small text-secondary mb-3">
+                    Follow <strong>Saran Guru Digital Duniya</strong> for video guides, university admission alerts, exam results, and college news in Saran.
+                </p>
+                <a href="https://www.youtube.com/@saranGuruDigitalDuniya" target="_blank" rel="noopener" class="btn btn-danger text-white w-100 rounded-pill fw-bold btn-sm shadow-sm">
+                    <i class="bi bi-youtube me-1"></i> Watch on YouTube <i class="bi bi-box-arrow-up-right ms-1"></i>
+                </a>
             </div>
 
             <!-- Contact Box -->
