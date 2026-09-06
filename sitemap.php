@@ -48,6 +48,7 @@ $staticPages = [
     'river'             => ['freq' => 'monthly', 'prio' => '0.8'],
     'nahar'             => ['freq' => 'monthly', 'prio' => '0.8'],
     'university'        => ['freq' => 'monthly', 'prio' => '0.7'],
+    'add-contact'       => ['freq' => 'monthly', 'prio' => '0.7'],
     'add-listing'       => ['freq' => 'monthly', 'prio' => '0.7'],
     'pricing'           => ['freq' => 'monthly', 'prio' => '0.7'],
     'sources'           => ['freq' => 'monthly', 'prio' => '0.6'],
@@ -73,6 +74,7 @@ $staticPages = [
     'hindi/river'       => ['freq' => 'monthly', 'prio' => '0.7'],
     'hindi/nahar'       => ['freq' => 'monthly', 'prio' => '0.7'],
     'hindi/university'  => ['freq' => 'monthly', 'prio' => '0.7'],
+    'hindi/add-contact' => ['freq' => 'monthly', 'prio' => '0.6'],
     'hindi/add-listing' => ['freq' => 'monthly', 'prio' => '0.6'],
     'hindi/pricing'     => ['freq' => 'monthly', 'prio' => '0.6'],
     'hindi/sources'     => ['freq' => 'monthly', 'prio' => '0.6'],
@@ -199,7 +201,8 @@ if ($db) {
         ");
         while ($row = $stmt->fetch()) {
             $mod = !empty($row['updated_at']) ? $row['updated_at'] : $row['created_at'];
-            addSitemapUrl($baseUrl . '@' . rawurlencode($row['username_handle']), $mod, 'weekly', '0.7');
+            $cleanH = ltrim($row['username_handle'], '@');
+            addSitemapUrl($baseUrl . '@' . rawurlencode($cleanH), $mod, 'weekly', '0.7');
         }
     } catch (Exception $e) {}
 }

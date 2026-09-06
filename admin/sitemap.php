@@ -48,6 +48,7 @@ function buildSitemapPayload($customBaseUrl = null) {
         'river'             => ['freq' => 'monthly', 'prio' => '0.8', 'lang' => 'en'],
         'nahar'             => ['freq' => 'monthly', 'prio' => '0.8', 'lang' => 'en'],
         'university'        => ['freq' => 'monthly', 'prio' => '0.7', 'lang' => 'en'],
+        'add-contact'       => ['freq' => 'monthly', 'prio' => '0.7', 'lang' => 'en'],
         'add-listing'       => ['freq' => 'monthly', 'prio' => '0.7', 'lang' => 'en'],
         'pricing'           => ['freq' => 'monthly', 'prio' => '0.7', 'lang' => 'en'],
         'sources'           => ['freq' => 'monthly', 'prio' => '0.6', 'lang' => 'en'],
@@ -73,6 +74,7 @@ function buildSitemapPayload($customBaseUrl = null) {
         'hindi/river'       => ['freq' => 'monthly', 'prio' => '0.7', 'lang' => 'hi'],
         'hindi/nahar'       => ['freq' => 'monthly', 'prio' => '0.7', 'lang' => 'hi'],
         'hindi/university'  => ['freq' => 'monthly', 'prio' => '0.7', 'lang' => 'hi'],
+        'hindi/add-contact' => ['freq' => 'monthly', 'prio' => '0.6', 'lang' => 'hi'],
         'hindi/add-listing' => ['freq' => 'monthly', 'prio' => '0.6', 'lang' => 'hi'],
         'hindi/pricing'     => ['freq' => 'monthly', 'prio' => '0.6', 'lang' => 'hi'],
         'hindi/sources'     => ['freq' => 'monthly', 'prio' => '0.6', 'lang' => 'hi'],
@@ -195,7 +197,8 @@ function buildSitemapPayload($customBaseUrl = null) {
             ");
             while ($row = $stmt->fetch()) {
                 $mod = !empty($row['updated_at']) ? date('Y-m-d', strtotime($row['updated_at'])) : (!empty($row['created_at']) ? date('Y-m-d', strtotime($row['created_at'])) : $today);
-                $items[] = ['loc' => $baseUrl . '@' . rawurlencode($row['username_handle']), 'lastmod' => $mod, 'changefreq' => 'weekly', 'priority' => '0.7', 'type' => 'User Profile', 'lang' => 'both'];
+                $cleanH = ltrim($row['username_handle'], '@');
+                $items[] = ['loc' => $baseUrl . '@' . rawurlencode($cleanH), 'lastmod' => $mod, 'changefreq' => 'weekly', 'priority' => '0.7', 'type' => 'User Profile', 'lang' => 'both'];
                 $counts['users']++;
             }
         } catch (Exception $e) {}
