@@ -8,6 +8,8 @@ $district_stats = getDistrictFullStats();
 $blocks_stats = $district_stats['blocks_stats'] ?? [];
 $categories = $district_stats['categories'] ?? getCategories();
 $census = $district_stats['census'] ?? [];
+$listings = getListings('', '', '', 6, 0);
+$recent_listings = getRecentListings(6);
 $blocks = getBlocks();
 
 // Featured 3 Sub-Divisional Headquarters Blocks (Chapra, Madhaura, Sonpur)
