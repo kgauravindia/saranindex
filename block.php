@@ -26,6 +26,23 @@ if ($block) {
 
     $panchayats = getPanchayats($block['id']);
 
+    $isLoggedIn = function_exists('isUserLoggedIn') && isUserLoggedIn();
+    $db = getDB();
+    $pramukh = null;
+    $upPramukh = null;
+
+    if ($db && $block) {
+        try {
+            $stmtP = $db->prepare("SELECT * FROM listings WHERE subcategory_id = 265 AND block_id = :bid AND status = 'ACTIVE' LIMIT 1");
+            $stmtP->execute(['bid' => $block['id']]);
+            $pramukh = $stmtP->fetch();
+
+            $stmtUP = $db->prepare("SELECT * FROM listings WHERE subcategory_id = 266 AND block_id = :bid AND status = 'ACTIVE' LIMIT 1");
+            $stmtUP->execute(['bid' => $block['id']]);
+            $upPramukh = $stmtUP->fetch();
+        } catch (PDOException $e) {}
+    }
+
     $page_title = sanitizeInput($block['block_name']) . " Block ({$block['hindi_name']}) Census 2011 Data & Gram Panchayats – Saran Index";
     $meta_description = "Official Census 2011 demographics, population (" . number_format($popTotal) . "), households, " . count($panchayats) . " Gram Panchayats, villages, literacy rate ({$litRate}%) for " . $block['block_name'] . " Block, Saran District (Chapra, Bihar).";
     require_once __DIR__ . '/includes/header.php';
@@ -163,6 +180,216 @@ if ($block) {
                 </div>
             </div>
         </div>
+
+        <!-- Block Panchayati Raj & Governance Leadership Section (Pramukh & Up Pramukh) -->
+        <?php if (!empty($pramukh) || !empty($upPramukh)): ?>
+            <div class="mb-5">
+                <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+                    <div>
+                        <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-1.5 rounded-pill uppercase tracking-wider small">
+                            Block Governance & Panchayati Raj
+                        </span>
+                        <h3 class="fw-bold font-heading text-dark mt-2 mb-0 fs-3">
+                            Panchayat Samiti Leadership: Pramukh & Up Pramukh
+                        </h3>
+                        <p class="text-muted small mb-0">Elected Block Panchayat Samiti leadership representing <?php echo sanitizeInput($block['block_name']); ?> Block (2021 - 2026 tenure).</p>
+                    </div>
+                    <span class="badge bg-primary text-white fw-bold px-3 py-2 rounded-pill shadow-sm">
+                        <i class="bi bi-shield-check me-1"></i>Tenure: 2021 - 2026
+                    </span>
+                </div>
+
+                <div class="row g-4">
+                    <!-- Pramukh Card -->
+                    <?php if (!empty($pramukh)): 
+                        $pDetails = function_exists('parseRepresentativeDetails') ? parseRepresentativeDetails($pramukh['description']) : [];
+                        $pName = !empty($pDetails['name']) ? $pDetails['name'] : (!empty($pramukh['hindi_title']) ? preg_replace('/\s*-\s*प्रमुख.*$/u', '', $pramukh['hindi_title']) : preg_replace('/^Pramukh\s+/i', '', $pramukh['title']));
+                        $pName = preg_replace('/\s*\(.*$/', '', $pName);
+                        $pMob = preg_replace('/[^0-9]/', '', $pramukh['mobile'] ?? '');
+                    ?>
+                        <div class="col-lg-6">
+                            <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-white hover-lift transition-all">
+                                <div class="p-4 border-bottom bg-primary-subtle bg-opacity-25 d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="rounded-circle bg-primary text-white p-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 52px; height: 52px;">
+                                            <i class="bi bi-person-badge-fill fs-3"></i>
+                                        </div>
+                                        <div>
+                                            <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                                                <span class="badge bg-primary text-white fw-semibold rounded-pill px-2.5 py-1 small">Block Pramukh / प्रमुख</span>
+                                                <span class="badge bg-dark text-white fw-semibold rounded-pill px-2 py-0.5" style="font-size: 0.72rem;">2021 - 2026</span>
+                                            </div>
+                                            <h4 class="fw-bold font-heading text-dark mb-0 mt-1"><?php echo sanitizeInput($pName); ?></h4>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-bold small">
+                                        <i class="bi bi-patch-check-fill me-1"></i>Elected
+                                    </span>
+                                </div>
+                                <div class="card-body p-4">
+                                    <ul class="list-unstyled mb-4 small text-secondary">
+                                        <li class="mb-2 d-flex align-items-start">
+                                            <i class="bi bi-award text-primary me-2 mt-0.5"></i>
+                                            <div><strong>Position:</strong> <span class="fw-semibold text-dark">Pramukh (Block Panchayat Samiti President)</span></div>
+                                        </li>
+                                        <li class="mb-2 d-flex align-items-start">
+                                            <i class="bi bi-hourglass-split text-primary me-2 mt-0.5"></i>
+                                            <div><strong>Elected Tenure:</strong> <span class="badge bg-primary-subtle text-primary fw-bold">2021 - 2026</span> (Current Term)</div>
+                                        </li>
+                                        <?php if (!empty($pDetails['father_husband'])): ?>
+                                            <li class="mb-2 d-flex align-items-start">
+                                                <i class="bi bi-person-fill text-muted me-2 mt-0.5"></i>
+                                                <div><strong>Father / Husband:</strong> <?php echo sanitizeInput($pDetails['father_husband']); ?></div>
+                                            </li>
+                                        <?php endif; ?>
+                                        <?php if (!empty($pDetails['category']) || !empty($pDetails['reservation'])): ?>
+                                            <li class="mb-2 d-flex align-items-start">
+                                                <i class="bi bi-tag-fill text-muted me-2 mt-0.5"></i>
+                                                <div><strong>Category:</strong> <?php echo sanitizeInput($pDetails['category'] ?? ''); ?> <?php if (!empty($pDetails['reservation'])): ?>(<?php echo sanitizeInput($pDetails['reservation']); ?>)<?php endif; ?></div>
+                                            </li>
+                                        <?php endif; ?>
+                                        <?php if (!empty($pDetails['gender'])): ?>
+                                            <li class="mb-2 d-flex align-items-start">
+                                                <i class="bi bi-person-circle text-muted me-2 mt-0.5"></i>
+                                                <div><strong>Gender:</strong> <?php echo sanitizeInput($pDetails['gender']); ?></div>
+                                            </li>
+                                        <?php endif; ?>
+                                        <?php if (!empty($pDetails['address']) || !empty($pramukh['address'])): ?>
+                                            <li class="mb-2 d-flex align-items-start">
+                                                <i class="bi bi-geo-alt-fill text-muted me-2 mt-0.5"></i>
+                                                <div><strong>Address:</strong> <?php echo sanitizeInput(!empty($pDetails['address']) ? $pDetails['address'] : $pramukh['address']); ?></div>
+                                            </li>
+                                        <?php endif; ?>
+                                    </ul>
+
+                                    <?php if (!empty($pMob)): ?>
+                                        <?php if ($isLoggedIn): ?>
+                                            <div class="d-flex gap-2">
+                                                <a href="tel:<?php echo $pMob; ?>" class="btn btn-primary rounded-pill px-3 py-2 flex-grow-1 fw-semibold btn-sm shadow-xs">
+                                                    <i class="bi bi-telephone-fill me-1"></i> Call <?php echo $pMob; ?>
+                                                </a>
+                                                <?php if (!empty($pramukh['whatsapp'])): ?>
+                                                    <a href="https://wa.me/91<?php echo preg_replace('/[^0-9]/', '', $pramukh['whatsapp']); ?>" target="_blank" rel="noopener" class="btn btn-outline-success rounded-pill px-3 py-2 fw-semibold btn-sm">
+                                                        <i class="bi bi-whatsapp me-1"></i> WhatsApp
+                                                    </a>
+                                                <?php endif; ?>
+                                            </div>
+                                        <?php else: ?>
+                                            <div class="p-2.5 rounded-3 bg-light border text-center">
+                                                <div class="text-muted small mb-2">
+                                                    <i class="bi bi-shield-lock text-warning me-1"></i> Mobile: <span class="font-monospace text-secondary fw-semibold">+91 XXXXX •••••</span>
+                                                </div>
+                                                <a href="login.php?redirect=<?php echo urlencode('block/' . $block['slug']); ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
+                                                    <i class="bi bi-box-arrow-in-right me-1"></i> Log In to View Mobile Number
+                                                </a>
+                                            </div>
+                                        <?php endif; ?>
+                                    <?php else: ?>
+                                        <div class="text-muted small fst-italic p-2 bg-light rounded-3 text-center">
+                                            <i class="bi bi-info-circle me-1"></i> Direct contact available through Block Panchayat Samiti Office.
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
+                    <!-- Up Pramukh Card -->
+                    <?php if (!empty($upPramukh)): 
+                        $upDetails = function_exists('parseRepresentativeDetails') ? parseRepresentativeDetails($upPramukh['description']) : [];
+                        $upName = !empty($upDetails['name']) ? $upDetails['name'] : (!empty($upPramukh['hindi_title']) ? preg_replace('/\s*-\s*उप प्रमुख.*$/u', '', $upPramukh['hindi_title']) : preg_replace('/^Up Pramukh\s+/i', '', $upPramukh['title']));
+                        $upName = preg_replace('/\s*\(.*$/', '', $upName);
+                        $upMob = preg_replace('/[^0-9]/', '', $upPramukh['mobile'] ?? '');
+                    ?>
+                        <div class="col-lg-6">
+                            <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-white hover-lift transition-all">
+                                <div class="p-4 border-bottom bg-info-subtle bg-opacity-25 d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="rounded-circle bg-info text-dark p-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 52px; height: 52px;">
+                                            <i class="bi bi-person-check-fill fs-3"></i>
+                                        </div>
+                                        <div>
+                                            <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                                                <span class="badge bg-info text-dark fw-semibold rounded-pill px-2.5 py-1 small">Block Up Pramukh / उप प्रमुख</span>
+                                                <span class="badge bg-dark text-white fw-semibold rounded-pill px-2 py-0.5" style="font-size: 0.72rem;">2021 - 2026</span>
+                                            </div>
+                                            <h4 class="fw-bold font-heading text-dark mb-0 mt-1"><?php echo sanitizeInput($upName); ?></h4>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-bold small">
+                                        <i class="bi bi-patch-check-fill me-1"></i>Elected
+                                    </span>
+                                </div>
+                                <div class="card-body p-4">
+                                    <ul class="list-unstyled mb-4 small text-secondary">
+                                        <li class="mb-2 d-flex align-items-start">
+                                            <i class="bi bi-award text-info me-2 mt-0.5"></i>
+                                            <div><strong>Position:</strong> <span class="fw-semibold text-dark">Up Pramukh (Vice Block President)</span></div>
+                                        </li>
+                                        <li class="mb-2 d-flex align-items-start">
+                                            <i class="bi bi-hourglass-split text-info me-2 mt-0.5"></i>
+                                            <div><strong>Elected Tenure:</strong> <span class="badge bg-info-subtle text-dark fw-bold">2021 - 2026</span> (Current Term)</div>
+                                        </li>
+                                        <?php if (!empty($upDetails['father_husband'])): ?>
+                                            <li class="mb-2 d-flex align-items-start">
+                                                <i class="bi bi-person-fill text-muted me-2 mt-0.5"></i>
+                                                <div><strong>Father / Husband:</strong> <?php echo sanitizeInput($upDetails['father_husband']); ?></div>
+                                            </li>
+                                        <?php endif; ?>
+                                        <?php if (!empty($upDetails['category']) || !empty($upDetails['reservation'])): ?>
+                                            <li class="mb-2 d-flex align-items-start">
+                                                <i class="bi bi-tag-fill text-muted me-2 mt-0.5"></i>
+                                                <div><strong>Category:</strong> <?php echo sanitizeInput($upDetails['category'] ?? ''); ?> <?php if (!empty($upDetails['reservation'])): ?>(<?php echo sanitizeInput($upDetails['reservation']); ?>)<?php endif; ?></div>
+                                            </li>
+                                        <?php endif; ?>
+                                        <?php if (!empty($upDetails['gender'])): ?>
+                                            <li class="mb-2 d-flex align-items-start">
+                                                <i class="bi bi-person-circle text-muted me-2 mt-0.5"></i>
+                                                <div><strong>Gender:</strong> <?php echo sanitizeInput($upDetails['gender']); ?></div>
+                                            </li>
+                                        <?php endif; ?>
+                                        <?php if (!empty($upDetails['address']) || !empty($upPramukh['address'])): ?>
+                                            <li class="mb-2 d-flex align-items-start">
+                                                <i class="bi bi-geo-alt-fill text-muted me-2 mt-0.5"></i>
+                                                <div><strong>Address:</strong> <?php echo sanitizeInput(!empty($upDetails['address']) ? $upDetails['address'] : $upPramukh['address']); ?></div>
+                                            </li>
+                                        <?php endif; ?>
+                                    </ul>
+
+                                    <?php if (!empty($upMob)): ?>
+                                        <?php if ($isLoggedIn): ?>
+                                            <div class="d-flex gap-2">
+                                                <a href="tel:<?php echo $upMob; ?>" class="btn btn-info text-dark rounded-pill px-3 py-2 flex-grow-1 fw-semibold btn-sm shadow-xs">
+                                                    <i class="bi bi-telephone-fill me-1"></i> Call <?php echo $upMob; ?>
+                                                </a>
+                                                <?php if (!empty($upPramukh['whatsapp'])): ?>
+                                                    <a href="https://wa.me/91<?php echo preg_replace('/[^0-9]/', '', $upPramukh['whatsapp']); ?>" target="_blank" rel="noopener" class="btn btn-outline-success rounded-pill px-3 py-2 fw-semibold btn-sm">
+                                                        <i class="bi bi-whatsapp me-1"></i> WhatsApp
+                                                    </a>
+                                                <?php endif; ?>
+                                            </div>
+                                        <?php else: ?>
+                                            <div class="p-2.5 rounded-3 bg-light border text-center">
+                                                <div class="text-muted small mb-2">
+                                                    <i class="bi bi-shield-lock text-warning me-1"></i> Mobile: <span class="font-monospace text-secondary fw-semibold">+91 XXXXX •••••</span>
+                                                </div>
+                                                <a href="login.php?redirect=<?php echo urlencode('block/' . $block['slug']); ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
+                                                    <i class="bi bi-box-arrow-in-right me-1"></i> Log In to View Mobile Number
+                                                </a>
+                                            </div>
+                                        <?php endif; ?>
+                                    <?php else: ?>
+                                        <div class="text-muted small fst-italic p-2 bg-light rounded-3 text-center">
+                                            <i class="bi bi-info-circle me-1"></i> Direct contact available through Block Panchayat Samiti Office.
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        <?php endif; ?>
 
         <!-- Real Gram Panchayats Section for this Block -->
         <div id="gramPanchayatsSection" class="card border-0 shadow-lg rounded-4 overflow-hidden mb-5">
@@ -389,7 +616,13 @@ $blocks = getBlocks();
 
         <div class="row g-4" id="blocksGrid">
             <?php foreach ($blocks as $blk): 
-                $bSearchStr = strtolower(($blk['block_name'] ?? '') . ' ' . ($blk['hindi_name'] ?? '') . ' ' . ($blk['pincode'] ?? ''));
+                $pDetails = function_exists('parseRepresentativeDetails') ? parseRepresentativeDetails($blk['pramukh_desc'] ?? '') : [];
+                $pName = !empty($pDetails['name']) ? $pDetails['name'] : (!empty($blk['pramukh_hindi']) ? preg_replace('/\s*-\s*प्रमुख.*$/u', '', $blk['pramukh_hindi']) : (!empty($blk['pramukh_title']) ? preg_replace('/\s*\(.*$/', '', preg_replace('/^Pramukh\s+/i', '', $blk['pramukh_title'])) : ''));
+
+                $upDetails = function_exists('parseRepresentativeDetails') ? parseRepresentativeDetails($blk['up_pramukh_desc'] ?? '') : [];
+                $upName = !empty($upDetails['name']) ? $upDetails['name'] : (!empty($blk['up_pramukh_hindi']) ? preg_replace('/\s*-\s*उप प्रमुख.*$/u', '', $blk['up_pramukh_hindi']) : (!empty($blk['up_pramukh_title']) ? preg_replace('/\s*\(.*$/', '', preg_replace('/^Up Pramukh\s+/i', '', $blk['up_pramukh_title'])) : ''));
+
+                $bSearchStr = strtolower(($blk['block_name'] ?? '') . ' ' . ($blk['hindi_name'] ?? '') . ' ' . ($blk['pincode'] ?? '') . ' ' . $pName . ' ' . $upName);
             ?>
                 <div class="col-lg-4 col-md-6 block-card-item" data-search="<?php echo htmlspecialchars($bSearchStr, ENT_QUOTES); ?>">
                     <div class="card border-0 shadow-sm rounded-4 h-100 p-4 hover-lift transition-all bg-white d-flex flex-column justify-content-between">
@@ -409,6 +642,24 @@ $blocks = getBlocks();
                                 </a>
                             </h4>
                             <div class="text-muted small fw-semibold mb-3"><?php echo sanitizeInput($blk['hindi_name']); ?> अंचल</div>
+
+                            <!-- Elected Leadership Snippet (Pramukh & Up Pramukh) -->
+                            <?php if (!empty($pName) || !empty($upName)): ?>
+                                <div class="mb-3 p-2.5 rounded-3 bg-light border small">
+                                    <?php if (!empty($pName)): ?>
+                                        <div class="d-flex align-items-center justify-content-between mb-1 pb-1 <?php echo !empty($upName) ? 'border-bottom border-secondary-subtle border-opacity-25' : ''; ?>">
+                                            <span class="text-muted fw-bold" style="font-size: 0.76rem;"><i class="bi bi-person-badge-fill text-primary me-1"></i>Pramukh:</span>
+                                            <span class="fw-bold text-dark" style="font-size: 0.84rem;"><?php echo sanitizeInput($pName); ?></span>
+                                        </div>
+                                    <?php endif; ?>
+                                    <?php if (!empty($upName)): ?>
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <span class="text-muted fw-bold" style="font-size: 0.76rem;"><i class="bi bi-person-check text-info me-1"></i>Up Pramukh:</span>
+                                            <span class="fw-bold text-dark" style="font-size: 0.84rem;"><?php echo sanitizeInput($upName); ?></span>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endif; ?>
 
                             <!-- Census 2011 Summary Badges -->
                             <?php if (!empty($blk['pop_tot'])): ?>
