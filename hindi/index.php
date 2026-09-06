@@ -175,13 +175,13 @@ if (empty($featured_blocks)) {
             </div>
             <div class="col-6 col-md-4 col-lg-2">
                 <div class="p-3 rounded-4 bg-white bg-opacity-10 border border-white border-opacity-10 backdrop-blur h-100 d-flex flex-column justify-content-center">
-                    <div class="h3 fw-bolder text-info mb-0 font-heading"><?php echo number_format($district_stats['total_representatives']); ?>+</div>
+                    <div class="h3 fw-bolder text-warning mb-0 font-heading"><?php echo number_format($district_stats['total_representatives']); ?>+</div>
                     <div class="text-white-50 small fw-semibold">जनप्रतिनिधि</div>
                 </div>
             </div>
             <div class="col-6 col-md-4 col-lg-2">
                 <div class="p-3 rounded-4 bg-white bg-opacity-10 border border-white border-opacity-10 backdrop-blur h-100 d-flex flex-column justify-content-center">
-                    <div class="h3 fw-bolder text-warning mb-0 font-heading"><?php echo intval($district_stats['kendra_count']); ?></div>
+                    <div class="h3 fw-bolder text-info mb-0 font-heading"><?php echo intval($district_stats['kendra_count']); ?></div>
                     <div class="text-white-50 small fw-semibold">जन औषधि केंद्र</div>
                 </div>
             </div>
