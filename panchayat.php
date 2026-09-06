@@ -15,6 +15,16 @@ if (!empty($slug) && $db) {
         $panchayat = $stmt->fetch();
 
         if ($panchayat) {
+            // Fetch Up Mukhiya for this panchayat
+            $stmtUpMukhiya = $db->prepare("SELECT * FROM listings WHERE subcategory_id = 269 AND panchayat_id = :pid AND status = 'ACTIVE' LIMIT 1");
+            $stmtUpMukhiya->execute(['pid' => $panchayat['id']]);
+            $upMukhiya = $stmtUpMukhiya->fetch();
+
+            // Fetch Up Sarpanch for this panchayat
+            $stmtUpSarpanch = $db->prepare("SELECT * FROM listings WHERE subcategory_id = 270 AND panchayat_id = :pid AND status = 'ACTIVE' LIMIT 1");
+            $stmtUpSarpanch->execute(['pid' => $panchayat['id']]);
+            $upSarpanch = $stmtUpSarpanch->fetch();
+
             // Fetch Panchayat Samiti Members for this panchayat
             $stmtSamiti = $db->prepare("SELECT * FROM listings WHERE subcategory_id = 248 AND panchayat_id = :pid ORDER BY id ASC");
             $stmtSamiti->execute(['pid' => $panchayat['id']]);
@@ -205,7 +215,14 @@ $blocks = getBlocks();
                     $vEn = !empty($p['village']) ? explode(',', $p['village']) : [];
                     $vHi = !empty($p['village_hindi']) ? explode(',', $p['village_hindi']) : [];
                     $vCount = max(count($vEn), count($vHi));
-                    $vSearchStr = strtolower(($p['panchayat_name'] ?? '') . ' ' . ($p['hindi_name'] ?? '') . ' ' . ($p['village'] ?? '') . ' ' . ($p['village_hindi'] ?? '') . ' ' . ($p['mukhiya_name'] ?? '') . ' ' . ($p['sarpanch_name'] ?? ''));
+
+                    $umDetails = function_exists('parseRepresentativeDetails') ? parseRepresentativeDetails($p['up_mukhiya_desc'] ?? '') : [];
+                    $umName = !empty($umDetails['name']) ? $umDetails['name'] : (!empty($p['up_mukhiya_hindi']) ? preg_replace('/\s*-\s*उप मुखिया.*$/u', '', $p['up_mukhiya_hindi']) : (!empty($p['up_mukhiya_title']) ? preg_replace('/\s*\(.*$/', '', preg_replace('/^Up Mukhiya\s+/i', '', $p['up_mukhiya_title'])) : ''));
+
+                    $usDetails = function_exists('parseRepresentativeDetails') ? parseRepresentativeDetails($p['up_sarpanch_desc'] ?? '') : [];
+                    $usName = !empty($usDetails['name']) ? $usDetails['name'] : (!empty($p['up_sarpanch_hindi']) ? preg_replace('/\s*-\s*उप सरपंच.*$/u', '', $p['up_sarpanch_hindi']) : (!empty($p['up_sarpanch_title']) ? preg_replace('/\s*\(.*$/', '', preg_replace('/^Up Sarpanch\s+/i', '', $p['up_sarpanch_title'])) : ''));
+
+                    $vSearchStr = strtolower(($p['panchayat_name'] ?? '') . ' ' . ($p['hindi_name'] ?? '') . ' ' . ($p['village'] ?? '') . ' ' . ($p['village_hindi'] ?? '') . ' ' . ($p['mukhiya_name'] ?? '') . ' ' . $umName . ' ' . ($p['sarpanch_name'] ?? '') . ' ' . $usName);
                 ?>
                     <div class="col-lg-4 col-md-6 panchayat-card-item" 
                          data-block="<?php echo sanitizeInput($p['block_slug']); ?>" 
@@ -237,18 +254,30 @@ $blocks = getBlocks();
                                     <?php endif; ?>
 
                                     <!-- Elected Representatives Snippet -->
-                                    <?php if (!empty($p['mukhiya_name']) || !empty($p['sarpanch_name'])): ?>
+                                    <?php if (!empty($p['mukhiya_name']) || !empty($umName) || !empty($p['sarpanch_name']) || !empty($usName)): ?>
                                         <div class="mb-3 p-2.5 rounded-3 bg-light border small">
                                             <?php if (!empty($p['mukhiya_name'])): ?>
-                                                <div class="d-flex align-items-center justify-content-between <?php echo !empty($p['sarpanch_name']) ? 'mb-1 pb-1 border-bottom border-secondary-subtle border-opacity-25' : ''; ?>">
-                                                    <span class="text-muted fw-bold" style="font-size: 0.76rem;"><i class="bi bi-person-badge-fill text-primary me-1"></i>मुखिया:</span>
+                                                <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom border-secondary-subtle border-opacity-25">
+                                                    <span class="text-muted fw-bold" style="font-size: 0.76rem;"><i class="bi bi-person-badge-fill text-primary me-1"></i>Mukhiya:</span>
                                                     <span class="fw-bold text-dark" style="font-size: 0.84rem;"><?php echo sanitizeInput($p['mukhiya_name']); ?></span>
                                                 </div>
                                             <?php endif; ?>
+                                            <?php if (!empty($umName)): ?>
+                                                <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom border-secondary-subtle border-opacity-25">
+                                                    <span class="text-muted fw-bold" style="font-size: 0.76rem;"><i class="bi bi-person-check text-info me-1"></i>Up Mukhiya:</span>
+                                                    <span class="fw-bold text-dark" style="font-size: 0.84rem;"><?php echo sanitizeInput($umName); ?></span>
+                                                </div>
+                                            <?php endif; ?>
                                             <?php if (!empty($p['sarpanch_name'])): ?>
-                                                <div class="d-flex align-items-center justify-content-between">
-                                                    <span class="text-muted fw-bold" style="font-size: 0.76rem;"><i class="bi bi-bank2 text-warning me-1"></i>सरपंच:</span>
+                                                <div class="d-flex align-items-center justify-content-between <?php echo !empty($usName) ? 'mb-1 pb-1 border-bottom border-secondary-subtle border-opacity-25' : ''; ?>">
+                                                    <span class="text-muted fw-bold" style="font-size: 0.76rem;"><i class="bi bi-bank2 text-warning me-1"></i>Sarpanch:</span>
                                                     <span class="fw-bold text-dark" style="font-size: 0.84rem;"><?php echo sanitizeInput($p['sarpanch_name']); ?></span>
+                                                </div>
+                                            <?php endif; ?>
+                                            <?php if (!empty($usName)): ?>
+                                                <div class="d-flex align-items-center justify-content-between">
+                                                    <span class="text-muted fw-bold" style="font-size: 0.76rem;"><i class="bi bi-bank text-warning me-1"></i>Up Sarpanch:</span>
+                                                    <span class="fw-bold text-dark" style="font-size: 0.84rem;"><?php echo sanitizeInput($usName); ?></span>
                                                 </div>
                                             <?php endif; ?>
                                         </div>
@@ -366,7 +395,7 @@ $blocks = getBlocks();
 
             <!-- Elected Representatives: 3-Tier Democratic Governance -->
             <?php 
-            $hasGovernanceData = !empty($panchayat['mukhiya_name']) || !empty($panchayat['sarpanch_name']) || !empty($samitiMembers) || !empty($jilaParishadMembers);
+            $hasGovernanceData = !empty($panchayat['mukhiya_name']) || !empty($panchayat['sarpanch_name']) || !empty($upMukhiya) || !empty($upSarpanch) || !empty($samitiMembers) || !empty($jilaParishadMembers);
             if ($hasGovernanceData): 
                 $isLoggedIn = function_exists('isUserLoggedIn') && isUserLoggedIn();
                 $loginRedirectUrl = 'login?redirect=' . urlencode('panchayat/' . ($panchayat['slug'] ?? ''));
@@ -385,8 +414,8 @@ $blocks = getBlocks();
                         <p class="text-muted mx-auto" style="max-width: 680px;">Official elected representatives of <?php echo sanitizeInput($panchayat['panchayat_name']); ?> Gram Panchayat across Gram Panchayat, Panchayat Samiti (BDC), and Zila Parishad tiers. Source: State Election Commission Bihar (<a href="https://sec.bihar.gov.in" target="_blank" rel="noopener noreferrer" class="text-primary text-decoration-none fw-semibold">sec.bihar.gov.in</a> • 2021 - 2026 Tenure).</p>
                     </div>
 
-                    <!-- 1. Gram Panchayat & Gram Kacheri Leadership -->
-                    <?php if (!empty($panchayat['mukhiya_name']) || !empty($panchayat['sarpanch_name'])): ?>
+                    <!-- 1. Gram Panchayat & Gram Kacheri Leadership (Mukhiya, Up Mukhiya, Sarpanch, Up Sarpanch) -->
+                    <?php if (!empty($panchayat['mukhiya_name']) || !empty($upMukhiya) || !empty($panchayat['sarpanch_name']) || !empty($upSarpanch)): ?>
                         <div class="mb-5">
                             <div class="d-flex align-items-center gap-2 mb-3">
                                 <span class="badge bg-primary text-white rounded-pill px-3 py-1.5 small fw-semibold">Tier 1</span>
@@ -475,6 +504,96 @@ $blocks = getBlocks();
                                     </div>
                                 <?php endif; ?>
 
+                                <!-- Up Mukhiya Card -->
+                                <?php if (!empty($upMukhiya)): 
+                                    $umDetails = function_exists('parseRepresentativeDetails') ? parseRepresentativeDetails($upMukhiya['description']) : [];
+                                    $umName = !empty($umDetails['name']) ? $umDetails['name'] : (!empty($upMukhiya['hindi_title']) ? preg_replace('/\s*-\s*उप मुखिया.*$/u', '', $upMukhiya['hindi_title']) : preg_replace('/^Up Mukhiya\s+/i', '', $upMukhiya['title']));
+                                    $umName = preg_replace('/\s*\(.*$/', '', $umName);
+                                    $umMob = preg_replace('/[^0-9]/', '', $upMukhiya['mobile'] ?? '');
+                                ?>
+                                    <div class="col-lg-6">
+                                        <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-white hover-lift transition-all">
+                                            <div class="p-4 border-bottom bg-info-subtle bg-opacity-25 d-flex align-items-center justify-content-between">
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <div class="rounded-circle bg-info text-dark p-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 52px; height: 52px;">
+                                                        <i class="bi bi-person-check-fill fs-3"></i>
+                                                    </div>
+                                                    <div>
+                                                        <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                                                            <span class="badge bg-info text-dark fw-semibold rounded-pill px-2.5 py-1 small">ग्राम पंचायत के उप मुखिया</span>
+                                                            <span class="badge bg-dark text-white fw-semibold rounded-pill px-2 py-0.5" style="font-size: 0.72rem;">2021 - 2026</span>
+                                                        </div>
+                                                        <h4 class="fw-bold font-heading text-dark mb-0 mt-1"><?php echo sanitizeInput($umName); ?></h4>
+                                                    </div>
+                                                </div>
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-bold small">
+                                                    <i class="bi bi-check-circle-fill me-1"></i>Elected
+                                                </span>
+                                            </div>
+                                            <div class="card-body p-4">
+                                                <ul class="list-unstyled mb-4 small text-secondary">
+                                                    <li class="mb-2 d-flex align-items-start">
+                                                        <i class="bi bi-hourglass-split text-info me-2 mt-0.5"></i>
+                                                        <div><strong>Elected Tenure:</strong> <span class="badge bg-info-subtle text-dark fw-bold">2021 - 2026</span> (Current Term)</div>
+                                                    </li>
+                                                    <?php if (!empty($umDetails['father_husband'])): ?>
+                                                        <li class="mb-2 d-flex align-items-start">
+                                                            <i class="bi bi-person-fill text-muted me-2 mt-0.5"></i>
+                                                            <div><strong>Father / Husband:</strong> <?php echo sanitizeInput($umDetails['father_husband']); ?></div>
+                                                        </li>
+                                                    <?php endif; ?>
+                                                    <?php if (!empty($umDetails['category']) || !empty($umDetails['reservation'])): ?>
+                                                        <li class="mb-2 d-flex align-items-start">
+                                                            <i class="bi bi-tag-fill text-muted me-2 mt-0.5"></i>
+                                                            <div><strong>Category:</strong> <?php echo sanitizeInput($umDetails['category'] ?? ''); ?> <?php if (!empty($umDetails['reservation'])): ?>(<?php echo sanitizeInput($umDetails['reservation']); ?>)<?php endif; ?></div>
+                                                        </li>
+                                                    <?php endif; ?>
+                                                    <?php if (!empty($umDetails['age'])): ?>
+                                                        <li class="mb-2 d-flex align-items-start">
+                                                            <i class="bi bi-calendar-event text-muted me-2 mt-0.5"></i>
+                                                            <div><strong>Age:</strong> <?php echo sanitizeInput($umDetails['age']); ?></div>
+                                                        </li>
+                                                    <?php endif; ?>
+                                                    <?php if (!empty($umDetails['gender'])): ?>
+                                                        <li class="mb-2 d-flex align-items-start">
+                                                            <i class="bi bi-person-circle text-muted me-2 mt-0.5"></i>
+                                                            <div><strong>Gender:</strong> <?php echo sanitizeInput($umDetails['gender']); ?></div>
+                                                        </li>
+                                                    <?php endif; ?>
+                                                    <?php if (!empty($umDetails['address']) || !empty($upMukhiya['address'])): ?>
+                                                        <li class="mb-2 d-flex align-items-start">
+                                                            <i class="bi bi-geo-alt-fill text-muted me-2 mt-0.5"></i>
+                                                            <div><strong>Address:</strong> <?php echo sanitizeInput(!empty($umDetails['address']) ? $umDetails['address'] : $upMukhiya['address']); ?></div>
+                                                        </li>
+                                                    <?php endif; ?>
+                                                </ul>
+
+                                                <?php if (!empty($umMob)): ?>
+                                                    <?php if ($isLoggedIn): ?>
+                                                        <div class="d-flex gap-2">
+                                                            <a href="tel:<?php echo $umMob; ?>" class="btn btn-info text-dark rounded-pill px-3 py-2 flex-grow-1 fw-semibold btn-sm shadow-xs">
+                                                                <i class="bi bi-telephone-fill me-1"></i> Call <?php echo $umMob; ?>
+                                                            </a>
+                                                            <a href="https://wa.me/91<?php echo $umMob; ?>" target="_blank" rel="noopener" class="btn btn-outline-success rounded-pill px-3 py-2 fw-semibold btn-sm">
+                                                                <i class="bi bi-whatsapp me-1"></i> WhatsApp
+                                                            </a>
+                                                        </div>
+                                                    <?php else: ?>
+                                                        <div class="p-2.5 rounded-3 bg-light border text-center">
+                                                            <div class="text-muted small mb-2">
+                                                                <i class="bi bi-shield-lock text-warning me-1"></i> Mobile: <span class="font-monospace text-secondary fw-semibold">+91 XXXXX •••••</span>
+                                                            </div>
+                                                            <a href="<?php echo $loginRedirectUrl; ?>" class="btn btn-outline-primary rounded-pill px-3 py-1.5 w-100 fw-semibold btn-sm">
+                                                                <i class="bi bi-person-check-fill me-1"></i> Log In to View Number & Call
+                                                            </a>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+
                                 <!-- Sarpanch Card -->
                                 <?php if (!empty($panchayat['sarpanch_name'])): 
                                     $sMob = preg_replace('/[^0-9]/', '', $panchayat['sarpanch_mobile'] ?? '');
@@ -537,6 +656,96 @@ $blocks = getBlocks();
                                                                 <i class="bi bi-telephone-fill me-1"></i> Call <?php echo $sMob; ?>
                                                             </a>
                                                             <a href="https://wa.me/91<?php echo $sMob; ?>" target="_blank" rel="noopener" class="btn btn-outline-success rounded-pill px-3 py-2 fw-semibold btn-sm">
+                                                                <i class="bi bi-whatsapp me-1"></i> WhatsApp
+                                                            </a>
+                                                        </div>
+                                                    <?php else: ?>
+                                                        <div class="p-2.5 rounded-3 bg-light border text-center">
+                                                            <div class="text-muted small mb-2">
+                                                                <i class="bi bi-shield-lock text-warning me-1"></i> Mobile: <span class="font-monospace text-secondary fw-semibold">+91 XXXXX •••••</span>
+                                                            </div>
+                                                            <a href="<?php echo $loginRedirectUrl; ?>" class="btn btn-outline-primary rounded-pill px-3 py-1.5 w-100 fw-semibold btn-sm">
+                                                                <i class="bi bi-person-check-fill me-1"></i> Log In to View Number & Call
+                                                            </a>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+
+                                <!-- Up Sarpanch Card -->
+                                <?php if (!empty($upSarpanch)): 
+                                    $usDetails = function_exists('parseRepresentativeDetails') ? parseRepresentativeDetails($upSarpanch['description']) : [];
+                                    $usName = !empty($usDetails['name']) ? $usDetails['name'] : (!empty($upSarpanch['hindi_title']) ? preg_replace('/\s*-\s*उप सरपंच.*$/u', '', $upSarpanch['hindi_title']) : preg_replace('/^Up Sarpanch\s+/i', '', $upSarpanch['title']));
+                                    $usName = preg_replace('/\s*\(.*$/', '', $usName);
+                                    $usMob = preg_replace('/[^0-9]/', '', $upSarpanch['mobile'] ?? '');
+                                ?>
+                                    <div class="col-lg-6">
+                                        <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-white hover-lift transition-all">
+                                            <div class="p-4 border-bottom bg-warning-subtle bg-opacity-40 d-flex align-items-center justify-content-between">
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <div class="rounded-circle bg-warning text-dark p-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 52px; height: 52px;">
+                                                        <i class="bi bi-bank fs-3"></i>
+                                                    </div>
+                                                    <div>
+                                                        <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                                                            <span class="badge bg-warning text-dark fw-semibold rounded-pill px-2.5 py-1 small">ग्राम कचहरी के उप सरपंच</span>
+                                                            <span class="badge bg-dark text-white fw-semibold rounded-pill px-2 py-0.5" style="font-size: 0.72rem;">2021 - 2026</span>
+                                                        </div>
+                                                        <h4 class="fw-bold font-heading text-dark mb-0 mt-1"><?php echo sanitizeInput($usName); ?></h4>
+                                                    </div>
+                                                </div>
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-bold small">
+                                                    <i class="bi bi-check-circle-fill me-1"></i>Elected
+                                                </span>
+                                            </div>
+                                            <div class="card-body p-4">
+                                                <ul class="list-unstyled mb-4 small text-secondary">
+                                                    <li class="mb-2 d-flex align-items-start">
+                                                        <i class="bi bi-hourglass-split text-warning me-2 mt-0.5"></i>
+                                                        <div><strong>Elected Tenure:</strong> <span class="badge bg-warning-subtle text-dark fw-bold">2021 - 2026</span> (Current Term)</div>
+                                                    </li>
+                                                    <?php if (!empty($usDetails['father_husband'])): ?>
+                                                        <li class="mb-2 d-flex align-items-start">
+                                                            <i class="bi bi-person-fill text-muted me-2 mt-0.5"></i>
+                                                            <div><strong>Father / Husband:</strong> <?php echo sanitizeInput($usDetails['father_husband']); ?></div>
+                                                        </li>
+                                                    <?php endif; ?>
+                                                    <?php if (!empty($usDetails['category']) || !empty($usDetails['reservation'])): ?>
+                                                        <li class="mb-2 d-flex align-items-start">
+                                                            <i class="bi bi-tag-fill text-muted me-2 mt-0.5"></i>
+                                                            <div><strong>Category:</strong> <?php echo sanitizeInput($usDetails['category'] ?? ''); ?> <?php if (!empty($usDetails['reservation'])): ?>(<?php echo sanitizeInput($usDetails['reservation']); ?>)<?php endif; ?></div>
+                                                        </li>
+                                                    <?php endif; ?>
+                                                    <?php if (!empty($usDetails['age'])): ?>
+                                                        <li class="mb-2 d-flex align-items-start">
+                                                            <i class="bi bi-calendar-event text-muted me-2 mt-0.5"></i>
+                                                            <div><strong>Age:</strong> <?php echo sanitizeInput($usDetails['age']); ?></div>
+                                                        </li>
+                                                    <?php endif; ?>
+                                                    <?php if (!empty($usDetails['gender'])): ?>
+                                                        <li class="mb-2 d-flex align-items-start">
+                                                            <i class="bi bi-person-circle text-muted me-2 mt-0.5"></i>
+                                                            <div><strong>Gender:</strong> <?php echo sanitizeInput($usDetails['gender']); ?></div>
+                                                        </li>
+                                                    <?php endif; ?>
+                                                    <?php if (!empty($usDetails['address']) || !empty($upSarpanch['address'])): ?>
+                                                        <li class="mb-2 d-flex align-items-start">
+                                                            <i class="bi bi-geo-alt-fill text-muted me-2 mt-0.5"></i>
+                                                            <div><strong>Address:</strong> <?php echo sanitizeInput(!empty($usDetails['address']) ? $usDetails['address'] : $upSarpanch['address']); ?></div>
+                                                        </li>
+                                                    <?php endif; ?>
+                                                </ul>
+
+                                                <?php if (!empty($usMob)): ?>
+                                                    <?php if ($isLoggedIn): ?>
+                                                        <div class="d-flex gap-2">
+                                                            <a href="tel:<?php echo $usMob; ?>" class="btn btn-warning text-dark rounded-pill px-3 py-2 flex-grow-1 fw-semibold btn-sm shadow-xs">
+                                                                <i class="bi bi-telephone-fill me-1"></i> Call <?php echo $usMob; ?>
+                                                            </a>
+                                                            <a href="https://wa.me/91<?php echo $usMob; ?>" target="_blank" rel="noopener" class="btn btn-outline-success rounded-pill px-3 py-2 fw-semibold btn-sm">
                                                                 <i class="bi bi-whatsapp me-1"></i> WhatsApp
                                                             </a>
                                                         </div>

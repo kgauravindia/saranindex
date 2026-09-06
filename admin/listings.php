@@ -58,7 +58,44 @@ $category_filter = !empty($_GET['category']) ? intval($_GET['category']) : null;
 $subcategory_filter = !empty($_GET['subcategory']) ? intval($_GET['subcategory']) : null;
 $block_filter = !empty($_GET['block']) ? intval($_GET['block']) : null;
 
-$listings = getAllAdminListings($status_filter, $search_query, $category_filter, $subcategory_filter, $block_filter);
+// Pagination variables
+$page = max(1, intval($_GET['page'] ?? 1));
+$per_page_options = [25, 50, 100, 200];
+$per_page = intval($_GET['per_page'] ?? 25);
+if (!in_array($per_page, $per_page_options)) {
+    $per_page = 25;
+}
+
+// Fetch total count and calculate total pages
+$total_listings = countAllAdminListings($status_filter, $search_query, $category_filter, $subcategory_filter, $block_filter);
+$total_pages = max(1, ceil($total_listings / $per_page));
+
+if ($page > $total_pages) {
+    $page = $total_pages;
+}
+
+$offset = ($page - 1) * $per_page;
+$listings = getAllAdminListings($status_filter, $search_query, $category_filter, $subcategory_filter, $block_filter, $per_page, $offset);
+
+$all_categories = getCategories();
+$all_blocks = getBlocks();
+
+// Helper to generate pagination and filter URLs
+function getListingsPageUrl($p, $status = null, $search = '', $cat = null, $subcat = null, $block = null, $limit = 25) {
+    $params = [];
+    if (!empty($status)) $params['status'] = $status;
+    if (!empty($search)) $params['search'] = $search;
+    if (!empty($cat)) $params['category'] = $cat;
+    if (!empty($subcat)) $params['subcategory'] = $subcat;
+    if (!empty($block)) $params['block'] = $block;
+    if ($limit != 25) $params['per_page'] = $limit;
+    if ($p > 1) $params['page'] = $p;
+    
+    return 'listings.php' . (!empty($params) ? '?' . http_build_query($params) : '');
+}
+
+$from_record = $total_listings > 0 ? ($offset + 1) : 0;
+$to_record = min($offset + $per_page, $total_listings);
 ?>
 
 <?php if (!empty($msg)): ?>
@@ -73,7 +110,7 @@ $listings = getAllAdminListings($status_filter, $search_query, $category_filter,
 <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
     <div>
         <h4 class="fw-bold mb-1">Directory Listings</h4>
-        <p class="text-muted small mb-0">View, search, filter, approve, edit, and export all listings in Saran district.</p>
+        <p class="text-muted small mb-0">Total <strong><?php echo number_format($total_listings); ?></strong> listings in Saran District database.</p>
     </div>
     <div class="d-flex gap-2 flex-wrap">
         <a href="duplicates.php" class="btn btn-outline-danger fw-bold px-3 py-2 rounded-3 shadow-sm">
@@ -89,43 +126,77 @@ $listings = getAllAdminListings($status_filter, $search_query, $category_filter,
 </div>
 
 <!-- Filters & Search Bar -->
-<div class="card border-0 shadow-sm rounded-3 mb-4 p-3">
-    <div class="row g-3 align-items-center">
-        <!-- Status Filter Nav Pills -->
-        <div class="col-12 col-md-7">
-            <?php $searchQueryParam = !empty($search_query) ? '&search=' . urlencode($search_query) : ''; ?>
-            <div class="nav nav-pills small gap-1">
-                <a href="listings.php<?php echo !empty($search_query) ? '?search=' . urlencode($search_query) : ''; ?>" class="nav-link px-3 py-1.5 rounded-pill <?php echo empty($status_filter) ? 'active bg-primary' : 'bg-light text-dark border'; ?>">All</a>
-                <a href="listings.php?status=ACTIVE<?php echo $searchQueryParam; ?>" class="nav-link px-3 py-1.5 rounded-pill <?php echo $status_filter === 'ACTIVE' ? 'active bg-success' : 'bg-light text-dark border'; ?>">Active</a>
-                <a href="listings.php?status=PENDING<?php echo $searchQueryParam; ?>" class="nav-link px-3 py-1.5 rounded-pill <?php echo $status_filter === 'PENDING' ? 'active bg-warning text-dark' : 'bg-light text-dark border'; ?>">Pending Approvals</a>
-                <a href="listings.php?status=REJECTED<?php echo $searchQueryParam; ?>" class="nav-link px-3 py-1.5 rounded-pill <?php echo $status_filter === 'REJECTED' ? 'active bg-danger' : 'bg-light text-dark border'; ?>">Rejected</a>
+<div class="card border-0 shadow-sm rounded-3 mb-4 p-3 bg-white">
+    <div class="d-flex flex-column gap-3">
+        <!-- Top Row: Status Nav Pills -->
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 border-bottom pb-2">
+            <div class="nav nav-pills small gap-1 flex-wrap">
+                <a href="<?php echo getListingsPageUrl(1, null, $search_query, $category_filter, $subcategory_filter, $block_filter, $per_page); ?>" class="nav-link px-3 py-1.5 rounded-pill <?php echo empty($status_filter) ? 'active bg-primary' : 'bg-light text-dark border'; ?>">All Statuses</a>
+                <a href="<?php echo getListingsPageUrl(1, 'ACTIVE', $search_query, $category_filter, $subcategory_filter, $block_filter, $per_page); ?>" class="nav-link px-3 py-1.5 rounded-pill <?php echo $status_filter === 'ACTIVE' ? 'active bg-success' : 'bg-light text-dark border'; ?>">Active</a>
+                <a href="<?php echo getListingsPageUrl(1, 'PENDING', $search_query, $category_filter, $subcategory_filter, $block_filter, $per_page); ?>" class="nav-link px-3 py-1.5 rounded-pill <?php echo $status_filter === 'PENDING' ? 'active bg-warning text-dark' : 'bg-light text-dark border'; ?>">Pending Approvals</a>
+                <a href="<?php echo getListingsPageUrl(1, 'REJECTED', $search_query, $category_filter, $subcategory_filter, $block_filter, $per_page); ?>" class="nav-link px-3 py-1.5 rounded-pill <?php echo $status_filter === 'REJECTED' ? 'active bg-danger' : 'bg-light text-dark border'; ?>">Rejected</a>
+            </div>
+            
+            <div class="text-muted small">
+                Showing <strong><?php echo $from_record; ?> - <?php echo $to_record; ?></strong> of <strong><?php echo number_format($total_listings); ?></strong> records
             </div>
         </div>
 
-        <!-- Search Form -->
-        <div class="col-12 col-md-5">
-            <form action="listings.php" method="GET">
-                <?php if ($status_filter): ?>
-                    <input type="hidden" name="status" value="<?php echo sanitizeInput($status_filter); ?>">
-                <?php endif; ?>
-                <?php if ($category_filter): ?>
-                    <input type="hidden" name="category" value="<?php echo sanitizeInput($category_filter); ?>">
-                <?php endif; ?>
-                <?php if ($subcategory_filter): ?>
-                    <input type="hidden" name="subcategory" value="<?php echo sanitizeInput($subcategory_filter); ?>">
-                <?php endif; ?>
-                <?php if ($block_filter): ?>
-                    <input type="hidden" name="block" value="<?php echo sanitizeInput($block_filter); ?>">
-                <?php endif; ?>
-                <div class="input-group">
-                    <input type="text" name="search" class="form-control form-control-sm bg-light" placeholder="Search by title, category, subcategory, block, mobile, address..." value="<?php echo sanitizeInput($search_query); ?>">
-                    <button class="btn btn-primary btn-sm px-3" type="submit"><i class="bi bi-search"></i> Search</button>
-                    <?php if ($search_query || $category_filter || $subcategory_filter || $block_filter): ?>
-                        <a href="listings.php<?php echo $status_filter ? '?status='.$status_filter : ''; ?>" class="btn btn-outline-secondary btn-sm"><i class="bi bi-x-circle"></i> Clear Filters</a>
-                    <?php endif; ?>
+        <!-- Bottom Row: Multi-Criteria Filter Form -->
+        <form action="listings.php" method="GET" class="row g-2 align-items-center">
+            <?php if ($status_filter): ?>
+                <input type="hidden" name="status" value="<?php echo sanitizeInput($status_filter); ?>">
+            <?php endif; ?>
+
+            <!-- Search Field -->
+            <div class="col-12 col-md-4">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+                    <input type="text" name="search" class="form-control form-control-sm bg-light" placeholder="Search by title, mobile, address..." value="<?php echo sanitizeInput($search_query); ?>">
                 </div>
-            </form>
-        </div>
+            </div>
+
+            <!-- Category Filter -->
+            <div class="col-6 col-md-3">
+                <select name="category" class="form-select form-select-sm bg-light">
+                    <option value="">-- All Categories --</option>
+                    <?php foreach ($all_categories as $cat): ?>
+                        <option value="<?php echo $cat['id']; ?>" <?php echo ($category_filter == $cat['id']) ? 'selected' : ''; ?>>
+                            <?php echo sanitizeInput($cat['name']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <!-- Block Filter -->
+            <div class="col-6 col-md-2">
+                <select name="block" class="form-select form-select-sm bg-light">
+                    <option value="">-- All Blocks --</option>
+                    <?php foreach ($all_blocks as $b): ?>
+                        <option value="<?php echo $b['id']; ?>" <?php echo ($block_filter == $b['id']) ? 'selected' : ''; ?>>
+                            <?php echo sanitizeInput($b['name']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <!-- Per Page Select -->
+            <div class="col-6 col-md-1">
+                <select name="per_page" class="form-select form-select-sm bg-light" title="Items per page">
+                    <?php foreach ($per_page_options as $opt): ?>
+                        <option value="<?php echo $opt; ?>" <?php echo ($per_page == $opt) ? 'selected' : ''; ?>><?php echo $opt; ?>/page</option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <!-- Submit & Reset Buttons -->
+            <div class="col-6 col-md-2 d-flex gap-1">
+                <button class="btn btn-primary btn-sm px-3 flex-grow-1" type="submit"><i class="bi bi-filter"></i> Filter</button>
+                <?php if ($search_query || $category_filter || $subcategory_filter || $block_filter || $status_filter || $per_page != 25): ?>
+                    <a href="listings.php" class="btn btn-outline-secondary btn-sm" title="Clear all filters"><i class="bi bi-x-circle"></i></a>
+                <?php endif; ?>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -133,6 +204,8 @@ $listings = getAllAdminListings($status_filter, $search_query, $category_filter,
 <form action="export_listings.php" method="POST" id="bulkListingsForm">
     <input type="hidden" name="status" value="<?php echo sanitizeInput($status_filter ?? ''); ?>">
     <input type="hidden" name="search" value="<?php echo sanitizeInput($search_query ?? ''); ?>">
+    <input type="hidden" name="category" value="<?php echo sanitizeInput($category_filter ?? ''); ?>">
+    <input type="hidden" name="block" value="<?php echo sanitizeInput($block_filter ?? ''); ?>">
 
     <!-- Data Table & Bulk Action Toolbar Card -->
     <div class="card border-0 shadow-sm rounded-3">
@@ -143,18 +216,18 @@ $listings = getAllAdminListings($status_filter, $search_query, $category_filter,
                     0 Selected
                 </span>
                 <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="selectAllListings(true)">
-                    <i class="bi bi-check-all me-1"></i>Select All
+                    <i class="bi bi-check-all me-1"></i>Select Page
                 </button>
                 <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="selectAllListings(false)">
-                    <i class="bi bi-x-circle me-1"></i>Deselect All
+                    <i class="bi bi-x-circle me-1"></i>Deselect
                 </button>
             </div>
             <div class="d-flex align-items-center gap-2 flex-wrap">
                 <button type="submit" name="export_action" value="selected" id="btnExportSelected" class="btn btn-success btn-sm rounded-pill px-3 fw-bold shadow-sm" disabled>
-                    <i class="bi bi-file-earmark-excel-fill me-1"></i> Download Selected Excel (<span id="btn_export_count">0</span>)
+                    <i class="bi bi-file-earmark-excel-fill me-1"></i> Download Selected (<span id="btn_export_count">0</span>)
                 </button>
                 <button type="submit" name="export_action" value="all" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-bold">
-                    <i class="bi bi-file-earmark-spreadsheet me-1"></i> Download All Filtered Excel (<?php echo count($listings); ?>)
+                    <i class="bi bi-file-earmark-spreadsheet me-1"></i> Download All Filtered Excel (<?php echo number_format($total_listings); ?>)
                 </button>
             </div>
         </div>
@@ -305,6 +378,105 @@ $listings = getAllAdminListings($status_filter, $search_query, $category_filter,
                 </tbody>
             </table>
         </div>
+        
+        <!-- Pagination Card Footer -->
+        <?php if ($total_pages > 1 || $total_listings > 0): ?>
+            <div class="card-footer bg-white border-top py-3 d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
+                <div class="text-muted small">
+                    Showing <strong class="text-dark"><?php echo $from_record; ?></strong> to <strong class="text-dark"><?php echo $to_record; ?></strong> of <strong class="text-dark"><?php echo number_format($total_listings); ?></strong> listings 
+                    <span class="badge bg-light text-secondary border ms-1">Page <?php echo $page; ?> of <?php echo $total_pages; ?></span>
+                </div>
+
+                <?php if ($total_pages > 1): ?>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <nav aria-label="Directory Listings Pagination">
+                            <ul class="pagination pagination-sm justify-content-center mb-0">
+                                <!-- First Page Link -->
+                                <?php if ($page > 2): ?>
+                                    <li class="page-item" title="First Page">
+                                        <a class="page-link" href="<?php echo getListingsPageUrl(1, $status_filter, $search_query, $category_filter, $subcategory_filter, $block_filter, $per_page); ?>">
+                                            <i class="bi bi-chevron-double-left"></i>
+                                        </a>
+                                    </li>
+                                <?php endif; ?>
+
+                                <!-- Previous Page Link -->
+                                <li class="page-item <?php echo ($page <= 1) ? 'disabled' : ''; ?>" title="Previous Page">
+                                    <a class="page-link" href="<?php echo getListingsPageUrl($page - 1, $status_filter, $search_query, $category_filter, $subcategory_filter, $block_filter, $per_page); ?>">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+
+                                <!-- Page Range Numbers -->
+                                <?php
+                                $start_page = max(1, $page - 2);
+                                $end_page = min($total_pages, $page + 2);
+
+                                if ($start_page > 1) {
+                                    echo '<li class="page-item"><a class="page-link" href="' . getListingsPageUrl(1, $status_filter, $search_query, $category_filter, $subcategory_filter, $block_filter, $per_page) . '">1</a></li>';
+                                    if ($start_page > 2) {
+                                        echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                                    }
+                                }
+
+                                for ($p = $start_page; $p <= $end_page; $p++):
+                                ?>
+                                    <li class="page-item <?php echo ($p === $page) ? 'active' : ''; ?>">
+                                        <a class="page-link" href="<?php echo getListingsPageUrl($p, $status_filter, $search_query, $category_filter, $subcategory_filter, $block_filter, $per_page); ?>">
+                                            <?php echo $p; ?>
+                                        </a>
+                                    </li>
+                                <?php 
+                                endfor; 
+
+                                if ($end_page < $total_pages) {
+                                    if ($end_page < $total_pages - 1) {
+                                        echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                                    }
+                                    echo '<li class="page-item"><a class="page-link" href="' . getListingsPageUrl($total_pages, $status_filter, $search_query, $category_filter, $subcategory_filter, $block_filter, $per_page) . '">' . $total_pages . '</a></li>';
+                                }
+                                ?>
+
+                                <!-- Next Page Link -->
+                                <li class="page-item <?php echo ($page >= $total_pages) ? 'disabled' : ''; ?>" title="Next Page">
+                                    <a class="page-link" href="<?php echo getListingsPageUrl($page + 1, $status_filter, $search_query, $category_filter, $subcategory_filter, $block_filter, $per_page); ?>">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+
+                                <!-- Last Page Link -->
+                                <?php if ($page < $total_pages - 1): ?>
+                                    <li class="page-item" title="Last Page">
+                                        <a class="page-link" href="<?php echo getListingsPageUrl($total_pages, $status_filter, $search_query, $category_filter, $subcategory_filter, $block_filter, $per_page); ?>">
+                                            <i class="bi bi-chevron-double-right"></i>
+                                        </a>
+                                    </li>
+                                <?php endif; ?>
+                            </ul>
+                        </nav>
+
+                        <!-- Jump to Page Mini Form -->
+                        <?php if ($total_pages > 5): ?>
+                            <div class="d-none d-sm-flex align-items-center gap-1 ms-2">
+                                <span class="text-muted extra-small">Go to:</span>
+                                <input type="number" min="1" max="<?php echo $total_pages; ?>" value="<?php echo $page; ?>" id="jumpPageInput" class="form-control form-control-sm text-center px-1" style="width: 54px;" onkeydown="if(event.key==='Enter'){event.preventDefault(); jumpToPage();}">
+                                <button type="button" class="btn btn-outline-secondary btn-sm px-2" onclick="jumpToPage()" title="Go">Go</button>
+                            </div>
+                            <script>
+                            function jumpToPage() {
+                                const input = document.getElementById('jumpPageInput');
+                                let p = parseInt(input.value);
+                                if (isNaN(p) || p < 1) p = 1;
+                                if (p > <?php echo $total_pages; ?>) p = <?php echo $total_pages; ?>;
+                                const url = "<?php echo getListingsPageUrl('__PAGE__', $status_filter, $search_query, $category_filter, $subcategory_filter, $block_filter, $per_page); ?>".replace('__PAGE__', p);
+                                window.location.href = url;
+                            }
+                            </script>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
     </div>
 </form>
 

@@ -94,90 +94,97 @@ require_once __DIR__ . '/includes/header.php';
     </div>
 
     <!-- 1. Police & Law Enforcement Section -->
+    <?php
+    $police_stations_list = getListings('', 'government', '', 100, 0, 'police-stations');
+    ?>
     <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white border-top border-4 border-danger">
-        <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
-            <h5 class="fw-bold text-dark mb-0 font-heading">
-                <i class="bi bi-shield-fill text-danger me-2 fs-4"></i> Police Stations & Law Enforcement
-            </h5>
-            <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-1 fs-7 fw-bold">
-                Saran Police Helplines
-            </span>
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 border-bottom pb-3">
+            <div>
+                <h5 class="fw-bold text-dark mb-1 font-heading">
+                    <i class="bi bi-shield-fill text-danger me-2 fs-4"></i> Police Stations & Law Enforcement (सारण पुलिस)
+                </h5>
+                <p class="text-muted small mb-0">Direct helpline & contact numbers for all 39 Police Stations and Outposts (ओपी) across Saran District.</p>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-danger text-white rounded-pill px-3 py-1.5 fs-7 fw-bold">
+                    <i class="bi bi-shield-check me-1"></i> <?php echo count($police_stations_list); ?> Police Stations
+                </span>
+                <a href="<?php echo BASE_URL; ?>government/police-stations" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold">
+                    View Full Directory <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
         </div>
 
-        <div class="row g-3">
-            <div class="col-md-6">
-                <div class="p-3 border rounded-3 bg-light hover-shadow transition-all h-100 d-flex flex-column justify-content-between">
-                    <div>
-                        <div class="d-flex align-items-center justify-content-between mb-1">
-                            <h6 class="fw-bold text-dark mb-0">Town Police Station</h6>
-                            <span class="badge bg-danger text-white fs-7 rounded-pill">24x7 Thana</span>
-                        </div>
-                        <p class="text-muted fs-7 mb-2"><i class="bi bi-geo-alt me-1 text-danger"></i> Near Thanachowk, Main Road, Chapra Sadar</p>
-                    </div>
-                    <div class="d-flex align-items-center justify-content-between pt-2 border-top">
-                        <span class="fw-bold text-dark fs-6">06152-243202</span>
-                        <a href="tel:06152243202" class="btn btn-danger btn-sm rounded-pill px-3 fw-bold">
-                            <i class="bi bi-telephone-fill me-1"></i> Call Thana
-                        </a>
-                    </div>
-                </div>
+        <!-- Quick Filter Input -->
+        <div class="mb-4">
+            <div class="input-group">
+                <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-danger"></i></span>
+                <input type="text" id="policeSearchInput" class="form-control bg-light border-start-0 py-2" placeholder="Search police station by name, block, or area (e.g. Chapra, Sonpur, Marhaura, Ekma, Doriganj)..." onkeyup="filterPoliceStations()">
             </div>
+        </div>
 
-            <div class="col-md-6">
-                <div class="p-3 border rounded-3 bg-light hover-shadow transition-all h-100 d-flex flex-column justify-content-between">
-                    <div>
-                        <div class="d-flex align-items-center justify-content-between mb-1">
-                            <h6 class="fw-bold text-dark mb-0">SP Saran Control Room</h6>
-                            <span class="badge bg-primary text-white fs-7 rounded-pill">SP Office</span>
+        <div class="row g-3" id="policeStationsGrid">
+            <?php if (!empty($police_stations_list)): ?>
+                <?php foreach ($police_stations_list as $ps): 
+                    $callNum = !empty($ps['mobile']) ? preg_replace('/[^0-9]/', '', $ps['mobile']) : '';
+                    if (strlen($callNum) == 10) {
+                        $callNum = '91' . $callNum;
+                    }
+                ?>
+                    <div class="col-md-6 col-lg-4 police-station-item" data-name="<?php echo strtolower(htmlspecialchars($ps['title'] . ' ' . $ps['hindi_title'] . ' ' . ($ps['block_name'] ?? '') . ' ' . $ps['address'])); ?>">
+                        <div class="p-3 border rounded-3 bg-light hover-shadow transition-all h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex align-items-start justify-content-between mb-1.5">
+                                    <h6 class="fw-bold text-dark mb-0 fs-6">
+                                        <a href="<?php echo BASE_URL . sanitizeInput($ps['slug']); ?>" class="text-dark text-decoration-none hover-primary">
+                                            <?php echo sanitizeInput($ps['title']); ?>
+                                        </a>
+                                    </h6>
+                                    <span class="badge bg-danger-subtle text-danger fs-8 rounded-pill ms-1 flex-shrink-0">24x7 Thana</span>
+                                </div>
+                                <?php if (!empty($ps['hindi_title'])): ?>
+                                    <div class="text-secondary small fw-medium mb-1.5"><?php echo sanitizeInput($ps['hindi_title']); ?></div>
+                                <?php endif; ?>
+                                <p class="text-muted fs-8 mb-2">
+                                    <i class="bi bi-geo-alt me-1 text-danger"></i> <?php echo sanitizeInput($ps['address']); ?>
+                                </p>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between pt-2 border-top gap-2">
+                                <span class="fw-bold text-dark fs-7 font-monospace"><?php echo sanitizeInput($ps['mobile']); ?></span>
+                                <div class="d-flex gap-1.5">
+                                    <?php if (!empty($callNum)): ?>
+                                        <a href="tel:<?php echo $callNum; ?>" class="btn btn-danger btn-sm rounded-pill px-2.5 py-1 fw-bold fs-8" title="Call Police Station">
+                                            <i class="bi bi-telephone-fill me-1"></i> Call
+                                        </a>
+                                    <?php endif; ?>
+                                    <a href="<?php echo BASE_URL . sanitizeInput($ps['slug']); ?>" class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1 fs-8" title="View Details">
+                                        <i class="bi bi-info-circle"></i>
+                                    </a>
+                                </div>
+                            </div>
                         </div>
-                        <p class="text-muted fs-7 mb-2"><i class="bi bi-geo-alt me-1 text-primary"></i> Superintendent of Police Office, Katchahry Chowk, Chapra</p>
                     </div>
-                    <div class="d-flex align-items-center justify-content-between pt-2 border-top">
-                        <span class="fw-bold text-dark fs-6">06152-245023</span>
-                        <a href="tel:06152245023" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold">
-                            <i class="bi bi-telephone-fill me-1"></i> Call SP Control
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="p-3 border rounded-3 bg-light hover-shadow transition-all h-100 d-flex flex-column justify-content-between">
-                    <div>
-                        <div class="d-flex align-items-center justify-content-between mb-1">
-                            <h6 class="fw-bold text-dark mb-0">Mahila Thana Chapra</h6>
-                            <span class="badge bg-purple-subtle fs-7 rounded-pill fw-bold">Women Police</span>
-                        </div>
-                        <p class="text-muted fs-7 mb-2"><i class="bi bi-geo-alt me-1 text-purple"></i> Police Line Campus, Chapra</p>
-                    </div>
-                    <div class="d-flex align-items-center justify-content-between pt-2 border-top">
-                        <span class="fw-bold text-dark fs-6">06152-242300</span>
-                        <a href="tel:06152242300" class="btn btn-sm rounded-pill px-3 fw-bold text-white" style="background-color: #7e22ce;">
-                            <i class="bi bi-telephone-fill me-1"></i> Call Mahila Thana
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="p-3 border rounded-3 bg-light hover-shadow transition-all h-100 d-flex flex-column justify-content-between">
-                    <div>
-                        <div class="d-flex align-items-center justify-content-between mb-1">
-                            <h6 class="fw-bold text-dark mb-0">Traffic Police Control</h6>
-                            <span class="badge bg-warning text-dark fs-7 rounded-pill">Traffic</span>
-                        </div>
-                        <p class="text-muted fs-7 mb-2"><i class="bi bi-geo-alt me-1 text-warning"></i> Municipal Chowk, Chapra</p>
-                    </div>
-                    <div class="d-flex align-items-center justify-content-between pt-2 border-top">
-                        <span class="fw-bold text-dark fs-6">06152-242000</span>
-                        <a href="tel:06152242000" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold text-dark">
-                            <i class="bi bi-telephone-fill me-1"></i> Call Traffic
-                        </a>
-                    </div>
-                </div>
-            </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="col-12 text-center text-muted py-3">No police stations found.</div>
+            <?php endif; ?>
         </div>
     </div>
+
+    <script>
+    function filterPoliceStations() {
+        const input = document.getElementById('policeSearchInput').value.toLowerCase();
+        const items = document.querySelectorAll('.police-station-item');
+        items.forEach(item => {
+            const data = item.getAttribute('data-name');
+            if (data.indexOf(input) > -1) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+    </script>
 
     <!-- 2. Hospitals & Blood Banks Section -->
     <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white border-top border-4 border-success">

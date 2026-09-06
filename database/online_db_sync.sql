@@ -57,3 +57,7 @@ WHERE (l.user_id IS NULL OR l.user_id = 0);
 -- 6. Specifically ensure User #1 (Kumar Gaurav) listings are linked
 UPDATE listings SET user_id = 1 WHERE mobile LIKE '%8102930609%' OR email = 'kmrgvr@gmail.com' OR slug = 'advocate-index';
 UPDATE listings SET user_id = 1, is_verified = 'YES', is_featured = 'YES', plan_type = 'PLATINUM' WHERE slug = 'offerplant-technologies-private-limited' OR id = 1;
+
+-- 7. Sync Urban Local Bodies (ULBs) & Police Stations from saran.nic.in
+-- Run `database/ulb_and_police_listings.sql` or `php database/sync_ulb_police.php` to sync all 10 ULBs and 39 Police Stations.
+

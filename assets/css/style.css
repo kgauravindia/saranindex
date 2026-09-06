@@ -906,6 +906,212 @@ footer a {
 .social-btn-telegram:hover { background-color: #24A1DE !important; border-color: #24A1DE !important; box-shadow: 0 6px 16px rgba(36, 161, 222, 0.4); }
 .social-btn-whatsapp:hover { background-color: #25D366 !important; border-color: #25D366 !important; box-shadow: 0 6px 16px rgba(37, 211, 102, 0.4); }
 
+/* ==========================================================================
+   Comprehensive District Statistics Design Components
+   ========================================================================== */
+
+/* Glassmorphism Stat Cards */
+.stat-counter-card {
+    background: #ffffff;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    border-radius: 16px;
+    padding: 1.25rem 1rem;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.04);
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-counter-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 28px -6px rgba(30, 64, 175, 0.12);
+    border-color: #cbd5e1;
+}
+
+.stat-counter-card.glow-primary {
+    background: linear-gradient(145deg, #0f172a, #1e293b);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-counter-card.glow-primary:hover {
+    box-shadow: 0 16px 32px rgba(30, 64, 175, 0.35);
+    border-color: rgba(59, 130, 246, 0.4);
+}
+
+.stat-counter-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+}
+
+.stat-number {
+    font-size: 1.75rem;
+    font-weight: 800;
+    line-height: 1.1;
+    font-family: var(--font-heading);
+}
+
+.stat-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+/* Demographic & Infographic Cards */
+.infographic-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.infographic-card-header {
+    background: linear-gradient(135deg, #0f172a, #1e3a8a);
+    color: #ffffff;
+    padding: 1.25rem 1.5rem;
+}
+
+.infographic-card-body {
+    padding: 1.5rem;
+}
+
+/* Block Matrix Card */
+.block-stat-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1.1rem;
+    transition: all 0.25s ease;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+}
+
+.block-stat-card:hover {
+    transform: translateY(-3px);
+    border-color: #3b82f6;
+    box-shadow: 0 10px 24px -4px rgba(59, 130, 246, 0.18);
+    color: inherit;
+}
+
+.block-stat-card .block-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0f172a;
+    font-family: var(--font-heading);
+}
+
+.block-stat-card .block-sub {
+    font-size: 0.82rem;
+    color: #64748b;
+}
+
+.block-stat-card .block-meta-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.6rem;
+    border-radius: 8px;
+}
+
+/* Sector Breakdown Pill */
+.sector-stat-pill {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 0.85rem 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    text-decoration: none;
+    color: #1e293b;
+    transition: all 0.2s ease;
+}
+
+.sector-stat-pill:hover {
+    background: #f8fafc;
+    border-color: #3b82f6;
+    transform: translateX(3px);
+    color: #1e40af;
+}
+
+/* Mini Progress Bar in Stats */
+.stat-progress {
+    height: 6px;
+    border-radius: 4px;
+    background-color: #e2e8f0;
+    overflow: hidden;
+}
+
+.stat-progress-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.6s ease;
+}
+
+/* Stats Search & Filter Inputs */
+.stats-filter-search {
+    border-radius: 50rem;
+    padding: 0.6rem 1.25rem;
+    border: 1px solid #cbd5e1;
+    font-size: 0.9rem;
+    background-color: #ffffff;
+    transition: all 0.2s ease;
+}
+
+.stats-filter-search:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+/* Stats Data Table */
+.stats-table-wrapper {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.03);
+}
+
+.stats-table {
+    margin-bottom: 0;
+    font-size: 0.9rem;
+}
+
+.stats-table th {
+    background-color: #f1f5f9;
+    color: #475569;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    padding: 0.9rem 1rem;
+    border-top: none;
+}
+
+.stats-table td {
+    padding: 0.85rem 1rem;
+    vertical-align: middle;
+    border-color: #f1f5f9;
+}
+
+.stats-table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+
 
 
 

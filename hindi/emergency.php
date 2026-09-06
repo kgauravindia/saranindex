@@ -97,90 +97,99 @@ require_once __DIR__ . '/includes/header.php';
     </div>
 
     <!-- 1. Police & Law Enforcement Section -->
+    <?php
+    $police_stations_list = getListings('', 'government', '', 100, 0, 'police-stations');
+    ?>
     <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white border-top border-4 border-danger">
-        <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
-            <h5 class="fw-bold text-dark mb-0 font-heading">
-                <i class="bi bi-shield-fill text-danger me-2 fs-4"></i> पुलिस एवं सुरक्षा बल (Police Stations & Law Enforcement)
-            </h5>
-            <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-1 fs-7 fw-bold">
-                सारण पुलिस हेल्पलाइन
-            </span>
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 border-bottom pb-3">
+            <div>
+                <h5 class="fw-bold text-dark mb-1 font-heading">
+                    <i class="bi bi-shield-fill text-danger me-2 fs-4"></i> पुलिस एवं सुरक्षा बल (Police Stations & Law Enforcement)
+                </h5>
+                <p class="text-muted small mb-0">सारण जिले के सभी 39 पुलिस थानों एवं पुलिस चौकियों (ओपी) के सीधे संपर्क व हेल्पलाइन नंबर।</p>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-danger text-white rounded-pill px-3 py-1.5 fs-7 fw-bold">
+                    <i class="bi bi-shield-check me-1"></i> <?php echo count($police_stations_list); ?> पुलिस थाने
+                </span>
+                <a href="<?php echo BASE_URL; ?>hindi/government/police-stations" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold">
+                    पूरी सूची देखें <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
         </div>
 
-        <div class="row g-3">
-            <div class="col-md-6">
-                <div class="p-3 border rounded-3 bg-light hover-shadow transition-all h-100 d-flex flex-column justify-content-between">
-                    <div>
-                        <div class="d-flex align-items-center justify-content-between mb-1">
-                            <h6 class="fw-bold text-dark mb-0">छपरा नगर थाना (Town Police Station)</h6>
-                            <span class="badge bg-danger text-white fs-7 rounded-pill">24x7 थाना</span>
-                        </div>
-                        <p class="text-muted fs-7 mb-2"><i class="bi bi-geo-alt me-1 text-danger"></i> थाना चौक के पास, मुख्य मार्ग, छपरा सदर</p>
-                    </div>
-                    <div class="d-flex align-items-center justify-content-between pt-2 border-top">
-                        <span class="fw-bold text-dark fs-6">06152-243202</span>
-                        <a href="tel:06152243202" class="btn btn-danger btn-sm rounded-pill px-3 fw-bold">
-                            <i class="bi bi-telephone-fill me-1"></i> थाना कॉल करें
-                        </a>
-                    </div>
-                </div>
+        <!-- Quick Filter Input -->
+        <div class="mb-4">
+            <div class="input-group">
+                <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-danger"></i></span>
+                <input type="text" id="policeSearchInputHi" class="form-control bg-light border-start-0 py-2" placeholder="थाने के नाम, प्रखंड या क्षेत्र से खोजें (उदा. छपरा, सोनपुर, मढ़ौरा, एकमा, डोरीगंज)..." onkeyup="filterPoliceStationsHi()">
             </div>
+        </div>
 
-            <div class="col-md-6">
-                <div class="p-3 border rounded-3 bg-light hover-shadow transition-all h-100 d-flex flex-column justify-content-between">
-                    <div>
-                        <div class="d-flex align-items-center justify-content-between mb-1">
-                            <h6 class="fw-bold text-dark mb-0">एसपी सारण नियंत्रण कक्ष (SP Control Room)</h6>
-                            <span class="badge bg-primary text-white fs-7 rounded-pill">एसपी कार्यालय</span>
+        <div class="row g-3" id="policeStationsGridHi">
+            <?php if (!empty($police_stations_list)): ?>
+                <?php foreach ($police_stations_list as $ps): 
+                    $callNum = !empty($ps['mobile']) ? preg_replace('/[^0-9]/', '', $ps['mobile']) : '';
+                    if (strlen($callNum) == 10) {
+                        $callNum = '91' . $callNum;
+                    }
+                    $displayName = !empty($ps['hindi_title']) ? $ps['hindi_title'] : $ps['title'];
+                    $subName = !empty($ps['hindi_title']) ? $ps['title'] : '';
+                ?>
+                    <div class="col-md-6 col-lg-4 police-station-item-hi" data-name="<?php echo strtolower(htmlspecialchars($ps['title'] . ' ' . $ps['hindi_title'] . ' ' . ($ps['block_name'] ?? '') . ' ' . $ps['address'])); ?>">
+                        <div class="p-3 border rounded-3 bg-light hover-shadow transition-all h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex align-items-start justify-content-between mb-1.5">
+                                    <h6 class="fw-bold text-dark mb-0 fs-6">
+                                        <a href="<?php echo BASE_URL . 'hindi/' . sanitizeInput($ps['slug']); ?>" class="text-dark text-decoration-none hover-primary">
+                                            <?php echo sanitizeInput($displayName); ?>
+                                        </a>
+                                    </h6>
+                                    <span class="badge bg-danger-subtle text-danger fs-8 rounded-pill ms-1 flex-shrink-0">24x7 थाना</span>
+                                </div>
+                                <?php if (!empty($subName)): ?>
+                                    <div class="text-secondary small fw-medium mb-1.5"><?php echo sanitizeInput($subName); ?></div>
+                                <?php endif; ?>
+                                <p class="text-muted fs-8 mb-2">
+                                    <i class="bi bi-geo-alt me-1 text-danger"></i> <?php echo sanitizeInput($ps['address']); ?>
+                                </p>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between pt-2 border-top gap-2">
+                                <span class="fw-bold text-dark fs-7 font-monospace"><?php echo sanitizeInput($ps['mobile']); ?></span>
+                                <div class="d-flex gap-1.5">
+                                    <?php if (!empty($callNum)): ?>
+                                        <a href="tel:<?php echo $callNum; ?>" class="btn btn-danger btn-sm rounded-pill px-2.5 py-1 fw-bold fs-8" title="थाना कॉल करें">
+                                            <i class="bi bi-telephone-fill me-1"></i> कॉल
+                                        </a>
+                                    <?php endif; ?>
+                                    <a href="<?php echo BASE_URL . 'hindi/' . sanitizeInput($ps['slug']); ?>" class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1 fs-8" title="विवरण देखें">
+                                        <i class="bi bi-info-circle"></i>
+                                    </a>
+                                </div>
+                            </div>
                         </div>
-                        <p class="text-muted fs-7 mb-2"><i class="bi bi-geo-alt me-1 text-primary"></i> पुलिस अधीक्षक कार्यालय, कचहरी चौक, छपरा</p>
                     </div>
-                    <div class="d-flex align-items-center justify-content-between pt-2 border-top">
-                        <span class="fw-bold text-dark fs-6">06152-245023</span>
-                        <a href="tel:06152245023" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold">
-                            <i class="bi bi-telephone-fill me-1"></i> एसपी कंट्रोल कॉल करें
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="p-3 border rounded-3 bg-light hover-shadow transition-all h-100 d-flex flex-column justify-content-between">
-                    <div>
-                        <div class="d-flex align-items-center justify-content-between mb-1">
-                            <h6 class="fw-bold text-dark mb-0">महिला थाना छपरा (Mahila Thana)</h6>
-                            <span class="badge bg-purple-subtle fs-7 rounded-pill fw-bold">महिला पुलिस</span>
-                        </div>
-                        <p class="text-muted fs-7 mb-2"><i class="bi bi-geo-alt me-1 text-purple"></i> पुलिस लाइन परिसर, छपरा</p>
-                    </div>
-                    <div class="d-flex align-items-center justify-content-between pt-2 border-top">
-                        <span class="fw-bold text-dark fs-6">06152-242300</span>
-                        <a href="tel:06152242300" class="btn btn-sm rounded-pill px-3 fw-bold text-white" style="background-color: #7e22ce;">
-                            <i class="bi bi-telephone-fill me-1"></i> महिला थाना कॉल करें
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="p-3 border rounded-3 bg-light hover-shadow transition-all h-100 d-flex flex-column justify-content-between">
-                    <div>
-                        <div class="d-flex align-items-center justify-content-between mb-1">
-                            <h6 class="fw-bold text-dark mb-0">ट्रैफिक पुलिस नियंत्रण कक्ष (Traffic Police)</h6>
-                            <span class="badge bg-warning text-dark fs-7 rounded-pill">ट्रैफिक</span>
-                        </div>
-                        <p class="text-muted fs-7 mb-2"><i class="bi bi-geo-alt me-1 text-warning"></i> नगरपालिका चौक, छपरा</p>
-                    </div>
-                    <div class="d-flex align-items-center justify-content-between pt-2 border-top">
-                        <span class="fw-bold text-dark fs-6">06152-242000</span>
-                        <a href="tel:06152242000" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold text-dark">
-                            <i class="bi bi-telephone-fill me-1"></i> ट्रैफिक कॉल करें
-                        </a>
-                    </div>
-                </div>
-            </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="col-12 text-center text-muted py-3">कोई थाना नहीं मिला।</div>
+            <?php endif; ?>
         </div>
     </div>
+
+    <script>
+    function filterPoliceStationsHi() {
+        const input = document.getElementById('policeSearchInputHi').value.toLowerCase();
+        const items = document.querySelectorAll('.police-station-item-hi');
+        items.forEach(item => {
+            const data = item.getAttribute('data-name');
+            if (data.indexOf(input) > -1) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+    </script>
 
     <!-- 2. Hospitals & Blood Banks Section -->
     <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white border-top border-4 border-success">

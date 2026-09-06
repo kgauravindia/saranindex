@@ -254,8 +254,8 @@ foreach ($all_subcategories as $sub) {
                                                         <?php if (isset($s['type']) && $s['type'] === 'BUSINESS'): ?>
                                                             <span class="badge bg-secondary-subtle text-secondary" style="font-size: 0.68rem;">Business</span>
                                                         <?php endif; ?>
-                                                        <a href="listings.php?subcategory=<?php echo $s['id']; ?>&search=<?php echo urlencode($s['name']); ?>" class="badge bg-warning text-dark text-decoration-none" title="View listings in this subcategory">
-                                                            <i class="bi bi-collection me-0.5"></i><?php echo number_format($sub_listings); ?>
+                                                        <a href="listings.php?subcategory=<?php echo $s['id']; ?>&search=<?php echo urlencode($s['name']); ?>" class="badge bg-warning text-dark text-decoration-none fw-bold px-2.5 py-1 shadow-sm border border-warning" style="font-size: 0.95rem; line-height: 1.2;" title="View listings in this subcategory">
+                                                            <i class="bi bi-collection me-1"></i><?php echo number_format($sub_listings); ?>
                                                         </a>
                                                         <button type="button" class="btn btn-xs btn-outline-primary py-0 px-1.5 rounded-pill" title="Edit Subcategory" onclick='openEditSubcategoryModal(<?php echo json_encode($s); ?>)'>
                                                             <i class="bi bi-pencil-fill" style="font-size: 0.7rem;"></i> Edit
@@ -325,7 +325,7 @@ foreach ($all_subcategories as $sub) {
                                     </span>
                                 </td>
                                 <td>
-                                    <a href="listings.php?subcategory=<?php echo $s['id']; ?>&search=<?php echo urlencode($s['name']); ?>" class="badge bg-warning text-dark text-decoration-none fw-bold px-2 py-1" title="View listings">
+                                    <a href="listings.php?subcategory=<?php echo $s['id']; ?>&search=<?php echo urlencode($s['name']); ?>" class="badge bg-warning text-dark text-decoration-none fw-bold px-2.5 py-1.5 shadow-sm border border-warning" style="font-size: 0.95rem;" title="View listings">
                                         <i class="bi bi-collection me-1"></i><?php echo number_format($sub_listings); ?>
                                     </a>
                                 </td>

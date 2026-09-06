@@ -17,6 +17,7 @@ config/config.local.php
 .idea/
 *.sublime-project
 *.sublime-workspace
+*.code-workspace
 *.swp
 *.swo
 *~
