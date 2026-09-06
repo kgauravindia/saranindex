@@ -548,12 +548,7 @@ $blocks = getBlocks();
                                                             <div><strong>Category:</strong> <?php echo sanitizeInput($umDetails['category'] ?? ''); ?> <?php if (!empty($umDetails['reservation'])): ?>(<?php echo sanitizeInput($umDetails['reservation']); ?>)<?php endif; ?></div>
                                                         </li>
                                                     <?php endif; ?>
-                                                    <?php if (!empty($umDetails['age'])): ?>
-                                                        <li class="mb-2 d-flex align-items-start">
-                                                            <i class="bi bi-calendar-event text-muted me-2 mt-0.5"></i>
-                                                            <div><strong>Age:</strong> <?php echo sanitizeInput($umDetails['age']); ?></div>
-                                                        </li>
-                                                    <?php endif; ?>
+
                                                     <?php if (!empty($umDetails['gender'])): ?>
                                                         <li class="mb-2 d-flex align-items-start">
                                                             <i class="bi bi-person-circle text-muted me-2 mt-0.5"></i>
@@ -719,12 +714,7 @@ $blocks = getBlocks();
                                                             <div><strong>Category:</strong> <?php echo sanitizeInput($usDetails['category'] ?? ''); ?> <?php if (!empty($usDetails['reservation'])): ?>(<?php echo sanitizeInput($usDetails['reservation']); ?>)<?php endif; ?></div>
                                                         </li>
                                                     <?php endif; ?>
-                                                    <?php if (!empty($usDetails['age'])): ?>
-                                                        <li class="mb-2 d-flex align-items-start">
-                                                            <i class="bi bi-calendar-event text-muted me-2 mt-0.5"></i>
-                                                            <div><strong>Age:</strong> <?php echo sanitizeInput($usDetails['age']); ?></div>
-                                                        </li>
-                                                    <?php endif; ?>
+
                                                     <?php if (!empty($usDetails['gender'])): ?>
                                                         <li class="mb-2 d-flex align-items-start">
                                                             <i class="bi bi-person-circle text-muted me-2 mt-0.5"></i>
