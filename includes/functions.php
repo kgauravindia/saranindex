@@ -2630,31 +2630,31 @@ function getUserListings($mobileOrUserId) {
     if (is_numeric($mobileOrUserId) && intval($mobileOrUserId) > 0 && strlen((string)$mobileOrUserId) < 10) {
         $userId = intval($mobileOrUserId);
         try {
-            $uStmt = $db->prepare("SELECT mobile, email FROM users WHERE id = :id LIMIT 1");
-            $uStmt->execute(['id' => $userId]);
+            $uStmt = $db->prepare("SELECT mobile, email FROM users WHERE id = ? LIMIT 1");
+            $uStmt->execute([$userId]);
             $uRow = $uStmt->fetch(PDO::FETCH_ASSOC);
             if ($uRow) {
-                $mobile = $uRow['mobile'] ?? '';
-                $email = $uRow['email'] ?? '';
+                $mobile = trim($uRow['mobile'] ?? '');
+                $email = trim($uRow['email'] ?? '');
             }
         } catch (Exception $e) {}
     } else {
-        $rawInput = (string)$mobileOrUserId;
+        $rawInput = trim((string)$mobileOrUserId);
         $digitsOnly = preg_replace('/[^0-9]/', '', $rawInput);
         if (!empty($digitsOnly)) {
             $m10In = (strlen($digitsOnly) >= 10) ? substr($digitsOnly, -10) : $digitsOnly;
             try {
-                $uStmt = $db->prepare("SELECT id, mobile, email FROM users WHERE id = :uid OR mobile = :m OR mobile LIKE :m_like LIMIT 1");
+                $uStmt = $db->prepare("SELECT id, mobile, email FROM users WHERE id = ? OR mobile = ? OR mobile LIKE ? LIMIT 1");
                 $uStmt->execute([
-                    'uid' => is_numeric($rawInput) ? intval($rawInput) : 0,
-                    'm' => $rawInput,
-                    'm_like' => '%' . $m10In . '%'
+                    is_numeric($rawInput) ? intval($rawInput) : 0,
+                    $rawInput,
+                    '%' . $m10In . '%'
                 ]);
                 $userRow = $uStmt->fetch(PDO::FETCH_ASSOC);
                 if ($userRow) {
                     $userId = intval($userRow['id']);
-                    $mobile = $userRow['mobile'];
-                    $email = $userRow['email'] ?? '';
+                    $mobile = trim($userRow['mobile'] ?? '');
+                    $email = trim($userRow['email'] ?? '');
                 }
             } catch (Exception $e) {}
         }
@@ -2662,56 +2662,59 @@ function getUserListings($mobileOrUserId) {
 
     $rawDigits = preg_replace('/[^0-9]/', '', $mobile);
     $cleanMobile = (strlen($rawDigits) >= 10) ? substr($rawDigits, -10) : $rawDigits;
-    $cleanLike = !empty($cleanMobile) ? '%' . $cleanMobile . '%' : '___NO_MATCH___';
 
-    if (empty($cleanMobile) && $userId <= 0) return [];
+    if ($userId <= 0 && empty($cleanMobile)) return [];
 
-    // Ensure database tables exist safely without running heavy ALTERs every time
-    ensureAppTables();
-
-    // Auto-heal: Link user_id in listings table where mobile number matches
+    // Auto-heal unassigned listings with matching mobile or user_id
     if ($userId > 0 && !empty($cleanMobile)) {
         try {
-            $db->prepare("UPDATE listings SET user_id = :uid WHERE (user_id IS NULL OR user_id = 0) AND ((:mob != '' AND (mobile = :mob2 OR mobile LIKE :m_like OR RIGHT(REPLACE(REPLACE(REPLACE(mobile, ' ', ''), '-', ''), '+91', ''), 10) = :m10)) OR (:em != '' AND email = :em2))")
-               ->execute(['uid' => $userId, 'mob' => $mobile, 'mob2' => $mobile, 'm_like' => $cleanLike, 'm10' => $cleanMobile, 'em' => $email, 'em2' => $email]);
-        } catch (Exception $e) {
-            error_log("getUserListings autoheal error: " . $e->getMessage());
-        }
+            $db->prepare("UPDATE listings SET user_id = ? WHERE (user_id IS NULL OR user_id = 0) AND (mobile = ? OR mobile LIKE ?)")
+               ->execute([$userId, $mobile, '%' . $cleanMobile . '%']);
+        } catch (Exception $e) {}
     }
 
-    // Direct clean query with LEFT JOINs and in-memory deduplication
     try {
-        $sql = "SELECT l.*, c.name as category_name, b.name as block_name,
-                       cl.id as claim_id,
-                       cl.status as claim_status,
-                       cl.role_title as claim_role
+        // Collect listings matching user_id, mobile, or email
+        $whereClauses = [];
+        $params = [];
+
+        if ($userId > 0) {
+            $whereClauses[] = "l.user_id = ?";
+            $params[] = $userId;
+        }
+        if (!empty($mobile)) {
+            $whereClauses[] = "l.mobile = ?";
+            $params[] = $mobile;
+        }
+        if (!empty($cleanMobile) && $cleanMobile !== $mobile) {
+            $whereClauses[] = "l.mobile LIKE ?";
+            $params[] = '%' . $cleanMobile . '%';
+        }
+        if (!empty($email)) {
+            $whereClauses[] = "l.email = ?";
+            $params[] = $email;
+        }
+
+        $whereSql = implode(' OR ', $whereClauses);
+
+        $sql = "SELECT l.*, 
+                       c.name AS category_name, 
+                       b.name AS block_name,
+                       cl.id AS claim_id,
+                       cl.status AS claim_status,
+                       cl.role_title AS claim_role
                 FROM listings l
                 LEFT JOIN categories c ON l.category_id = c.id
                 LEFT JOIN blocks b ON l.block_id = b.id
-                LEFT JOIN claims cl ON (l.id = cl.listing_id AND ((:uid_c > 0 AND cl.user_id = :uid_c2) OR cl.claimant_mobile = :cmob OR cl.claimant_mobile LIKE :cmob_like))
-                WHERE (:uid > 0 AND l.user_id = :uid2)
-                   OR (:cmob_chk != '' AND (l.mobile = :mob OR l.mobile LIKE :mob_like OR RIGHT(REPLACE(REPLACE(REPLACE(l.mobile, ' ', ''), '-', ''), '+91', ''), 10) = :m10_match))
-                   OR (:em_chk != '' AND l.email = :email_match)
+                LEFT JOIN claims cl ON l.id = cl.listing_id
+                WHERE {$whereSql}
                 ORDER BY l.id DESC";
 
         $stmt = $db->prepare($sql);
-        $stmt->execute([
-            'uid' => $userId,
-            'uid2' => $userId,
-            'uid_c' => $userId,
-            'uid_c2' => $userId,
-            'cmob' => $mobile,
-            'cmob_like' => $cleanLike,
-            'cmob_chk' => $cleanMobile,
-            'mob' => $mobile,
-            'mob_like' => $cleanLike,
-            'm10_match' => $cleanMobile,
-            'em_chk' => $email,
-            'email_match' => $email
-        ]);
+        $stmt->execute($params);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Deduplicate rows by listing ID in PHP (avoids ONLY_FULL_GROUP_BY SQL errors in MySQL 8)
+        // Deduplicate in PHP
         $uniqueListings = [];
         $seenIds = [];
         foreach ($rows as $row) {
@@ -2724,20 +2727,14 @@ function getUserListings($mobileOrUserId) {
     } catch (Exception $e) {
         error_log("getUserListings query error: " . $e->getMessage());
 
-        // Resilient fallback query
+        // Simple fallback query
         try {
-            $stmtF = $db->prepare("SELECT l.*, c.name as category_name, b.name as block_name FROM listings l LEFT JOIN categories c ON l.category_id = c.id LEFT JOIN blocks b ON l.block_id = b.id WHERE (:uid > 0 AND l.user_id = :uid2) OR (:mob != '' AND (l.mobile = :mob2 OR l.mobile LIKE :m_like)) ORDER BY l.id DESC");
-            $stmtF->execute([
-                'uid' => $userId,
-                'uid2' => $userId,
-                'mob' => $cleanMobile,
-                'mob2' => $mobile,
-                'm_like' => $cleanLike
-            ]);
-            return $stmtF->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Exception $ex) {
-            error_log("getUserListings fallback error: " . $ex->getMessage());
-        }
+            if ($userId > 0) {
+                $stmtF = $db->prepare("SELECT l.*, c.name AS category_name, b.name AS block_name FROM listings l LEFT JOIN categories c ON l.category_id = c.id LEFT JOIN blocks b ON l.block_id = b.id WHERE l.user_id = ? ORDER BY l.id DESC");
+                $stmtF->execute([$userId]);
+                return $stmtF->fetchAll(PDO::FETCH_ASSOC);
+            }
+        } catch (Exception $ex) {}
     }
 
     return [];
