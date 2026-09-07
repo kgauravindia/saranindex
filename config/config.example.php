@@ -61,5 +61,7 @@ define('SOCIAL_TWITTER', 'https://x.com/saranindex');
 define('SOCIAL_THREADS', 'https://threads.net/@saranindex');
 define('SOCIAL_YOUTUBE', 'https://youtube.com/@saranindex');
 define('SOCIAL_TELEGRAM', 'https://t.me/saranindex');
-define('SOCIAL_WHATSAPP', 'https://whatsapp.com/channel/0029VbDJKIS4CrfaodCTmw1c');
+// Online to Offline Data Sync Settings
+define('SYNC_SECRET_KEY', getenv('SYNC_SECRET_KEY') ?: 'SI_SYNC_KEY_2026_offerplant_secure_token');
+define('REMOTE_LIVE_URL', getenv('REMOTE_LIVE_URL') ?: 'https://saranindex.com/');
 ?>
