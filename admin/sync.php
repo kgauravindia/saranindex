@@ -181,24 +181,30 @@ $defaultSyncKey = defined('SYNC_SECRET_KEY') ? SYNC_SECRET_KEY : '';
                 <div class="card-body p-4">
                     <!-- Filter and Search -->
                     <div class="row g-3 mb-3 align-items-center">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="input-group">
                                 <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
                                 <input type="text" class="form-control border-start-0" id="tableFilterInput" placeholder="Filter tables by name or category...">
                             </div>
                         </div>
-                        <div class="col-md-6 text-md-end">
-                            <span class="badge bg-light text-dark border p-2 rounded-3 me-2">
-                                Selected: <strong id="selectedTablesCount" class="text-primary">0</strong> / <span id="totalTablesCount">0</span> tables
-                            </span>
+                        <div class="col-md-8 text-md-end d-flex flex-wrap align-items-center justify-content-md-end gap-2">
                             <span class="badge bg-light text-dark border p-2 rounded-3">
-                                Total Online Records: <strong id="totalOnlineRecords" class="text-success">0</strong>
+                                Selected: <strong id="selectedTablesCount" class="text-primary">0</strong> / <span id="totalTablesCount">0</span> tables (<strong id="selectedOnlineRecords" class="text-primary">0</strong> rows)
+                            </span>
+                            <span class="badge bg-light text-secondary border p-2 rounded-3">
+                                Total Local: <strong id="totalLocalRecords" class="text-dark">0</strong>
+                            </span>
+                            <span class="badge bg-light text-success border p-2 rounded-3">
+                                Total Online: <strong id="totalOnlineRecords" class="text-success">0</strong>
+                            </span>
+                            <span class="badge bg-light border p-2 rounded-3" id="totalDiffBadge">
+                                Net Diff: <strong id="totalDiffRecords" class="text-primary">0</strong>
                             </span>
                         </div>
                     </div>
 
                     <!-- Comparison Table Container -->
-                    <div class="table-responsive rounded-3 border" style="max-height: 400px; overflow-y: auto;">
+                    <div class="table-responsive rounded-3 border" style="max-height: 440px; overflow-y: auto;">
                         <table class="table table-hover align-middle mb-0" id="tablesComparisonTable">
                             <thead class="table-light sticky-top">
                                 <tr>
@@ -221,6 +227,17 @@ $defaultSyncKey = defined('SYNC_SECRET_KEY') ? SYNC_SECRET_KEY : '';
                                     </td>
                                 </tr>
                             </tbody>
+                            <tfoot id="tablesTableFoot" class="table-light sticky-bottom fw-bold border-top border-2">
+                                <tr class="bg-light">
+                                    <td class="text-center"><i class="bi bi-calculator text-primary"></i></td>
+                                    <td><span class="text-uppercase small text-muted">TOTAL:</span> <strong id="footTotalTables">0</strong> tables</td>
+                                    <td><span class="badge bg-white text-primary border" id="footSelectedSummary">0 selected</span></td>
+                                    <td class="text-end fw-bold text-secondary" id="footTotalLocal">0</td>
+                                    <td class="text-end fw-bold text-dark" id="footTotalOnline">0</td>
+                                    <td class="text-center font-monospace fw-bold" id="footTotalDiff">0</td>
+                                    <td class="text-center" id="footOverallStatus">-</td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>
@@ -518,8 +535,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const masterCheckbox = document.getElementById('masterCheckbox');
     const tableFilterInput = document.getElementById('tableFilterInput');
     const selectedTablesCount = document.getElementById('selectedTablesCount');
+    const selectedOnlineRecords = document.getElementById('selectedOnlineRecords');
     const totalTablesCount = document.getElementById('totalTablesCount');
+    const totalLocalRecords = document.getElementById('totalLocalRecords');
     const totalOnlineRecords = document.getElementById('totalOnlineRecords');
+    const totalDiffRecords = document.getElementById('totalDiffRecords');
+    const totalDiffBadge = document.getElementById('totalDiffBadge');
+
+    const footTotalTables = document.getElementById('footTotalTables');
+    const footSelectedSummary = document.getElementById('footSelectedSummary');
+    const footTotalLocal = document.getElementById('footTotalLocal');
+    const footTotalOnline = document.getElementById('footTotalOnline');
+    const footTotalDiff = document.getElementById('footTotalDiff');
+    const footOverallStatus = document.getElementById('footOverallStatus');
 
     const presetSelectAll = document.getElementById('presetSelectAll');
     const presetContentOnly = document.getElementById('presetContentOnly');
@@ -661,18 +689,23 @@ document.addEventListener('DOMContentLoaded', function() {
     // Render Table Rows in Step 2
     function renderComparisonTable(tables) {
         tablesTableBody.innerHTML = '';
+        let totalLocal = 0;
         let totalOnline = 0;
         let count = 0;
+        let hasOutOfSync = false;
 
         for (const [tblName, info] of Object.entries(tables)) {
             count++;
-            totalOnline += info.remote_rows;
+            totalLocal += (info.local_rows || 0);
+            totalOnline += (info.remote_rows || 0);
 
             let statusBadge = '<span class="badge badge-synced px-2 py-1 rounded-pill"><i class="bi bi-check2 me-1"></i> In Sync</span>';
             if (info.status === 'out_of_sync') {
+                hasOutOfSync = true;
                 const diffStr = info.difference > 0 ? `+${info.difference}` : `${info.difference}`;
                 statusBadge = `<span class="badge badge-out-of-sync px-2 py-1 rounded-pill"><i class="bi bi-exclamation-circle me-1"></i> Out of Sync (${diffStr})</span>`;
             } else if (info.status === 'missing_local') {
+                hasOutOfSync = true;
                 statusBadge = '<span class="badge badge-missing px-2 py-1 rounded-pill"><i class="bi bi-x-circle me-1"></i> Missing Locally</span>';
             }
 
@@ -684,7 +717,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             tr.innerHTML = `
                 <td class="text-center">
-                    <input class="form-check-input table-select-chk" type="checkbox" value="${tblName}" data-rows="${info.remote_rows}" ${isDefaultChecked ? 'checked' : ''}>
+                    <input class="form-check-input table-select-chk" type="checkbox" value="${tblName}" data-rows="${info.remote_rows || 0}" ${isDefaultChecked ? 'checked' : ''}>
                 </td>
                 <td>
                     <strong class="text-dark font-monospace">${tblName}</strong>
@@ -693,10 +726,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     <span class="badge bg-light text-muted border">${info.category}</span>
                 </td>
                 <td class="text-end fw-semibold text-secondary">
-                    ${info.local_rows.toLocaleString()}
+                    ${(info.local_rows || 0).toLocaleString()}
                 </td>
                 <td class="text-end fw-bold text-dark">
-                    ${info.remote_rows.toLocaleString()}
+                    ${(info.remote_rows || 0).toLocaleString()}
                 </td>
                 <td class="text-center font-monospace small ${info.difference > 0 ? 'text-success fw-bold' : (info.difference < 0 ? 'text-danger' : 'text-muted')}">
                     ${info.difference > 0 ? '+' + info.difference.toLocaleString() : info.difference.toLocaleString()}
@@ -709,8 +742,37 @@ document.addEventListener('DOMContentLoaded', function() {
             tablesTableBody.appendChild(tr);
         }
 
+        const totalDiff = totalOnline - totalLocal;
+
+        // Top Summary Badges
         totalTablesCount.textContent = count;
+        totalLocalRecords.textContent = totalLocal.toLocaleString();
         totalOnlineRecords.textContent = totalOnline.toLocaleString();
+        totalDiffRecords.textContent = (totalDiff > 0 ? `+${totalDiff.toLocaleString()}` : totalDiff.toLocaleString());
+
+        if (totalDiff > 0) {
+            totalDiffBadge.className = 'badge bg-warning-subtle text-warning border p-2 rounded-3';
+        } else if (totalDiff < 0) {
+            totalDiffBadge.className = 'badge bg-danger-subtle text-danger border p-2 rounded-3';
+        } else {
+            totalDiffBadge.className = 'badge bg-success-subtle text-success border p-2 rounded-3';
+        }
+
+        // Table Footer Row
+        if (footTotalTables) footTotalTables.textContent = count;
+        if (footTotalLocal) footTotalLocal.textContent = totalLocal.toLocaleString();
+        if (footTotalOnline) footTotalOnline.textContent = totalOnline.toLocaleString();
+        if (footTotalDiff) {
+            footTotalDiff.textContent = (totalDiff > 0 ? `+${totalDiff.toLocaleString()}` : totalDiff.toLocaleString());
+            footTotalDiff.className = `text-center font-monospace fw-bold ${totalDiff > 0 ? 'text-success' : (totalDiff < 0 ? 'text-danger' : 'text-muted')}`;
+        }
+        if (footOverallStatus) {
+            if (hasOutOfSync) {
+                footOverallStatus.innerHTML = '<span class="badge badge-out-of-sync px-2 py-1 rounded-pill"><i class="bi bi-exclamation-triangle me-1"></i> Differences Found</span>';
+            } else {
+                footOverallStatus.innerHTML = '<span class="badge badge-synced px-2 py-1 rounded-pill"><i class="bi bi-check-all me-1"></i> Fully Synced</span>';
+            }
+        }
 
         // Attach checkbox change listeners
         document.querySelectorAll('.table-select-chk').forEach(chk => {
@@ -719,9 +781,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateSelectedCount() {
-        const checked = document.querySelectorAll('.table-select-chk:checked');
+        const checked = Array.from(document.querySelectorAll('.table-select-chk:checked'));
         const all = document.querySelectorAll('.table-select-chk');
+        
+        let selectedRows = 0;
+        checked.forEach(chk => {
+            selectedRows += parseInt(chk.dataset.rows || 0);
+        });
+
         selectedTablesCount.textContent = checked.length;
+        if (selectedOnlineRecords) selectedOnlineRecords.textContent = selectedRows.toLocaleString();
+        if (footSelectedSummary) footSelectedSummary.textContent = `${checked.length} selected (${selectedRows.toLocaleString()} rows)`;
         masterCheckbox.checked = (checked.length === all.length && all.length > 0);
     }
 
