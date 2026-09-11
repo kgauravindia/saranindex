@@ -61,9 +61,6 @@ $recentListings = array_slice($recentListings, 0, 8);
             <p class="mb-0 text-white-50 small">Saran District Digital Directory Command Center. Manage listings, verifications, and user requests.</p>
         </div>
         <div class="d-flex gap-2 flex-wrap">
-            <a href="sync.php" class="btn btn-light text-primary fw-bold btn-sm px-3 shadow-sm">
-                <i class="bi bi-database-down me-1"></i> Sync Online DB
-            </a>
             <a href="bulk_upload.php" class="btn btn-warning text-dark fw-bold btn-sm px-3 shadow-sm">
                 <i class="bi bi-cloud-upload me-1"></i> Bulk Upload CSV
             </a>
@@ -199,24 +196,6 @@ $recentListings = array_slice($recentListings, 0, 8);
             </div>
         </a>
     </div>
-
-    <!-- Card 8: Database Sync Status -->
-    <div class="col-12 col-sm-6 col-xl-3">
-        <a href="sync.php" class="text-decoration-none">
-            <div class="stat-card p-3 h-100 shadow-sm border-0 bg-primary-subtle bg-opacity-10">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-primary small fw-bold text-uppercase">Database Sync</span>
-                    <div class="stat-icon bg-primary text-white rounded-circle p-2 fs-5">
-                        <i class="bi bi-database-down"></i>
-                    </div>
-                </div>
-                <h2 class="fw-bold text-primary mb-1">Online &rarr; Local</h2>
-                <small class="text-muted"><i class="bi bi-cloud-check-fill me-1 text-success"></i>Live Bridge Connected</small>
-            </div>
-        </a>
-    </div>
-
-    <!-- Card 9: District Geographic Coverage -->
     <div class="col-12 col-sm-6 col-xl-3">
         <a href="blocks.php" class="text-decoration-none">
             <div class="stat-card p-3 h-100 shadow-sm border-0">

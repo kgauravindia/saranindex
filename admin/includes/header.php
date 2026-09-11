@@ -314,11 +314,6 @@ $admin_name = $_SESSION['admin_full_name'] ?? 'Administrator';
                     <i class="bi bi-diagram-2-fill text-info"></i> <span class="nav-text">Sitemap Generator</span>
                 </a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link <?php echo $current_page === 'sync.php' ? 'active' : ''; ?>" href="sync.php" title="Sync Database (Online to Offline)">
-                    <i class="bi bi-database-down text-primary"></i> <span class="nav-text">Sync Database (Online &rarr; Local)</span>
-                </a>
-            </li>
         </ul>
 
         <div class="px-3 mt-4 mb-2 text-uppercase text-white-50 fw-bold nav-section-title" style="font-size: 0.68rem; letter-spacing: 0.08em;">Quick Actions</div>
