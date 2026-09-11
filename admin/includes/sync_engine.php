@@ -48,7 +48,7 @@ class SyncEngine {
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'SaranIndex-Offline-Sync-Engine/1.3');
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 (SaranIndex Sync Engine)');
 
         // Set Authentication Headers
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
@@ -76,29 +76,31 @@ class SyncEngine {
             ];
         }
 
-        $decoded = json_decode($response, true);
-        if ($decoded === null && !empty($response)) {
-            if ($httpCode === 404) {
-                return [
-                    'success' => false,
-                    'code' => 404,
-                    'error' => "Remote Bridge Not Found (HTTP 404). The file 'api/sync_bridge.php' is not yet uploaded to {$this->remoteUrl}. Please upload 'api/sync_bridge.php' to your online server or push via Git.",
-                    'raw_response' => substr($response, 0, 500)
-                ];
-            }
-            if ($httpCode === 403) {
-                return [
-                    'success' => false,
-                    'code' => 403,
-                    'error' => "Access Forbidden (HTTP 403) on {$this->remoteUrl}. Server firewall or Cloudflare is blocking the request.",
-                    'raw_response' => substr($response, 0, 500)
-                ];
-            }
+        // Specific HTTP status code diagnostics
+        if ($httpCode === 429) {
             return [
                 'success' => false,
-                'code' => $httpCode,
-                'error' => "Invalid response format from remote server (HTTP {$httpCode}). Server returned HTML instead of JSON.",
-                'raw_response' => substr($response, 0, 500)
+                'code' => 429,
+                'error' => "Hostinger / Cloudflare Rate Limit (HTTP 429 Too Many Requests). The live server at {$this->remoteUrl} is temporarily rate-limiting requests. Please wait a few moments or use the 'SQL File Import' / 'Direct MySQL Sync' tabs.",
+                'raw_response' => substr((string)$response, 0, 500)
+            ];
+        }
+
+        if ($httpCode === 404) {
+            return [
+                'success' => false,
+                'code' => 404,
+                'error' => "Remote Bridge Not Found (HTTP 404). The file 'api/sync_bridge.php' is not yet uploaded to {$this->remoteUrl}. Please upload 'api/sync_bridge.php' to your online server at public_html/api/sync_bridge.php.",
+                'raw_response' => substr((string)$response, 0, 500)
+            ];
+        }
+
+        if ($httpCode === 403) {
+            return [
+                'success' => false,
+                'code' => 403,
+                'error' => "Access Forbidden (HTTP 403) on {$this->remoteUrl}. Server firewall, ModSecurity, or Cloudflare is blocking the request. Ensure api/sync_bridge.php permissions are 0644.",
+                'raw_response' => substr((string)$response, 0, 500)
             ];
         }
 
@@ -106,8 +108,26 @@ class SyncEngine {
             return [
                 'success' => false,
                 'code' => 401,
-                'error' => "Authentication Failed (HTTP 401). The Sync Secret Key provided does not match SYNC_SECRET_KEY configured on {$this->remoteUrl}.",
-                'data' => $decoded
+                'error' => "Authentication Failed (HTTP 401). The Sync Secret Key does not match SYNC_SECRET_KEY configured in config/config.php on {$this->remoteUrl}.",
+                'raw_response' => substr((string)$response, 0, 500)
+            ];
+        }
+
+        $decoded = json_decode($response, true);
+        if ($decoded === null) {
+            if ($httpCode >= 200 && $httpCode < 300 && empty($response)) {
+                return [
+                    'success' => false,
+                    'code' => $httpCode,
+                    'error' => "Empty response received from remote bridge (HTTP {$httpCode}). Check PHP error log on server.",
+                    'raw_response' => ''
+                ];
+            }
+            return [
+                'success' => false,
+                'code' => $httpCode,
+                'error' => "Invalid response from remote server (HTTP {$httpCode}). Server returned HTML/non-JSON data.",
+                'raw_response' => substr((string)$response, 0, 500)
             ];
         }
 

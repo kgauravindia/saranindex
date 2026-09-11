@@ -32,9 +32,12 @@ $meta_description = $meta_description ?? 'Saran Index is the digital directory o
     <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
 
-    <!-- Canonical Tag & SEO -->
-    <?php $currentCanonical = !empty($canonical_url) ? $canonical_url : (defined('BASE_URL') ? BASE_URL : 'https://saranindex.com/'); ?>
+    <!-- Canonical Tag & Multilingual Hreflang SEO -->
+    <?php 
+    $currentCanonical = getSiteCanonicalUrl($canonical_url ?? null, false); 
+    ?>
     <link rel="canonical" href="<?php echo htmlspecialchars($currentCanonical); ?>">
+<?php echo getSiteHreflangTags($currentCanonical); ?>
 
     <!-- Open Graph Meta Tags -->
     <meta property="og:title" content="<?php echo sanitizeInput($page_title); ?>">
@@ -117,7 +120,6 @@ $meta_description = $meta_description ?? 'Saran Index is the digital directory o
                 <li class="nav-item">
                     <a class="nav-link text-dark px-3" href="village"><i class="bi bi-houses me-1"></i>Villages</a>
                 </li>
-
             </ul>
 
             <div class="d-flex align-items-center gap-2">

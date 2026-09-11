@@ -4708,4 +4708,136 @@ function getDistrictFullStats() {
     return $stats;
 }
 
+/**
+ * SEO Canonical URL Engine
+ * Computes exact clean canonical URL for any page to prevent Google Search Console duplicate canonical errors
+ */
+function getSiteCanonicalUrl($customCanonical = null, $isHindi = false) {
+    if (!empty($customCanonical)) {
+        $clean = trim((string)$customCanonical);
+        $clean = preg_replace('#^http://#i', 'https://', $clean);
+        $clean = preg_replace('#^https://www\.saranindex\.com#i', 'https://saranindex.com', $clean);
+        if (strpos($clean, '?') !== false) {
+            $parts = explode('?', $clean, 2);
+            parse_str($parts[1], $query);
+            $allowedParams = ['page', 'p', 'q', 'category'];
+            $filteredQuery = array_intersect_key($query, array_flip($allowedParams));
+            $clean = $parts[0] . (!empty($filteredQuery) ? '?' . http_build_query($filteredQuery) : '');
+        }
+        return $clean;
+    }
 
+    $baseDomain = 'https://saranindex.com';
+    $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
+    
+    $uriParts = explode('?', $requestUri, 2);
+    $path = $uriParts[0];
+    
+    // Remove local folder prefix in development environment
+    $path = preg_replace('#^/saranindex/#i', '/', $path);
+    $path = preg_replace('#^/saranindex$#i', '/', $path);
+
+    if ($path === '' || $path === '/' || $path === '/index.php') {
+        return $isHindi ? ($baseDomain . '/hindi/') : ($baseDomain . '/');
+    }
+    if ($path === '/hindi' || $path === '/hindi/' || $path === '/hindi/index.php') {
+        return $baseDomain . '/hindi/';
+    }
+
+    $rewriteMap = [
+        '/about.php' => '/about',
+        '/contact.php' => '/contact',
+        '/terms.php' => '/terms',
+        '/privacy-policy.php' => '/privacy-policy',
+        '/refund-policy.php' => '/refund-policy',
+        '/pricing.php' => '/pricing',
+        '/sources.php' => '/sources',
+        '/emergency.php' => '/emergency',
+        '/history.php' => '/history',
+        '/river.php' => '/river',
+        '/nahar.php' => '/nahar',
+        '/university.php' => '/university',
+        '/categories.php' => '/categories',
+        '/add-contact.php' => '/add-contact',
+        '/login.php' => '/login',
+        '/register.php' => '/register',
+        '/forgot-password.php' => '/forgot-password',
+        '/dashboard.php' => '/dashboard',
+        '/my-listings.php' => '/my-listings',
+        '/pay.php' => '/pay',
+        '/search.php' => '/search',
+        '/blocks.php' => '/blocks',
+        '/panchayats.php' => '/panchayats',
+        '/villages.php' => '/villages',
+        '/halkas.php' => '/halkas',
+        '/pincodes.php' => '/pincodes',
+
+        // Hindi
+        '/hindi/about.php' => '/hindi/about',
+        '/hindi/contact.php' => '/hindi/contact',
+        '/hindi/terms.php' => '/hindi/terms',
+        '/hindi/privacy-policy.php' => '/hindi/privacy-policy',
+        '/hindi/refund-policy.php' => '/hindi/refund-policy',
+        '/hindi/pricing.php' => '/hindi/pricing',
+        '/hindi/sources.php' => '/hindi/sources',
+        '/hindi/emergency.php' => '/hindi/emergency',
+        '/hindi/history.php' => '/hindi/history',
+        '/hindi/river.php' => '/hindi/river',
+        '/hindi/nahar.php' => '/hindi/nahar',
+        '/hindi/university.php' => '/hindi/university',
+        '/hindi/categories.php' => '/hindi/categories',
+        '/hindi/add-contact.php' => '/hindi/add-contact',
+        '/hindi/login.php' => '/hindi/login',
+        '/hindi/register.php' => '/hindi/register',
+        '/hindi/dashboard.php' => '/hindi/dashboard',
+        '/hindi/search.php' => '/hindi/search',
+    ];
+
+    $cleanPath = $rewriteMap[$path] ?? $path;
+    $extraQuery = '';
+
+    if (!empty($uriParts[1])) {
+        parse_str($uriParts[1], $query);
+        if (!empty($query['slug']) && empty($query['sub']) && (strpos($cleanPath, 'category') !== false)) {
+            $cleanPath = ($isHindi ? '/hindi/category/' : '/category/') . urlencode($query['slug']);
+            unset($query['slug']);
+        } elseif (!empty($query['slug']) && !empty($query['sub']) && (strpos($cleanPath, 'category') !== false)) {
+            $cleanPath = ($isHindi ? '/hindi/category/' : '/category/') . urlencode($query['slug']) . '/' . urlencode($query['sub']);
+            unset($query['slug'], $query['sub']);
+        }
+        
+        $filteredQuery = array_intersect_key($query, array_flip(['page', 'p']));
+        if (!empty($filteredQuery)) {
+            $extraQuery = '?' . http_build_query($filteredQuery);
+        }
+    }
+
+    if (!str_starts_with($cleanPath, '/')) {
+        $cleanPath = '/' . $cleanPath;
+    }
+
+    return $baseDomain . $cleanPath . $extraQuery;
+}
+
+/**
+ * Generates alternating Hreflang links for English & Hindi versions
+ */
+function getSiteHreflangTags($canonicalUrl) {
+    $enUrl = preg_replace('#https://saranindex\.com/hindi/(.*)$#i', 'https://saranindex.com/$1', $canonicalUrl);
+    if ($enUrl === 'https://saranindex.com/hindi' || $enUrl === 'https://saranindex.com/hindi/') {
+        $enUrl = 'https://saranindex.com/';
+    }
+
+    if (strpos($canonicalUrl, 'https://saranindex.com/hindi/') === 0 || $canonicalUrl === 'https://saranindex.com/hindi') {
+        $hiUrl = $canonicalUrl;
+    } else {
+        $hiUrl = preg_replace('#https://saranindex\.com/(.*)$#i', 'https://saranindex.com/hindi/$1', $canonicalUrl);
+    }
+
+    $tags = '';
+    $tags .= '    <link rel="alternate" hreflang="en" href="' . htmlspecialchars($enUrl) . '">' . "\n";
+    $tags .= '    <link rel="alternate" hreflang="hi" href="' . htmlspecialchars($hiUrl) . '">' . "\n";
+    $tags .= '    <link rel="alternate" hreflang="x-default" href="' . htmlspecialchars($enUrl) . '">' . "\n";
+
+    return $tags;
+}

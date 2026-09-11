@@ -1117,3 +1117,39 @@ INSERT INTO `sources` (`id`, `title`, `title_hindi`, `subtitle`, `subtitle_hindi
 (10, 'CBSE Official Portal', 'सीबीएसई (CBSE) आधिकारिक पोर्टल', 'Central Board of Secondary Education (Ministry of Education)', 'केंद्रीय माध्यमिक शिक्षा बोर्ड (शिक्षा मंत्रालय)', 'Official portal for affiliated school directories, school codes, board exam registries, and school accreditation details across Saran District.', 'सारण जिले में संबद्ध स्कूल निर्देशिका, school code, बोर्ड परीक्षा रजिस्ट्री और स्कूल संबद्धता विवरण का आधिकारिक पोर्टल।', 'School Education & Affiliations', 'स्कूल शिक्षा एवं संबद्धता', 'bi-book-fill', 'bg-info-subtle text-info-emphasis', 'Government of India', 'भारत सरकार', 'cbse.gov.in', 'https://cbse.gov.in', 10, 'ACTIVE'),
 (11, 'State Election Commission Bihar', 'राज्य निर्वाचन आयोग बिहार', 'Panchayat General Elections Registry & Representative Data', 'पंचायत सामान्य निर्वाचन रजिस्ट्री एवं प्रतिनिधि डेटा', 'Official Bihar State Election Commission portal providing verified lists of elected Gram Panchayat, Panchayat Samiti, and Zila Parishad representatives.', 'बिहार राज्य निर्वाचन आयोग का आधिकारिक पोर्टल जो निर्वाचित ग्राम पंचायत, पंचायत समिति और जिला परिषद प्रतिनिधियों की सत्यापित सूची प्रदान करता है।', 'Election Commission Data', 'निर्वाचन आयोग डेटा', 'bi-award-fill', 'bg-warning-subtle text-dark', 'SEC Bihar', 'एसईसी बिहार', 'sec.bihar.gov.in', 'https://sec.bihar.gov.in', 11, 'ACTIVE')
 ON DUPLICATE KEY UPDATE `title` = VALUES(`title`);
+
+-- 15. Blogs / Articles Table
+CREATE TABLE IF NOT EXISTS `blogs` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `title` VARCHAR(255) NOT NULL,
+    `title_hindi` VARCHAR(255) DEFAULT NULL,
+    `slug` VARCHAR(255) NOT NULL UNIQUE,
+    `category` VARCHAR(100) DEFAULT 'General',
+    `category_hindi` VARCHAR(100) DEFAULT NULL,
+    `summary` TEXT DEFAULT NULL,
+    `summary_hindi` TEXT DEFAULT NULL,
+    `content` LONGTEXT DEFAULT NULL,
+    `content_hindi` LONGTEXT DEFAULT NULL,
+    `author` VARCHAR(100) DEFAULT 'Saran Index Editorial',
+    `featured_image` VARCHAR(255) DEFAULT NULL,
+    `icon` VARCHAR(50) DEFAULT 'bi-journal-text',
+    `badge_class` VARCHAR(100) DEFAULT 'bg-primary',
+    `read_time` VARCHAR(50) DEFAULT '5 min read',
+    `views` INT DEFAULT 0,
+    `status` ENUM('PUBLISHED', 'DRAFT', 'ARCHIVED') DEFAULT 'PUBLISHED',
+    `published_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    KEY `idx_blogs_status` (`status`),
+    KEY `idx_blogs_slug` (`slug`),
+    KEY `idx_blogs_category` (`category`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `blogs` (`id`, `title`, `title_hindi`, `slug`, `category`, `category_hindi`, `summary`, `summary_hindi`, `content`, `author`, `icon`, `badge_class`, `read_time`, `status`) VALUES
+(1, 'Top 10 Historical Places to Visit in Saran (Chapra)', 'सारण (छपरा) में घूमने लायक 10 प्रमुख ऐतिहासिक और धार्मिक स्थल', 'top-10-historical-places-saran-chapra', 'Culture & Heritage', 'संस्कृति एवं विरासत', 'From the sacred Ambika Bhavani Temple in Ami to the ancient Dhorh Ashram and Gautam Sthan, discover the timeless cultural wonders of Saran district.', 'आमी स्थित माँ अंबिका भवानी मंदिर से लेकर प्राचीन दढ़ आश्रम और गौतम स्थान तक, सारण जिले के अद्वितीय सांस्कृतिक व ऐतिहासिक स्थलों का परिचय।', 'Saran district holds immense historical, cultural, and religious importance in Bihar...', 'Saran Index Editorial', 'bi-bank', 'bg-primary', '5 min read', 'PUBLISHED'),
+(2, 'Complete Guide to Healthcare & Top Hospitals in Chapra', 'छपरा में स्वास्थ्य सेवाएं और प्रमुख अस्पतालों की संपूर्ण मार्गदर्शिका', 'guide-to-healthcare-hospitals-chapra', 'Health & Wellness', 'स्वास्थ्य एवं चिकित्सा', 'A comprehensive directory of government hospitals, private nursing homes, 24x7 emergency contacts, and blood banks in Chapra.', 'छपरा सदर अस्पताल, निजी नर्सिंग होम, 24x7 आपातकालीन नंबर और ब्लड बैंकों की पूरी जानकारी।', 'Healthcare infrastructure in Saran district is expanding rapidly with both public and private institutions...', 'Dr. Saran Health Desk', 'bi-hospital', 'bg-success', '4 min read', 'PUBLISHED'),
+(3, 'How to Register & Grow Your Local Business on Saran Index', 'सारण इंडेक्स पर अपना स्थानीय व्यवसाय कैसे जोड़ें और व्यापार बढ़ाएं', 'grow-your-local-business-saran-index', 'Business Guide', 'व्यापार गाइड', 'Learn step-by-step how to list your shop, service, clinic, or firm on Saran Index to reach thousands of local customers across 20 blocks.', 'सारण इंडेक्स पर अपनी दुकान, क्लिनिक या फर्म को निःशुल्क लिस्ट करके 20 प्रखंडों के हजारों ग्राहकों तक पहुँचें।', 'Saran Index offers verified digital visibility to business owners across all 20 blocks of Saran...', 'OfferPlant Team', 'bi-graph-up-arrow', 'bg-warning text-dark', '3 min read', 'PUBLISHED'),
+(4, 'Exploring the 20 Administrative Blocks of Saran District', 'सारण जिले के सभी 20 प्रशासनिक प्रखंडों का परिचय एवं विवरण', 'exploring-20-blocks-of-saran-district', 'Civic & Administration', 'प्रशासनिक जानकारी', 'An overview of Saran’s geography, administrative blocks from Chapra Sadar, Marhaura, Sonpur, to Baniapur, along with key block contact details.', 'छपरा सदर, मढ़ौरा, सोनपुर से लेकर बनियापुर तक सारण जिले के सभी 20 प्रखंडों की भौगोलिक व प्रशासनिक रूपरेखा।', 'Saran District comprises 20 development blocks and 3 subdivisions (Sadar, Marhaura, Sonpur)...', 'Saran Index Team', 'bi-geo-alt', 'bg-info text-dark', '6 min read', 'PUBLISHED'),
+(5, 'Educational Hub: Colleges & University under JPU Chapra', 'शिक्षा का केंद्र: जेपीयू छपरा के अंतर्गत प्रमुख कॉलेज और उच्च शिक्षा', 'educational-colleges-jpu-chapra', 'Education', 'शिक्षा', 'Everything you need to know about Jai Prakash University (JPU), constituent colleges, admission processes, and academic milestones in Saran.', 'जय प्रकाश विश्वविद्यालय (JPU) छपरा, अंगीभूत महाविद्यालयों, प्रवेश प्रक्रिया और प्रमुख संकायों की जानकारी।', 'Jai Prakash University in Chapra is the premier higher education university serving the Saran division...', 'Academic Desk', 'bi-mortarboard', 'bg-danger', '4 min read', 'PUBLISHED'),
+(6, 'The Legendary Sonpur Mela: Asia’s Largest Cattle Fair', 'विश्व प्रसिद्ध हरिहर क्षेत्र सोनपुर मेला: एशिया का सबसे बड़ा पशु मेला', 'sonpur-mela-asias-largest-cattle-fair', 'Festivals & Events', 'मेले एवं त्यौहार', 'History, cultural significance, travel tips, and attractions at the world-renowned Harihar Kshetra Sonpur Cattle Fair held annually in Saran.', 'सारण में आयोजित होने वाले विश्व प्रसिद्ध हरिहर क्षेत्र सोनपुर मेले का इतिहास, सांस्कृतिक महत्व और मुख्य आकर्षण।', 'Sonpur Mela takes place on Kartik Purnima at the confluence of the sacred Ganga and Gandak rivers...', 'Culture Desk', 'bi-ticket-perforated', 'bg-secondary', '5 min read', 'PUBLISHED')
+ON DUPLICATE KEY UPDATE `title` = VALUES(`title`);

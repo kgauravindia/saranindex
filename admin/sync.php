@@ -128,16 +128,12 @@ $defaultSyncKey = defined('SYNC_SECRET_KEY') ? SYNC_SECRET_KEY : '';
                     <div id="serverErrorAlert" class="alert alert-warning d-none mt-3 mb-0 rounded-3 border">
                         <div class="d-flex align-items-start">
                             <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-warning flex-shrink-0 mt-1"></i>
-                            <div>
-                                <strong class="text-dark" id="serverErrorTitle">Online Bridge Endpoint Pending Upload</strong>
+                            <div class="w-100">
+                                <strong class="text-dark" id="serverErrorTitle">Connection Alert</strong>
                                 <div id="serverErrorDetails" class="small text-dark mt-1"></div>
-                                <div class="mt-2 p-2 bg-white rounded border small">
-                                    <strong>How to enable live sync:</strong>
-                                    <ol class="mb-0 ps-3 mt-1 text-muted">
-                                        <li>Upload <code>api/sync_bridge.php</code> from your local project to your live server at <code>public_html/api/sync_bridge.php</code>.</li>
-                                        <li>Or push changes to your GitHub / Git repository: <code>git add api/sync_bridge.php && git commit -m "Add sync bridge" && git push</code></li>
-                                        <li>Ensure <code>SYNC_SECRET_KEY</code> matches in both <code>config/config.php</code> files.</li>
-                                    </ol>
+                                <div id="serverErrorTips" class="mt-2 p-2 bg-white rounded border small">
+                                    <strong>Troubleshooting Guide:</strong>
+                                    <div id="serverErrorTipsContent" class="mt-1 text-muted"></div>
                                 </div>
                             </div>
                         </div>
@@ -664,10 +660,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 connectionStatusBadge.innerHTML = '<span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill border"><i class="bi bi-x-circle-fill me-1"></i> Connection Failed</span>';
                 serverInfoAlert.classList.add('d-none');
-                if (serverErrorAlert) {
-                    serverErrorAlert.classList.remove('d-none');
-                    serverErrorDetails.textContent = data.error || 'Unable to connect to remote server.';
-                }
+                displayErrorGuide(data.code || 0, data.error || 'Unable to connect to remote server.');
                 tablesTableBody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i> ${data.error || 'Connection failed'}</td></tr>`;
                 logMessage(`Connection failed: ${data.error || 'Unknown error'}`, 'error');
             }
@@ -677,13 +670,65 @@ document.addEventListener('DOMContentLoaded', function() {
             testConnectionBtn.innerHTML = '<i class="bi bi-plug-fill me-1"></i> Test & Load Stats';
             connectionStatusBadge.innerHTML = '<span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill border"><i class="bi bi-x-circle-fill me-1"></i> Network Error</span>';
             serverInfoAlert.classList.add('d-none');
-            if (serverErrorAlert) {
-                serverErrorAlert.classList.remove('d-none');
-                serverErrorDetails.textContent = `Network error: ${err.message}`;
-            }
+            displayErrorGuide(0, `Network error: ${err.message}`);
             tablesTableBody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i> Network error: ${err.message}</td></tr>`;
             logMessage(`Network error during test: ${err.message}`, 'error');
         });
+    }
+
+    function displayErrorGuide(code, msg) {
+        if (!serverErrorAlert) return;
+        serverErrorAlert.classList.remove('d-none');
+        if (serverErrorDetails) serverErrorDetails.textContent = msg;
+
+        const tipsBox = document.getElementById('serverErrorTipsContent');
+        if (!tipsBox) return;
+
+        if (code === 429 || (msg && msg.includes('429'))) {
+            serverErrorTitle.textContent = 'Hostinger / Cloudflare Rate Limit (HTTP 429 Too Many Requests)';
+            tipsBox.innerHTML = `
+                <ul class="mb-0 ps-3">
+                    <li class="mb-1"><strong>What happened:</strong> Your live hosting server (<strong>Hostinger / Cloudflare</strong>) is temporarily rate-limiting automated HTTPS requests from your IP.</li>
+                    <li class="mb-1"><strong>Instant Fix (Tab 3):</strong> Switch to the <strong><a href="#" onclick="document.getElementById('file-import-tab').click(); return false;">SQL File Import & Export</a></strong> tab above to import your live database SQL backup file directly.</li>
+                    <li class="mb-1"><strong>Direct Connection (Tab 2):</strong> Switch to the <strong><a href="#" onclick="document.getElementById('direct-db-tab').click(); return false;">Direct MySQL Sync</a></strong> tab if remote MySQL (Port 3306) is allowed in your Hostinger panel.</li>
+                    <li><strong>Hosting Reset:</strong> Wait 5–15 minutes for the Hostinger rate limit window to expire, or whitelist your IP in <em>Hostinger hPanel &rarr; Security</em> or <em>Cloudflare Dashboard</em>.</li>
+                </ul>
+            `;
+        } else if (code === 404 || (msg && msg.includes('404'))) {
+            serverErrorTitle.textContent = 'Online Bridge Endpoint Pending Upload (HTTP 404)';
+            tipsBox.innerHTML = `
+                <ol class="mb-0 ps-3">
+                    <li>Upload <code>api/sync_bridge.php</code> from your local project to your live server at <code>public_html/api/sync_bridge.php</code>.</li>
+                    <li>Or push changes to your GitHub / Git repository: <code>git add api/sync_bridge.php && git commit -m "Add sync bridge" && git push</code></li>
+                    <li>Ensure <code>SYNC_SECRET_KEY</code> matches in both <code>config/config.php</code> files.</li>
+                </ol>
+            `;
+        } else if (code === 401 || (msg && msg.includes('401'))) {
+            serverErrorTitle.textContent = 'Authentication Failed (HTTP 401 Unauthorized)';
+            tipsBox.innerHTML = `
+                <ul class="mb-0 ps-3">
+                    <li>The Secret Key does not match the <code>SYNC_SECRET_KEY</code> defined in your live server's <code>config/config.php</code>.</li>
+                    <li>Please copy the secret key from your production server into the input field above.</li>
+                </ul>
+            `;
+        } else if (code === 403 || (msg && msg.includes('403'))) {
+            serverErrorTitle.textContent = 'Access Forbidden (HTTP 403)';
+            tipsBox.innerHTML = `
+                <ul class="mb-0 ps-3">
+                    <li>Server firewall, ModSecurity, or Cloudflare blocked the request.</li>
+                    <li>Ensure file permissions on server for <code>api/sync_bridge.php</code> are <code>0644</code>.</li>
+                    <li>Add a Cloudflare WAF rule to allow access to <code>/api/sync_bridge.php</code>.</li>
+                </ul>
+            `;
+        } else {
+            serverErrorTitle.textContent = 'Remote Server Connection Failed';
+            tipsBox.innerHTML = `
+                <ul class="mb-0 ps-3">
+                    <li>Ensure the target domain <code>${remoteUrlInput.value}</code> is online and accessible.</li>
+                    <li>Check your internet connection or use the <strong>SQL File Import</strong> tab.</li>
+                </ul>
+            `;
+        }
     }
 
     // Render Table Rows in Step 2

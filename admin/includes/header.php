@@ -295,6 +295,11 @@ $admin_name = $_SESSION['admin_full_name'] ?? 'Administrator';
                 </a>
             </li>
             <li class="nav-item">
+                <a class="nav-link <?php echo ($current_page === 'blogs.php' || $current_page === 'blog_edit.php') ? 'active' : ''; ?>" href="blogs.php" title="Manage Blog & Articles">
+                    <i class="bi bi-journal-richtext text-info"></i> <span class="nav-text">Blog & Articles</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link <?php echo $current_page === 'reviews.php' ? 'active' : ''; ?>" href="reviews.php" title="Moderation / Reviews">
                     <i class="bi bi-star-half"></i> <span class="nav-text">Moderation / Reviews</span>
                 </a>

@@ -31,9 +31,12 @@ $meta_description = $meta_description ?? 'सारण इंडेक्स स
     <link rel="apple-touch-icon" sizes="180x180" href="<?php echo BASE_URL; ?>assets/img/apple-touch-icon.png">
     <link rel="manifest" href="<?php echo BASE_URL; ?>manifest.json">
 
-    <!-- Canonical Tag & SEO -->
-    <?php $currentCanonical = !empty($canonical_url) ? $canonical_url : (defined('HINDI_BASE_URL') ? HINDI_BASE_URL : 'https://saranindex.com/hindi/'); ?>
+    <!-- Canonical Tag & Multilingual Hreflang SEO -->
+    <?php 
+    $currentCanonical = getSiteCanonicalUrl($canonical_url ?? null, true); 
+    ?>
     <link rel="canonical" href="<?php echo htmlspecialchars($currentCanonical); ?>">
+<?php echo getSiteHreflangTags($currentCanonical); ?>
 
     <!-- Open Graph Meta Tags -->
     <meta property="og:title" content="<?php echo sanitizeInput($page_title); ?>">

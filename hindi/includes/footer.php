@@ -124,6 +124,8 @@ $social_wa = defined('SOCIAL_WHATSAPP') ? SOCIAL_WHATSAPP : 'https://whatsapp.co
                 <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
                     <li><a href="./" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> मुख्य पृष्ठ (होम)</a></li>
                     <li><a href="blocks" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> सारण के सभी 20 प्रखंड</a></li>
+                    <li><a href="categories" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> सभी श्रेणियां</a></li>
+                    <li><a href="../blog/" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> ब्लॉग एवं स्थानीय गाइड</a></li>
                     <li><a href="emergency" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> 24x7 आपातकालीन सेवाएं</a></li>
                     <li><a href="about" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> ऑफ़रप्लांट एवं सारण इंडेक्स के बारे में</a></li>
                     <li><a href="sources" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> आधिकारिक डेटा स्रोत</a></li>

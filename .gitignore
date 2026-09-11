@@ -41,4 +41,6 @@ php_errors.log
 uploads/**
 !uploads/**/.gitkeep
 
-
+# Sync & Remote Bridge
+sync_bridge.php
+api/sync_bridge.php

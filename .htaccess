@@ -4,7 +4,29 @@ ErrorDocument 404 /saranindex/404.php
 <IfModule mod_rewrite.c>
     RewriteEngine On
     
-    # Do not rewrite existing files or directories
+    # 1. Canonical Domain & HTTPS Enforcement (301 Permanent Redirect)
+    RewriteCond %{HTTP_HOST} ^www\.saranindex\.com$ [NC]
+    RewriteRule ^(.*)$ https://saranindex.com/$1 [R=301,L]
+
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP_HOST} ^saranindex\.com$ [NC]
+    RewriteRule ^(.*)$ https://saranindex.com/$1 [R=301,L]
+
+    # 2. Canonical Clean Root: /index.php -> / and /hindi/index.php -> /hindi/
+    RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /index\.php\ HTTP/
+    RewriteRule ^index\.php$ / [R=301,L]
+
+    RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /hindi/index\.php\ HTTP/
+    RewriteRule ^hindi/index\.php$ /hindi/ [R=301,L]
+
+    # 3. Canonical Clean URLs for Core Pages (/about.php -> /about)
+    RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /(about|contact|terms|privacy-policy|refund-policy|pricing|sources|emergency|history|river|nahar|university|categories|add-contact|login|register|forgot-password|dashboard|my-listings|pay|search)\.php[?\s] [NC]
+    RewriteRule ^([a-zA-Z0-9_-]+)\.php$ $1 [R=301,L]
+
+    RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /hindi/(about|contact|terms|privacy-policy|refund-policy|pricing|sources|emergency|history|river|nahar|university|categories|add-contact|login|register|dashboard|search)\.php[?\s] [NC]
+    RewriteRule ^hindi/([a-zA-Z0-9_-]+)\.php$ hindi/$1 [R=301,L]
+
+    # Do not rewrite existing files or directories (assets, uploads, images, admin, etc.)
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]

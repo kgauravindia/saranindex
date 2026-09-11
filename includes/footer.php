@@ -124,6 +124,8 @@ $social_wa = defined('SOCIAL_WHATSAPP') ? SOCIAL_WHATSAPP : 'https://whatsapp.co
                 <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
                     <li><a href="./" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> Home Page</a></li>
                     <li><a href="blocks" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> All 20 Saran Blocks</a></li>
+                    <li><a href="categories" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> All Categories</a></li>
+                    <li><a href="blog/" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> Blog & Local Guides</a></li>
                     <li><a href="emergency" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> 24x7 Emergency Services</a></li>
                     <li><a href="about" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> About OfferPlant & Saran Index</a></li>
                     <li><a href="sources" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> Official Data Sources</a></li>
