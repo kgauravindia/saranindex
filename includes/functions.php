@@ -2486,14 +2486,14 @@ function getUserProfileCompletionDetails($user) {
         ],
         [
             'id' => 'profession_category',
-            'title' => 'Profession Category',
-            'title_hi' => 'व्यवसाय / पेशा श्रेणी',
+            'title' => 'Professional Subcategory & Role',
+            'title_hi' => 'पेशेवर उप-श्रेणी व विशेषज्ञता',
             'weight' => 10,
-            'completed' => !empty(trim((string)($user['profession_category'] ?? ''))) || (!empty($user['category_id']) && intval($user['category_id']) > 0),
+            'completed' => (!empty($user['subcategory_id']) && intval($user['subcategory_id']) > 0) || !empty(trim((string)($user['profession_category'] ?? ''))) || (!empty($user['category_id']) && intval($user['category_id']) > 0) || (!empty(trim((string)($user['specialization'] ?? ''))) && strlen(trim((string)$user['specialization'])) >= 2),
             'icon' => 'bi-tags',
-            'hint' => 'Select category to get discovered in search',
-            'hint_hi' => 'सर्च में दिखने के लिए व्यवसाय श्रेणी चुनें',
-            'field_id' => 'profession_category'
+            'hint' => 'Select professional subcategory or specialization role',
+            'hint_hi' => 'पेशेवर उप-श्रेणी या विशेषज्ञता चुनें',
+            'field_id' => 'subcategory_id'
         ],
         [
             'id' => 'bio',
@@ -4206,6 +4206,28 @@ function updateProfessionalUserProfile($userId, $data) {
             WHERE id = :id");
 
         $fullName = sanitizeInput($data['full_name'] ?? ($existingUser['full_name'] ?? ''));
+        $subcatId = (!empty($data['subcategory_id']) && is_numeric($data['subcategory_id'])) ? intval($data['subcategory_id']) : null;
+        $catId = (!empty($data['category_id']) && is_numeric($data['category_id'])) ? intval($data['category_id']) : null;
+        $profCat = sanitizeInput($data['profession_category'] ?? '');
+
+        // Auto-resolve category_id & profession_category from subcategory if not provided
+        if ($subcatId && (!$catId || empty($profCat))) {
+            try {
+                $scStmt = $db->prepare("SELECT s.name as subcat_name, s.category_id, c.name as category_name FROM subcategories s LEFT JOIN categories c ON s.category_id = c.id WHERE s.id = :sid LIMIT 1");
+                $scStmt->execute(['sid' => $subcatId]);
+                $scRow = $scStmt->fetch(PDO::FETCH_ASSOC);
+                if ($scRow) {
+                    if (!$catId && !empty($scRow['category_id'])) {
+                        $catId = intval($scRow['category_id']);
+                    }
+                    if (empty($profCat)) {
+                        $profCat = $scRow['subcat_name'] ?: ($scRow['category_name'] ?? '');
+                    }
+                }
+            } catch (PDOException $e) {
+                error_log("updateProfessionalUserProfile subcategory lookup error: " . $e->getMessage());
+            }
+        }
 
         $res = $stmt->execute([
             'fn' => $fullName,
@@ -4213,9 +4235,9 @@ function updateProfessionalUserProfile($userId, $data) {
             'handle' => $cleanHandle ? ('@' . $cleanHandle) : null,
             'desig' => sanitizeInput($data['designation'] ?? ''),
             'bname' => sanitizeInput($data['business_name'] ?? ''),
-            'pcat' => sanitizeInput($data['profession_category'] ?? ''),
-            'cat_id' => (!empty($data['category_id']) && is_numeric($data['category_id'])) ? intval($data['category_id']) : null,
-            'subcat_id' => (!empty($data['subcategory_id']) && is_numeric($data['subcategory_id'])) ? intval($data['subcategory_id']) : null,
+            'pcat' => $profCat,
+            'cat_id' => $catId,
+            'subcat_id' => $subcatId,
             'spec' => sanitizeInput($data['specialization'] ?? ''),
             'edu' => sanitizeInput($data['education'] ?? ''),
             'exp' => sanitizeInput($data['experience_years'] ?? ''),
