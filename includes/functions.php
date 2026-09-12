@@ -2486,13 +2486,13 @@ function getUserProfileCompletionDetails($user) {
         ],
         [
             'id' => 'profession_category',
-            'title' => 'Professional Subcategory & Role',
-            'title_hi' => 'पेशेवर उप-श्रेणी व विशेषज्ञता',
+            'title' => 'Professional Subcategory Role',
+            'title_hi' => 'पेशेवर उप-श्रेणी (Subcategory)',
             'weight' => 10,
-            'completed' => (!empty($user['subcategory_id']) && intval($user['subcategory_id']) > 0) || !empty(trim((string)($user['profession_category'] ?? ''))) || (!empty($user['category_id']) && intval($user['category_id']) > 0) || (!empty(trim((string)($user['specialization'] ?? ''))) && strlen(trim((string)$user['specialization'])) >= 2),
+            'completed' => !empty($user['subcategory_id']) && intval($user['subcategory_id']) > 0,
             'icon' => 'bi-tags',
-            'hint' => 'Select professional subcategory or specialization role',
-            'hint_hi' => 'पेशेवर उप-श्रेणी या विशेषज्ञता चुनें',
+            'hint' => 'Select professional subcategory / role from dropdown',
+            'hint_hi' => 'ड्रॉपडाउन से अपनी पेशेवर उप-श्रेणी चुनें',
             'field_id' => 'subcategory_id'
         ],
         [
