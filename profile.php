@@ -209,8 +209,8 @@ require_once __DIR__ . '/includes/header.php';
             <div class="card border-0 shadow-sm rounded-4 mb-4">
                 <div class="card-body p-4">
                     <h4 class="fw-bold font-heading text-dark mb-3">Overview & Description</h4>
-                    <p class="text-secondary" style="line-height: 1.7; font-size: 1.05rem;">
-                        <?php echo sanitizeInput($listing['description']); ?>
+                    <p class="text-secondary" style="line-height: 1.8; font-size: 1.05rem;">
+                        <?php echo nl2br(sanitizeInput($listing['description'])); ?>
                     </p>
 
                     <?php if (!empty($listing['services']) || !empty($listing['products'])): ?>

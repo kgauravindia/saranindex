@@ -256,6 +256,24 @@ require_once __DIR__ . '/includes/header.php';
                 <div class="p-3 border rounded-3 bg-light hover-shadow transition-all h-100 d-flex flex-column justify-content-between">
                     <div>
                         <div class="d-flex align-items-center justify-content-between mb-1">
+                            <h6 class="fw-bold text-dark mb-0">Hospital & PM-JAY Toll-Free Helpline</h6>
+                            <span class="badge bg-danger text-white fs-7 rounded-pill fw-bold">24x7 Toll-Free</span>
+                        </div>
+                        <p class="text-muted fs-7 mb-2"><i class="bi bi-shield-plus me-1 text-danger"></i> National Health Authority (NHA) & Ayushman Hospital Assistance</p>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+                        <span class="fw-bold text-danger fs-5">14555 / 1800-11-4477</span>
+                        <a href="tel:14555" class="btn btn-danger btn-sm rounded-pill px-3 fw-bold">
+                            <i class="bi bi-telephone-fill me-1"></i> Call 14555
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="p-3 border rounded-3 bg-light hover-shadow transition-all h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex align-items-center justify-content-between mb-1">
                             <h6 class="fw-bold text-dark mb-0">District Health Society Helpline</h6>
                             <span class="badge bg-success-subtle text-success fs-7 rounded-pill fw-bold">DHS Control</span>
                         </div>

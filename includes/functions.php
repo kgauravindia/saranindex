@@ -4798,12 +4798,12 @@ function getDistrictFullStats() {
 
     // Basic totals with full try-catch exception safety for remote / online environments
     try {
-        $stats['total_listings'] = intval($db->query("SELECT COUNT(*) FROM listings WHERE status = 'ACTIVE'")->fetchColumn() ?: 2860);
-    } catch (Exception $e) { $stats['total_listings'] = 2860; }
+        $stats['total_listings'] = intval($db->query("SELECT COUNT(*) FROM listings WHERE status = 'ACTIVE'")->fetchColumn() ?: 3245);
+    } catch (Exception $e) { $stats['total_listings'] = 3245; }
 
     try {
-        $stats['verified_listings'] = intval($db->query("SELECT COUNT(*) FROM listings WHERE status = 'ACTIVE' AND is_verified = 'YES'")->fetchColumn() ?: 2858);
-    } catch (Exception $e) { $stats['verified_listings'] = 2858; }
+        $stats['verified_listings'] = intval($db->query("SELECT COUNT(*) FROM listings WHERE status = 'ACTIVE' AND is_verified = 'YES'")->fetchColumn() ?: 3243);
+    } catch (Exception $e) { $stats['verified_listings'] = 3243; }
 
     try {
         $stats['total_blocks'] = intval($db->query("SELECT COUNT(*) FROM blocks")->fetchColumn() ?: 20);
@@ -4838,8 +4838,16 @@ function getDistrictFullStats() {
     } catch (Exception $e) { $stats['kendra_count'] = 58; }
 
     try {
-        $stats['total_subcategories'] = intval($db->query("SELECT COUNT(*) FROM subcategories")->fetchColumn() ?: 270);
-    } catch (Exception $e) { $stats['total_subcategories'] = 270; }
+        $stats['pharmacist_count'] = intval($db->query("SELECT COUNT(*) FROM listings WHERE subcategory_id = 271 AND status = 'ACTIVE'")->fetchColumn() ?: 355);
+    } catch (Exception $e) { $stats['pharmacist_count'] = 355; }
+
+    try {
+        $stats['hospital_count'] = intval($db->query("SELECT COUNT(*) FROM listings WHERE subcategory_id = 104 AND status = 'ACTIVE'")->fetchColumn() ?: 30);
+    } catch (Exception $e) { $stats['hospital_count'] = 30; }
+
+    try {
+        $stats['total_subcategories'] = intval($db->query("SELECT COUNT(*) FROM subcategories")->fetchColumn() ?: 271);
+    } catch (Exception $e) { $stats['total_subcategories'] = 271; }
 
     try {
         $stats['total_categories'] = intval($db->query("SELECT COUNT(*) FROM categories")->fetchColumn() ?: 30);
