@@ -216,23 +216,24 @@ require_once __DIR__ . '/includes/header.php';
 .dash-avatar-wrapper {
     position: relative;
     display: inline-block;
+    flex-shrink: 0;
 }
 .dash-avatar-img {
-    width: 80px;
-    height: 80px;
+    width: 76px;
+    height: 76px;
     object-fit: cover;
     border-radius: 50%;
     border: 3px solid rgba(255, 255, 255, 0.9);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 .dash-avatar-placeholder {
-    width: 80px;
-    height: 80px;
+    width: 76px;
+    height: 76px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2rem;
+    font-size: 1.85rem;
     font-weight: 700;
     color: #ffffff;
     background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
@@ -255,7 +256,7 @@ require_once __DIR__ . '/includes/header.php';
     background: #ffffff;
     border: 1px solid var(--dash-border);
     border-radius: 16px;
-    padding: 20px;
+    padding: 16px 14px;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     height: 100%;
@@ -266,25 +267,43 @@ require_once __DIR__ . '/includes/header.php';
     border-color: #cbd5e1;
 }
 .stat-icon-pill {
-    width: 46px;
-    height: 46px;
+    width: 42px;
+    height: 42px;
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.35rem;
+    font-size: 1.25rem;
     flex-shrink: 0;
 }
 
 /* Custom Tabs Bar */
+.dash-nav-pills {
+    display: flex;
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    gap: 8px;
+    padding: 6px !important;
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid var(--dash-border);
+}
+.dash-nav-pills::-webkit-scrollbar {
+    display: none;
+}
 .dash-nav-pills .nav-link {
     color: var(--dash-text-muted);
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     padding: 10px 18px;
     border-radius: 12px;
     transition: all 0.2s ease;
     border: 1px solid transparent;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 .dash-nav-pills .nav-link:hover {
     color: var(--dash-primary);
@@ -310,13 +329,13 @@ require_once __DIR__ . '/includes/header.php';
     box-shadow: 0 8px 24px rgba(37, 99, 235, 0.08);
 }
 .listing-icon-box {
-    width: 52px;
-    height: 52px;
-    border-radius: 14px;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: 1.35rem;
     flex-shrink: 0;
     background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
     color: #2563eb;
@@ -346,13 +365,15 @@ require_once __DIR__ . '/includes/header.php';
 /* Action Button Pills */
 .btn-pill-action {
     border-radius: 50rem;
-    padding: 6px 16px;
+    padding: 7px 16px;
     font-size: 0.825rem;
     font-weight: 600;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
     transition: all 0.2s ease;
+    white-space: nowrap;
 }
 
 /* Table Style */
@@ -377,61 +398,78 @@ require_once __DIR__ . '/includes/header.php';
 /* ==========================================================
    MOBILE-FIRST RESPONSIVE OPTIMIZATIONS
    ========================================================== */
+@media (max-width: 991.98px) {
+    .dash-hero-actions {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    .dash-hero-actions .btn-pill-action {
+        width: 100%;
+    }
+}
+
 @media (max-width: 767.98px) {
+    .dashboard-wrapper {
+        padding-top: 14px !important;
+        padding-bottom: 24px !important;
+    }
     .dash-hero {
-        padding: 20px 16px !important;
+        padding: 18px 14px !important;
         border-radius: 16px;
     }
     .dash-avatar-img,
     .dash-avatar-placeholder {
-        width: 65px;
-        height: 65px;
-        font-size: 1.6rem;
+        width: 58px;
+        height: 58px;
+        font-size: 1.45rem;
     }
     .dash-hero h3 {
-        font-size: 1.25rem;
+        font-size: 1.2rem;
     }
-    .dash-hero .btn-pill-action {
-        flex: 1 1 calc(50% - 6px);
-        justify-content: center;
-        text-align: center;
-        padding: 8px 12px;
-        font-size: 0.8rem;
+    .dash-hero-actions {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        width: 100%;
+    }
+    .dash-hero-actions .btn-pill-action {
+        padding: 8px 10px;
+        font-size: 0.78rem;
+        width: 100%;
+    }
+    .profile-circle-stat {
+        width: 54px !important;
+        height: 54px !important;
+        font-size: 1.1rem !important;
     }
     .stat-card-modern {
-        padding: 14px 12px;
+        padding: 12px 10px;
         border-radius: 14px;
+        min-height: 68px;
     }
-    .stat-card-modern .h3 {
-        font-size: 1.35rem;
+    .stat-card-modern .h4 {
+        font-size: 1.2rem !important;
     }
     .stat-icon-pill {
-        width: 38px;
-        height: 38px;
-        font-size: 1.1rem;
+        width: 36px;
+        height: 36px;
+        font-size: 1.05rem;
         border-radius: 10px;
     }
-    .dash-nav-pills {
-        flex-wrap: nowrap !important;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        padding: 6px !important;
-        border-radius: 14px !important;
-    }
     .dash-nav-pills .nav-link {
-        white-space: nowrap;
-        font-size: 0.82rem;
-        padding: 8px 14px;
-        flex-shrink: 0;
+        font-size: 0.8rem;
+        padding: 8px 12px;
     }
     .listing-entry-card {
-        padding: 16px;
+        padding: 14px;
         border-radius: 14px;
     }
     .listing-icon-box {
-        width: 42px;
-        height: 42px;
-        font-size: 1.2rem;
+        width: 38px;
+        height: 38px;
+        font-size: 1.15rem;
         border-radius: 10px;
     }
     .public-url-strip {
@@ -454,43 +492,27 @@ require_once __DIR__ . '/includes/header.php';
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
         gap: 6px;
-        margin-top: 8px;
+        margin-top: 10px;
     }
     .listing-mobile-actions .btn {
         width: 100%;
         justify-content: center;
-        padding: 6px 8px;
+        padding: 6px 4px;
         font-size: 0.78rem;
     }
 }
 
 @media (max-width: 575.98px) {
-    .dashboard-wrapper {
-        padding-top: 12px !important;
-        padding-bottom: 24px !important;
-    }
-    .dash-hero .d-flex.align-items-center.gap-3.5 {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        width: 100%;
-    }
-    .dash-hero .d-flex.align-items-center.gap-2.flex-wrap.mb-1 {
-        justify-content: center;
-    }
-    .dash-hero .d-flex.align-items-center.gap-3.text-white-50 {
-        justify-content: center;
-        flex-direction: column;
-        gap: 4px !important;
-    }
-    .dash-hero .btn-pill-action {
-        flex: 1 1 100%;
+    .dash-hero .d-flex.align-items-center.gap-3\.5 {
+        gap: 10px !important;
     }
     .listing-mobile-actions {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 4px;
     }
-    .listing-mobile-actions .btn-upgrade {
-        grid-column: span 2;
+    .listing-mobile-actions .btn {
+        font-size: 0.74rem;
+        padding: 6px 2px;
     }
 }
 </style>
@@ -546,7 +568,7 @@ require_once __DIR__ . '/includes/header.php';
                 </div>
 
                 <!-- Right: Quick Action Controls -->
-                <div class="d-flex align-items-center gap-2 flex-wrap">
+                <div class="dash-hero-actions d-flex align-items-center gap-2 flex-wrap">
                     <button type="button" class="btn btn-warning text-dark btn-pill-action shadow-sm" data-bs-toggle="modal" data-bs-target="#claimSearchModal">
                         <i class="bi bi-shield-check"></i> Claim Business
                     </button>
@@ -557,7 +579,7 @@ require_once __DIR__ . '/includes/header.php';
                         <i class="bi bi-pencil-square"></i> Edit Profile
                     </a>
                     <a href="logout.php" class="btn btn-outline-light btn-pill-action opacity-75" title="Logout">
-                        <i class="bi bi-box-arrow-right"></i>
+                        <i class="bi bi-box-arrow-right"></i> Logout
                     </a>
                 </div>
             </div>
@@ -572,35 +594,75 @@ require_once __DIR__ . '/includes/header.php';
             </div>
         <?php endif; ?>
 
+        <!-- VIP Profile Upgrade Spotlight Banner (Payment Option & VIP Links Perks) -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4 text-white overflow-hidden" style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #1e3a8a 100%); border: 1px solid rgba(255, 255, 255, 0.1) !important;">
+            <div class="card-body p-3.5 p-md-4 position-relative">
+                <div class="row align-items-center g-3">
+                    <div class="col-lg-8">
+                        <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                            <span class="badge bg-warning text-dark fw-bold px-3 py-1 rounded-pill extra-small shadow-xs">
+                                <i class="bi bi-crown-fill text-danger me-1"></i>VIP PRO MEMBERSHIP
+                            </span>
+                            <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-25 rounded-pill px-2.5 py-1 extra-small">
+                                <i class="bi bi-shield-check text-success me-1"></i>Instant Online Activation
+                            </span>
+                        </div>
+                        <h4 class="fw-bold text-white mb-2 font-heading fs-5">
+                            Upgrade Profile to Unlock VIP Links & Google Maps
+                        </h4>
+                        <p class="text-white text-opacity-80 small mb-3">
+                            Gold and VIP Platinum profile members can add Google Maps location link, website portfolio, languages, social media profiles, and display the official verified badge on their public page.
+                        </p>
+                        <div class="d-flex flex-wrap gap-1.5 text-white-50 extra-small">
+                            <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-10 py-1.5 px-2 rounded-pill"><i class="bi bi-geo-alt-fill text-danger me-1"></i>Google Maps Link</span>
+                            <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-10 py-1.5 px-2 rounded-pill"><i class="bi bi-globe2 text-info me-1"></i>Website & Portfolio</span>
+                            <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-10 py-1.5 px-2 rounded-pill"><i class="bi bi-whatsapp text-success me-1"></i>Social Profiles</span>
+                            <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-10 py-1.5 px-2 rounded-pill"><i class="bi bi-translate text-warning me-1"></i>Languages</span>
+                            <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-10 py-1.5 px-2 rounded-pill"><i class="bi bi-patch-check-fill text-primary me-1"></i>Verified Badge</span>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 text-lg-end text-center mt-3 mt-lg-0">
+                        <div class="d-inline-flex flex-column align-items-lg-end align-items-center w-100">
+                            <div class="text-warning fw-bold fs-5 mb-1 font-heading">From ₹499<small class="text-white-50 fs-6 fw-normal">/year</small></div>
+                            <button type="button" class="btn btn-warning text-dark fw-bold rounded-pill px-4 py-2.5 shadow-sm d-inline-flex align-items-center justify-content-center gap-2 w-100" style="max-width: 260px;" data-bs-toggle="modal" data-bs-target="#upgradeProfileModal">
+                                <i class="bi bi-lightning-charge-fill text-danger"></i> Upgrade Profile Plan
+                            </button>
+                            <span class="text-white-50 extra-small mt-1.5 d-block"><i class="bi bi-qr-code me-1"></i>UPI, GPay, Cards & Netbanking</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Profile Strength & Completion Percentage Card -->
         <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white overflow-hidden">
-            <div class="card-body p-4">
+            <div class="card-body p-3.5 p-md-4">
                 <div class="row align-items-center g-3">
                     <div class="col-lg-7">
-                        <div class="d-flex align-items-center gap-3.5">
+                        <div class="d-flex align-items-center gap-3">
                             <div class="position-relative flex-shrink-0">
-                                <div class="d-flex align-items-center justify-content-center rounded-circle border border-3 border-<?php echo $profileCompletion['color']; ?> bg-<?php echo $profileCompletion['color']; ?>-subtle text-<?php echo $profileCompletion['color']; ?> fw-bold fs-4 shadow-xs" style="width: 72px; height: 72px;">
+                                <div class="profile-circle-stat d-flex align-items-center justify-content-center rounded-circle border border-3 border-<?php echo $profileCompletion['color']; ?> bg-<?php echo $profileCompletion['color']; ?>-subtle text-<?php echo $profileCompletion['color']; ?> fw-bold fs-4 shadow-xs" style="width: 68px; height: 68px;">
                                     <?php echo $profileCompletion['percentage']; ?>%
                                 </div>
                             </div>
-                            <div>
+                            <div class="min-w-0">
                                 <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
-                                    <h5 class="fw-bold text-dark mb-0 font-heading">Profile Strength: <?php echo $profileCompletion['level']; ?></h5>
+                                    <h5 class="fw-bold text-dark mb-0 font-heading fs-6">Profile Strength: <?php echo $profileCompletion['level']; ?></h5>
                                     <span class="badge <?php echo $profileCompletion['badge_class']; ?> rounded-pill px-2.5 py-0.5 extra-small">
-                                        <?php echo $profileCompletion['percentage']; ?>% Completed (<?php echo $profileCompletion['completed_count']; ?>/<?php echo $profileCompletion['total_count']; ?>)
+                                        <?php echo $profileCompletion['percentage']; ?>% (<?php echo $profileCompletion['completed_count']; ?>/<?php echo $profileCompletion['total_count']; ?>)
                                     </span>
                                 </div>
                                 <p class="text-muted small mb-0">
                                     <?php if ($profileCompletion['percentage'] >= 100): ?>
-                                        <span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Your profile is 100% complete!</span> You enjoy priority ranking and top visibility across the entire Saran Index directory.
+                                        <span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i>100% complete!</span> You enjoy priority ranking and top visibility across Saran Index.
                                     <?php else: ?>
-                                        Complete your profile to unlock verified pro trust badges, boost search rank, and gain up to 4x more customer calls.
+                                        Complete your profile to unlock verified pro trust badges and up to 4x more customer calls.
                                     <?php endif; ?>
                                 </p>
                             </div>
                         </div>
                         
-                        <div class="progress rounded-pill mt-3 shadow-xs" style="height: 10px; background-color: #e2e8f0;">
+                        <div class="progress rounded-pill mt-3 shadow-xs" style="height: 8px; background-color: #e2e8f0;">
                             <div class="progress-bar progress-bar-striped progress-bar-animated <?php echo $profileCompletion['progress_class']; ?>" role="progressbar" style="width: <?php echo $profileCompletion['percentage']; ?>%" aria-valuenow="<?php echo $profileCompletion['percentage']; ?>" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
                     </div>
@@ -1022,13 +1084,73 @@ require_once __DIR__ . '/includes/header.php';
 
                     <!-- TAB 2: Payments & Tax Receipts -->
                     <div class="tab-pane fade" id="tab-payments" role="tabpanel">
-                        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-                            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-3">
-                                <div>
-                                    <h5 class="fw-bold font-heading text-dark mb-0">Online Payments & Invoices</h5>
-                                    <small class="text-muted">Transaction receipts and GST tax invoices for membership upgrades</small>
+                        
+                        <!-- Subscription & Active Membership Overview (AdvocateIndex Pattern) -->
+                        <div class="card border-0 shadow-sm rounded-4 p-3.5 p-md-4 bg-white mb-4">
+                            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2 flex-wrap gap-2">
+                                <h5 class="fw-bold font-heading text-dark mb-0 fs-6">
+                                    <i class="bi bi-credit-card-2-front-fill text-primary me-2"></i>Membership Subscription & Payment Options
+                                </h5>
+                                <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-1.5 rounded-pill extra-small">
+                                    Active: <?php echo htmlspecialchars($user['plan_type'] ?? 'FREE'); ?>
+                                </span>
+                            </div>
+
+                            <div class="p-3.5 rounded-3 border bg-light mb-3">
+                                <div class="row align-items-center g-3">
+                                    <div class="col-md-7">
+                                        <div class="d-flex align-items-center gap-3 mb-2">
+                                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
+                                                <i class="bi bi-crown-fill fs-5 text-warning"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="fw-bold text-dark mb-0"><?php echo htmlspecialchars($user['plan_type'] ?? 'FREE'); ?> Member Tier</h6>
+                                                <small class="text-muted">Account ID: #<?php echo intval($user['id']); ?> • Status: <span class="text-success fw-bold">Active</span></small>
+                                            </div>
+                                        </div>
+                                        <p class="text-muted extra-small mb-0">
+                                            <i class="bi bi-shield-check text-success me-1"></i>
+                                            <?php if (($user['plan_type'] ?? 'FREE') === 'FREE'): ?>
+                                                Upgrade to Gold or VIP Platinum to unlock Google Maps link, social profiles, website portfolio, and verified badge.
+                                            <?php else: ?>
+                                                Your professional VIP profile is active with top directory ranking and full trust badges.
+                                            <?php endif; ?>
+                                        </p>
+                                    </div>
+                                    <div class="col-md-5 text-md-end text-start">
+                                        <button type="button" class="btn btn-warning text-dark fw-bold rounded-pill px-4 py-2 shadow-xs w-100 w-md-auto" data-bs-toggle="modal" data-bs-target="#upgradeProfileModal">
+                                            <i class="bi bi-lightning-charge-fill text-danger me-1"></i> Upgrade / Renew Plan
+                                        </button>
+                                    </div>
                                 </div>
-                                <span class="badge bg-secondary-subtle text-secondary fw-bold px-3 py-1.5 rounded-pill">
+                            </div>
+
+                            <!-- Supported Payment Methods -->
+                            <div class="p-3 bg-white rounded-3 border d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-shield-lock-fill text-success fs-5"></i>
+                                    <div>
+                                        <strong class="d-block text-dark extra-small">256-Bit SSL Instant Payment Options</strong>
+                                        <span class="text-muted extra-small">UPI (GPay, PhonePe, Paytm), Credit/Debit Cards & Netbanking via Razorpay</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                                    <span class="badge bg-light text-dark border extra-small"><i class="bi bi-qr-code me-1 text-primary"></i>UPI QR</span>
+                                    <span class="badge bg-light text-dark border extra-small"><i class="bi bi-phone me-1 text-success"></i>GPay/PhonePe</span>
+                                    <span class="badge bg-light text-dark border extra-small"><i class="bi bi-credit-card me-1 text-info"></i>Cards</span>
+                                    <span class="badge bg-light text-dark border extra-small"><i class="bi bi-bank me-1 text-secondary"></i>Netbanking</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Transactions History Card -->
+                        <div class="card border-0 shadow-sm rounded-4 p-3.5 p-md-4 bg-white">
+                            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-3 flex-wrap gap-2">
+                                <div>
+                                    <h5 class="fw-bold font-heading text-dark mb-0 fs-6">Online Payments & Invoices</h5>
+                                    <small class="text-muted extra-small">Transaction receipts and GST tax invoices for membership upgrades</small>
+                                </div>
+                                <span class="badge bg-secondary-subtle text-secondary fw-bold px-3 py-1.5 rounded-pill extra-small">
                                     <?php echo count($userPayments); ?> Transaction<?php echo count($userPayments) === 1 ? '' : 's'; ?>
                                 </span>
                             </div>
