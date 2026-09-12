@@ -99,6 +99,9 @@ $dailyAnalytics = getMultiPeriodAnalyticsData();
                     <button type="button" class="btn btn-outline-secondary active" data-metric="all">
                         <i class="bi bi-layers me-1"></i>All Metrics
                     </button>
+                    <button type="button" class="btn btn-outline-secondary" data-metric="impressions">
+                        <i class="bi bi-eye text-info me-1"></i>Impressions
+                    </button>
                     <button type="button" class="btn btn-outline-secondary" data-metric="listings">
                         <i class="bi bi-collection text-primary me-1"></i>Listings
                     </button>
@@ -128,6 +131,7 @@ $dailyAnalytics = getMultiPeriodAnalyticsData();
         </div>
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3 pt-2 border-top text-muted small">
             <div class="d-flex align-items-center gap-3">
+                <span class="d-flex align-items-center"><span class="badge rounded-circle p-1 me-1" style="background-color: #0EA5E9;">&nbsp;</span> Total Impressions</span>
                 <span class="d-flex align-items-center"><span class="badge rounded-circle p-1 me-1" style="background-color: #2563EB;">&nbsp;</span> New Listings</span>
                 <span class="d-flex align-items-center"><span class="badge rounded-circle p-1 me-1" style="background-color: #10B981;">&nbsp;</span> User Signups</span>
                 <span class="d-flex align-items-center"><span class="badge rounded-circle p-1 me-1" style="background-color: #8B5CF6;">&nbsp;</span> Verified Listings</span>
@@ -177,7 +181,7 @@ $dailyAnalytics = getMultiPeriodAnalyticsData();
     <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div>
             <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-table me-2 text-primary"></i>Day-by-Day Historical Activity Breakdown</h6>
-            <small class="text-muted">Granular day-by-day record of submissions and verifications</small>
+            <small class="text-muted">Granular day-by-day record of views, submissions, and verifications</small>
         </div>
         <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="exportAnalyticsTableToCSV()">
             <i class="bi bi-download me-1"></i> Export to CSV
@@ -190,6 +194,7 @@ $dailyAnalytics = getMultiPeriodAnalyticsData();
                 <tr>
                     <th>Date</th>
                     <th>Day</th>
+                    <th>Total Impressions</th>
                     <th>New Listings Added</th>
                     <th>Verified Listings</th>
                     <th>User Registrations</th>
@@ -200,11 +205,16 @@ $dailyAnalytics = getMultiPeriodAnalyticsData();
                 <?php 
                 $timeline30 = array_reverse($dailyAnalytics['30']['timeline']);
                 foreach ($timeline30 as $dayItem): 
-                    $hasActivity = ($dayItem['listings'] > 0 || $dayItem['users'] > 0);
+                    $hasActivity = ($dayItem['listings'] > 0 || $dayItem['users'] > 0 || $dayItem['impressions'] > 0);
                 ?>
                     <tr class="<?php echo $hasActivity ? 'table-light' : ''; ?>">
                         <td class="fw-bold text-dark"><?php echo sanitizeInput($dayItem['date']); ?></td>
                         <td><span class="badge bg-light text-secondary border"><?php echo sanitizeInput($dayItem['day_name']); ?></span></td>
+                        <td>
+                            <span class="badge bg-info-subtle text-info-emphasis border px-2.5 py-1 fw-bold">
+                                <i class="bi bi-eye text-info me-1"></i><?php echo number_format($dayItem['impressions'] ?? 0); ?>
+                            </span>
+                        </td>
                         <td>
                             <?php if ($dayItem['listings'] > 0): ?>
                                 <span class="badge bg-primary px-2.5 py-1.5 fs-6 fw-bold">+<?php echo number_format($dayItem['listings']); ?></span>
@@ -259,6 +269,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const { ctx: chartCtx, chartArea } = chart;
         if (!chartArea) return null;
 
+        const cyanGrad = chartCtx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+        cyanGrad.addColorStop(0, 'rgba(14, 165, 233, 0.35)');
+        cyanGrad.addColorStop(1, 'rgba(14, 165, 233, 0.00)');
+
         const blueGrad = chartCtx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
         blueGrad.addColorStop(0, 'rgba(37, 99, 235, 0.32)');
         blueGrad.addColorStop(1, 'rgba(37, 99, 235, 0.00)');
@@ -271,11 +285,26 @@ document.addEventListener('DOMContentLoaded', function() {
         purpleGrad.addColorStop(0, 'rgba(139, 92, 246, 0.25)');
         purpleGrad.addColorStop(1, 'rgba(139, 92, 246, 0.00)');
 
-        return { blueGrad, greenGrad, purpleGrad };
+        return { cyanGrad, blueGrad, greenGrad, purpleGrad };
     }
 
     function buildDatasets(periodData, metricType, gradients) {
         const datasets = [];
+
+        const impressionsSet = {
+            label: 'Total Impressions',
+            data: periodData.chart.impressions,
+            borderColor: '#0EA5E9',
+            backgroundColor: gradients ? gradients.cyanGrad : 'rgba(14, 165, 233, 0.1)',
+            borderWidth: 2.5,
+            fill: true,
+            tension: 0.35,
+            pointBackgroundColor: '#0EA5E9',
+            pointBorderColor: '#FFFFFF',
+            pointBorderWidth: 2,
+            pointRadius: periodData.chart.labels.length > 30 ? 2 : 4,
+            pointHoverRadius: 6
+        };
 
         const listingsSet = {
             label: 'New Listings',
@@ -324,7 +353,9 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         if (metricType === 'all') {
-            datasets.push(listingsSet, usersSet, verifiedSet);
+            datasets.push(impressionsSet, listingsSet, usersSet, verifiedSet);
+        } else if (metricType === 'impressions') {
+            datasets.push(impressionsSet);
         } else if (metricType === 'listings') {
             datasets.push(listingsSet);
         } else if (metricType === 'users') {

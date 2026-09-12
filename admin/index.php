@@ -263,7 +263,10 @@ $recentListings = array_slice($recentListings, 0, 8);
                 <!-- Metric Dataset Switcher -->
                 <div class="btn-group btn-group-sm" role="group" aria-label="Metric Filters" id="analyticsMetricToggle">
                     <button type="button" class="btn btn-outline-secondary active" data-metric="all">
-                        <i class="bi bi-layers me-1"></i>All Metrics
+                        <i class="bi bi-layers me-1"></i>All Combined
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" data-metric="impressions">
+                        <i class="bi bi-eye text-info me-1"></i>Impressions
                     </button>
                     <button type="button" class="btn btn-outline-secondary" data-metric="listings">
                         <i class="bi bi-collection text-primary me-1"></i>Listings
@@ -295,6 +298,13 @@ $recentListings = array_slice($recentListings, 0, 8);
     <div class="card-body bg-light bg-opacity-50 py-2.5 px-4 border-bottom">
         <div class="row g-3 text-center text-md-start align-items-center">
             <div class="col-6 col-md-3 border-end">
+                <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Today's Impressions</small>
+                <div class="d-flex align-items-baseline gap-1.5 justify-content-center justify-content-md-start">
+                    <span class="fs-5 fw-bold text-info" id="kpiTodayImpressions">+<?php echo number_format($dailyAnalytics['30']['summary']['today_impressions'] ?? 0); ?></span>
+                    <span class="badge bg-info-subtle text-info-emphasis small">Today</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3 border-end">
                 <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Today's Listings</small>
                 <div class="d-flex align-items-baseline gap-1.5 justify-content-center justify-content-md-start">
                     <span class="fs-5 fw-bold text-primary" id="kpiTodayListings">+<?php echo number_format($dailyAnalytics['30']['summary']['today_listings']); ?></span>
@@ -302,17 +312,10 @@ $recentListings = array_slice($recentListings, 0, 8);
                 </div>
             </div>
             <div class="col-6 col-md-3 border-end">
-                <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Today's Users</small>
+                <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Period Impressions</small>
                 <div class="d-flex align-items-baseline gap-1.5 justify-content-center justify-content-md-start">
-                    <span class="fs-5 fw-bold text-success" id="kpiTodayUsers">+<?php echo number_format($dailyAnalytics['30']['summary']['today_users']); ?></span>
-                    <span class="badge bg-success-subtle text-success small">Today</span>
-                </div>
-            </div>
-            <div class="col-6 col-md-3 border-end">
-                <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Period Total Growth</small>
-                <div class="d-flex align-items-baseline gap-1.5 justify-content-center justify-content-md-start">
-                    <span class="fs-5 fw-bold text-dark" id="kpiPeriodTotal"><?php echo number_format($dailyAnalytics['30']['summary']['total_listings']); ?> listings</span>
-                    <small class="text-muted" id="kpiPeriodAvg">(<?php echo $dailyAnalytics['30']['summary']['avg_daily_listings']; ?>/day)</small>
+                    <span class="fs-5 fw-bold text-dark" id="kpiPeriodImpressions"><?php echo number_format($dailyAnalytics['30']['summary']['total_impressions'] ?? 0); ?></span>
+                    <small class="text-muted" id="kpiPeriodAvgImp">(<?php echo number_format($dailyAnalytics['30']['summary']['avg_daily_impressions'] ?? 0); ?>/day)</small>
                 </div>
             </div>
             <div class="col-6 col-md-3">
@@ -332,12 +335,13 @@ $recentListings = array_slice($recentListings, 0, 8);
         </div>
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3 pt-2 border-top text-muted small">
             <div class="d-flex align-items-center gap-3">
+                <span class="d-flex align-items-center"><span class="badge rounded-circle p-1 me-1" style="background-color: #0EA5E9;">&nbsp;</span> Total Impressions</span>
                 <span class="d-flex align-items-center"><span class="badge rounded-circle p-1 me-1" style="background-color: #2563EB;">&nbsp;</span> New Listings</span>
                 <span class="d-flex align-items-center"><span class="badge rounded-circle p-1 me-1" style="background-color: #10B981;">&nbsp;</span> User Signups</span>
                 <span class="d-flex align-items-center"><span class="badge rounded-circle p-1 me-1" style="background-color: #8B5CF6;">&nbsp;</span> Verified Listings</span>
             </div>
             <div class="text-end">
-                <i class="bi bi-info-circle me-1"></i> Data aggregates automatically from Saran Index directory records.
+                <i class="bi bi-info-circle me-1"></i> Real-time daily impressions and directory activity tracking.
             </div>
         </div>
     </div>
@@ -549,6 +553,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const { ctx: chartCtx, chartArea } = chart;
         if (!chartArea) return null;
 
+        const cyanGrad = chartCtx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+        cyanGrad.addColorStop(0, 'rgba(14, 165, 233, 0.35)');
+        cyanGrad.addColorStop(1, 'rgba(14, 165, 233, 0.00)');
+
         const blueGrad = chartCtx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
         blueGrad.addColorStop(0, 'rgba(37, 99, 235, 0.30)');
         blueGrad.addColorStop(1, 'rgba(37, 99, 235, 0.00)');
@@ -561,11 +569,26 @@ document.addEventListener('DOMContentLoaded', function() {
         purpleGrad.addColorStop(0, 'rgba(139, 92, 246, 0.25)');
         purpleGrad.addColorStop(1, 'rgba(139, 92, 246, 0.00)');
 
-        return { blueGrad, greenGrad, purpleGrad };
+        return { cyanGrad, blueGrad, greenGrad, purpleGrad };
     }
 
     function buildDatasets(periodData, metricType, gradients) {
         const datasets = [];
+
+        const impressionsSet = {
+            label: 'Total Impressions',
+            data: periodData.chart.impressions,
+            borderColor: '#0EA5E9',
+            backgroundColor: gradients ? gradients.cyanGrad : 'rgba(14, 165, 233, 0.1)',
+            borderWidth: 2.5,
+            fill: true,
+            tension: 0.35,
+            pointBackgroundColor: '#0EA5E9',
+            pointBorderColor: '#FFFFFF',
+            pointBorderWidth: 2,
+            pointRadius: periodData.chart.labels.length > 30 ? 2 : 4,
+            pointHoverRadius: 6
+        };
 
         const listingsSet = {
             label: 'New Listings',
@@ -614,7 +637,9 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         if (metricType === 'all') {
-            datasets.push(listingsSet, usersSet, verifiedSet);
+            datasets.push(impressionsSet, listingsSet, usersSet, verifiedSet);
+        } else if (metricType === 'impressions') {
+            datasets.push(impressionsSet);
         } else if (metricType === 'listings') {
             datasets.push(listingsSet);
         } else if (metricType === 'users') {
@@ -630,17 +655,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const summary = rawData[periodKey]?.summary;
         if (!summary) return;
 
+        const kpiTodayImpressions = document.getElementById('kpiTodayImpressions');
         const kpiTodayListings = document.getElementById('kpiTodayListings');
-        const kpiTodayUsers = document.getElementById('kpiTodayUsers');
-        const kpiPeriodTotal = document.getElementById('kpiPeriodTotal');
-        const kpiPeriodAvg = document.getElementById('kpiPeriodAvg');
+        const kpiPeriodImpressions = document.getElementById('kpiPeriodImpressions');
+        const kpiPeriodAvgImp = document.getElementById('kpiPeriodAvgImp');
         const kpiPeakCount = document.getElementById('kpiPeakCount');
         const kpiPeakDate = document.getElementById('kpiPeakDate');
 
+        if (kpiTodayImpressions) kpiTodayImpressions.textContent = '+' + Number(summary.today_impressions || 0).toLocaleString();
         if (kpiTodayListings) kpiTodayListings.textContent = '+' + Number(summary.today_listings).toLocaleString();
-        if (kpiTodayUsers) kpiTodayUsers.textContent = '+' + Number(summary.today_users).toLocaleString();
-        if (kpiPeriodTotal) kpiPeriodTotal.textContent = Number(summary.total_listings).toLocaleString() + ' listings';
-        if (kpiPeriodAvg) kpiPeriodAvg.textContent = '(' + summary.avg_daily_listings + '/day)';
+        if (kpiPeriodImpressions) kpiPeriodImpressions.textContent = Number(summary.total_impressions || 0).toLocaleString();
+        if (kpiPeriodAvgImp) kpiPeriodAvgImp.textContent = '(' + Number(summary.avg_daily_impressions || 0).toLocaleString() + '/day)';
         if (kpiPeakCount) kpiPeakCount.textContent = Number(summary.peak_count).toLocaleString();
         if (kpiPeakDate) kpiPeakDate.textContent = 'on ' + (summary.peak_date || 'N/A');
     }

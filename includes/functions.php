@@ -566,6 +566,12 @@ function incrementViewCount($listing_id) {
         try {
             $stmt = $db->prepare("UPDATE listings SET view_count = view_count + 1 WHERE id = :id");
             $stmt->execute(['id' => $listing_id]);
+
+            // Track in daily_impressions
+            $stmtImp = $db->prepare("INSERT INTO daily_impressions (date, listing_views, total_impressions) 
+                                     VALUES (CURDATE(), 1, 1) 
+                                     ON DUPLICATE KEY UPDATE listing_views = listing_views + 1, total_impressions = total_impressions + 1");
+            $stmtImp->execute();
         } catch (PDOException $e) {}
     }
 }
@@ -577,6 +583,12 @@ function incrementUserProfileViews($user_id) {
         try {
             $stmt = $db->prepare("UPDATE users SET counter = COALESCE(counter, 0) + 1 WHERE id = :id");
             $stmt->execute(['id' => intval($user_id)]);
+
+            // Track in daily_impressions
+            $stmtImp = $db->prepare("INSERT INTO daily_impressions (date, profile_views, total_impressions) 
+                                     VALUES (CURDATE(), 1, 1) 
+                                     ON DUPLICATE KEY UPDATE profile_views = profile_views + 1, total_impressions = total_impressions + 1");
+            $stmtImp->execute();
         } catch (PDOException $e) {
             error_log("incrementUserProfileViews error: " . $e->getMessage());
         }
@@ -1318,6 +1330,7 @@ function getDailyAnalyticsData($days = 30) {
             'listings' => 0,
             'verified_listings' => 0,
             'users' => 0,
+            'impressions' => 0,
             'revenue' => 0,
             'reviews' => 0
         ];
@@ -1325,8 +1338,24 @@ function getDailyAnalyticsData($days = 30) {
     }
     
     $windowStart = $startDate->format('Y-m-d 00:00:00');
+    $windowStartDateOnly = $startDate->format('Y-m-d');
     
     if ($db) {
+        // Daily Impressions
+        try {
+            $stmt = $db->prepare("SELECT `date` as log_date, total_impressions, listing_views, profile_views 
+                                  FROM daily_impressions 
+                                  WHERE `date` >= :start_date 
+                                  ORDER BY `date` ASC");
+            $stmt->execute([':start_date' => $windowStartDateOnly]);
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $d = $row['log_date'];
+                if (isset($timeline[$d])) {
+                    $timeline[$d]['impressions'] = (int)$row['total_impressions'];
+                }
+            }
+        } catch (PDOException $e) {}
+
         // Daily Listings
         try {
             $stmt = $db->prepare("SELECT DATE(created_at) as log_date, 
@@ -1396,14 +1425,18 @@ function getDailyAnalyticsData($days = 30) {
     $labels = [];
     $listingsData = [];
     $usersData = [];
+    $impressionsData = [];
     $revenueData = [];
     $verifiedData = [];
     
     $totalListingsInPeriod = 0;
     $totalUsersInPeriod = 0;
+    $totalImpressionsInPeriod = 0;
     $totalRevenueInPeriod = 0;
     $peakDayCount = 0;
     $peakDayDate = '';
+    $peakImpressionCount = 0;
+    $peakImpressionDate = '';
     
     $todayStr = (new DateTime())->format('Y-m-d');
     $yesterdayStr = (new DateTime('-1 day'))->format('Y-m-d');
@@ -1412,26 +1445,36 @@ function getDailyAnalyticsData($days = 30) {
     $yesterdayListings = $timeline[$yesterdayStr]['listings'] ?? 0;
     $todayUsers = $timeline[$todayStr]['users'] ?? 0;
     $yesterdayUsers = $timeline[$yesterdayStr]['users'] ?? 0;
+    $todayImpressions = $timeline[$todayStr]['impressions'] ?? 0;
+    $yesterdayImpressions = $timeline[$yesterdayStr]['impressions'] ?? 0;
     
     foreach ($timeline as $dateStr => $item) {
         $labels[] = $item['label'];
         $listingsData[] = $item['listings'];
         $usersData[] = $item['users'];
+        $impressionsData[] = $item['impressions'];
         $revenueData[] = $item['revenue'];
         $verifiedData[] = $item['verified_listings'];
         
         $totalListingsInPeriod += $item['listings'];
         $totalUsersInPeriod += $item['users'];
+        $totalImpressionsInPeriod += $item['impressions'];
         $totalRevenueInPeriod += $item['revenue'];
         
         if ($item['listings'] > $peakDayCount) {
             $peakDayCount = $item['listings'];
             $peakDayDate = $item['label'];
         }
+
+        if ($item['impressions'] > $peakImpressionCount) {
+            $peakImpressionCount = $item['impressions'];
+            $peakImpressionDate = $item['label'];
+        }
     }
     
     $avgDailyListings = $days > 0 ? round($totalListingsInPeriod / $days, 1) : 0;
     $avgDailyUsers = $days > 0 ? round($totalUsersInPeriod / $days, 1) : 0;
+    $avgDailyImpressions = $days > 0 ? round($totalImpressionsInPeriod / $days, 1) : 0;
     
     return [
         'timeline' => array_values($timeline),
@@ -1440,6 +1483,7 @@ function getDailyAnalyticsData($days = 30) {
             'dates' => array_keys($timeline),
             'listings' => $listingsData,
             'users' => $usersData,
+            'impressions' => $impressionsData,
             'revenue' => $revenueData,
             'verified' => $verifiedData
         ],
@@ -1449,13 +1493,19 @@ function getDailyAnalyticsData($days = 30) {
             'yesterday_listings' => $yesterdayListings,
             'today_users' => $todayUsers,
             'yesterday_users' => $yesterdayUsers,
+            'today_impressions' => $todayImpressions,
+            'yesterday_impressions' => $yesterdayImpressions,
             'total_listings' => $totalListingsInPeriod,
             'total_users' => $totalUsersInPeriod,
+            'total_impressions' => $totalImpressionsInPeriod,
             'total_revenue' => $totalRevenueInPeriod,
             'avg_daily_listings' => $avgDailyListings,
             'avg_daily_users' => $avgDailyUsers,
+            'avg_daily_impressions' => $avgDailyImpressions,
             'peak_count' => $peakDayCount,
-            'peak_date' => $peakDayDate
+            'peak_date' => $peakDayDate,
+            'peak_impressions' => $peakImpressionCount,
+            'peak_impressions_date' => $peakImpressionDate
         ]
     ];
 }
