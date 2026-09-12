@@ -2,7 +2,7 @@
 
 # Database & Environment Secrets
 *.sql
-!database/schema.sql
+!database/*.sql
 *.sql.gz
 *.sql.bak
 config/config.php
