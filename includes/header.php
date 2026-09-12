@@ -125,17 +125,28 @@ $meta_description = $meta_description ?? 'Saran Index is the digital directory o
             <div class="d-flex align-items-center gap-2">
                 <?php if (isUserLoggedIn()): 
                     $headerUser = getLoggedInUser();
+                    $headerCompletion = getUserProfileCompletionDetails($headerUser);
                 ?>
                     <div class="dropdown">
                         <button class="btn btn-outline-primary dropdown-toggle rounded-pill px-3 py-1.5 btn-sm fw-bold d-flex align-items-center gap-1.5" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-person-circle"></i>
                             <span><?php echo htmlspecialchars($headerUser['full_name'] ?? 'Account'); ?></span>
+                            <span class="badge <?php echo $headerCompletion['badge_class']; ?> rounded-pill" style="font-size: 0.68rem; padding: 2px 6px;"><?php echo $headerCompletion['percentage']; ?>%</span>
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border rounded-3 mt-1 py-1">
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border rounded-3 mt-1 py-1" style="min-width: 210px;">
+                            <li class="px-3 py-2 border-bottom bg-light">
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <span class="extra-small fw-bold text-muted text-uppercase letter-spacing-1">Profile Strength</span>
+                                    <span class="extra-small fw-bold text-<?php echo $headerCompletion['color']; ?>"><?php echo $headerCompletion['percentage']; ?>% (<?php echo $headerCompletion['level']; ?>)</span>
+                                </div>
+                                <div class="progress rounded-pill" style="height: 5px; background-color: #e2e8f0;">
+                                    <div class="progress-bar <?php echo $headerCompletion['progress_class']; ?>" role="progressbar" style="width: <?php echo $headerCompletion['percentage']; ?>%"></div>
+                                </div>
+                            </li>
                             <li><a class="dropdown-item small py-2 d-flex align-items-center gap-2" href="dashboard"><i class="bi bi-speedometer2 text-primary"></i> Dashboard</a></li>
                             <li><a class="dropdown-item small py-2 d-flex align-items-center gap-2" href="my-listings"><i class="bi bi-list-stars text-warning"></i> My Listings</a></li>
                             <li><a class="dropdown-item small py-2 d-flex align-items-center gap-2" href="add-contact"><i class="bi bi-plus-circle text-success"></i> Add New Listing</a></li>
-                            <li><a class="dropdown-item small py-2 d-flex align-items-center gap-2" href="edit-profile"><i class="bi bi-person-gear text-secondary"></i> Edit Profile</a></li>
+                            <li><a class="dropdown-item small py-2 d-flex align-items-center gap-2" href="edit-profile"><i class="bi bi-person-gear text-secondary"></i> Edit Profile (<?php echo $headerCompletion['percentage']; ?>%)</a></li>
                             <li><hr class="dropdown-divider my-1"></li>
                             <li><a class="dropdown-item small py-2 d-flex align-items-center gap-2 text-danger" href="logout"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
                         </ul>

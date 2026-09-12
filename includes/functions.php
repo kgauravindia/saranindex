@@ -2392,6 +2392,214 @@ function getLoggedInUser() {
     }
 }
 
+/**
+ * Calculate user profile completion percentage (% wise) and itemized breakdown
+ *
+ * @param array|null $user User record from database
+ * @return array Profile completion metrics, checklist items, and tier status
+ */
+function getUserProfileCompletionDetails($user) {
+    if (!$user || !is_array($user)) {
+        return [
+            'percentage' => 0,
+            'completed_count' => 0,
+            'total_count' => 10,
+            'color' => 'danger',
+            'progress_class' => 'bg-danger',
+            'badge_class' => 'bg-danger text-white',
+            'status' => 'Incomplete',
+            'status_hi' => 'अपूर्ण',
+            'level' => 'Beginner',
+            'level_hi' => 'शुरुआती',
+            'items' => [],
+            'missing_items' => [],
+            'completed_items' => []
+        ];
+    }
+
+    $items = [
+        [
+            'id' => 'full_name',
+            'title' => 'Full Name',
+            'title_hi' => 'पूरा नाम',
+            'weight' => 10,
+            'completed' => !empty(trim((string)($user['full_name'] ?? ($user['name'] ?? '')))),
+            'icon' => 'bi-person',
+            'hint' => 'Add your display name',
+            'hint_hi' => 'अपना पूरा नाम दर्ज करें',
+            'field_id' => 'full_name'
+        ],
+        [
+            'id' => 'profile_image',
+            'title' => 'Profile Photo',
+            'title_hi' => 'प्रोफ़ाइल फोटो',
+            'weight' => 15,
+            'completed' => (!empty($user['profile_image']) && (file_exists(__DIR__ . '/../' . $user['profile_image']) || file_exists(__DIR__ . '/../../' . $user['profile_image']))) || (!empty($user['photo']) && file_exists(__DIR__ . '/../' . $user['photo'])),
+            'icon' => 'bi-camera',
+            'hint' => 'Upload a professional photo or avatar',
+            'hint_hi' => 'अपनी प्रोफ़ाइल फोटो या अवतार अपलोड करें',
+            'field_id' => 'profile_image_file'
+        ],
+        [
+            'id' => 'mobile',
+            'title' => 'Mobile Number',
+            'title_hi' => 'मोबाइल नंबर',
+            'weight' => 10,
+            'completed' => !empty(preg_replace('/[^0-9]/', '', (string)($user['mobile'] ?? ''))),
+            'icon' => 'bi-phone',
+            'hint' => 'Add primary contact mobile number',
+            'hint_hi' => 'संपर्क मोबाइल नंबर जोड़ें',
+            'field_id' => 'mobile'
+        ],
+        [
+            'id' => 'email',
+            'title' => 'Email Address',
+            'title_hi' => 'ईमेल पता',
+            'weight' => 10,
+            'completed' => !empty(filter_var($user['email'] ?? '', FILTER_VALIDATE_EMAIL)),
+            'icon' => 'bi-envelope',
+            'hint' => 'Email for inquiry alerts and notifications',
+            'hint_hi' => 'पूछताछ और सूचनाओं के लिए ईमेल पता',
+            'field_id' => 'email'
+        ],
+        [
+            'id' => 'username_handle',
+            'title' => 'Username Handle (@)',
+            'title_hi' => 'यूजरनेम हैंडल (@)',
+            'weight' => 10,
+            'completed' => !empty(trim((string)($user['username_handle'] ?? ''))),
+            'icon' => 'bi-at',
+            'hint' => 'Claim your unique @handle profile URL',
+            'hint_hi' => 'अपना विशिष्ट @handle लिंक सेट करें',
+            'field_id' => 'username_handle'
+        ],
+        [
+            'id' => 'designation',
+            'title' => 'Designation & Business',
+            'title_hi' => 'पद या व्यवसाय का नाम',
+            'weight' => 10,
+            'completed' => !empty(trim((string)($user['designation'] ?? ''))) || !empty(trim((string)($user['business_name'] ?? ''))),
+            'icon' => 'bi-briefcase',
+            'hint' => 'Specify your role, profession, or business',
+            'hint_hi' => 'अपना पद, पेशा या व्यवसाय का नाम दर्ज करें',
+            'field_id' => 'designation'
+        ],
+        [
+            'id' => 'profession_category',
+            'title' => 'Profession Category',
+            'title_hi' => 'व्यवसाय / पेशा श्रेणी',
+            'weight' => 10,
+            'completed' => !empty(trim((string)($user['profession_category'] ?? ''))) || (!empty($user['category_id']) && intval($user['category_id']) > 0),
+            'icon' => 'bi-tags',
+            'hint' => 'Select category to get discovered in search',
+            'hint_hi' => 'सर्च में दिखने के लिए व्यवसाय श्रेणी चुनें',
+            'field_id' => 'profession_category'
+        ],
+        [
+            'id' => 'bio',
+            'title' => 'Bio & About Us',
+            'title_hi' => 'बायो / परिचय विवरण',
+            'weight' => 10,
+            'completed' => (!empty(trim((string)($user['bio'] ?? ''))) && strlen(trim((string)$user['bio'])) >= 10) || (!empty(trim((string)($user['about'] ?? ''))) && strlen(trim((string)$user['about'])) >= 10),
+            'icon' => 'bi-card-text',
+            'hint' => 'Write a short bio or introduction',
+            'hint_hi' => 'अपने बारे में संक्षिप्त परिचय या बायो लिखें',
+            'field_id' => 'bio'
+        ],
+        [
+            'id' => 'location',
+            'title' => 'Block & Office Address',
+            'title_hi' => 'प्रखंड व कार्यालय पता',
+            'weight' => 10,
+            'completed' => (!empty($user['block_id']) || !empty($user['block_name'])) && (!empty(trim((string)($user['address'] ?? ''))) || !empty(trim((string)($user['pincode'] ?? '')))),
+            'icon' => 'bi-geo-alt',
+            'hint' => 'Select Saran Block and provide address/pincode',
+            'hint_hi' => 'सारण का प्रखंड और पता या पिनकोड भरें',
+            'field_id' => 'block_id'
+        ],
+        [
+            'id' => 'social_links',
+            'title' => 'WhatsApp & Social Links',
+            'title_hi' => 'व्हाट्सएप व सोशल लिंक',
+            'weight' => 5,
+            'completed' => !empty(trim((string)($user['whatsapp'] ?? ''))) || !empty(trim((string)($user['facebook'] ?? ''))) || !empty(trim((string)($user['instagram'] ?? ''))) || !empty(trim((string)($user['linkedin'] ?? ''))) || !empty(trim((string)($user['twitter'] ?? ''))) || !empty(trim((string)($user['google_maps_link'] ?? ''))) || !empty(trim((string)($user['public_url'] ?? ''))),
+            'icon' => 'bi-share',
+            'hint' => 'Add WhatsApp or social media handles',
+            'hint_hi' => 'व्हाट्सएप या सोशल मीडिया लिंक जोड़ें',
+            'field_id' => 'whatsapp'
+        ]
+    ];
+
+    $totalWeight = 0;
+    $earnedWeight = 0;
+    $completedCount = 0;
+    $missingItems = [];
+    $completedItems = [];
+
+    foreach ($items as $item) {
+        $totalWeight += $item['weight'];
+        if ($item['completed']) {
+            $earnedWeight += $item['weight'];
+            $completedCount++;
+            $completedItems[] = $item;
+        } else {
+            $missingItems[] = $item;
+        }
+    }
+
+    $percentage = ($totalWeight > 0) ? min(100, max(0, round(($earnedWeight / $totalWeight) * 100))) : 0;
+
+    if ($percentage >= 90) {
+        $color = 'success';
+        $progress_class = 'bg-success';
+        $badge_class = 'bg-success text-white';
+        $status = 'All-Star Complete';
+        $status_hi = 'उत्कृष्ट (पूर्ण)';
+        $level = 'All-Star';
+        $level_hi = 'ऑल-स्टार';
+    } elseif ($percentage >= 70) {
+        $color = 'info';
+        $progress_class = 'bg-info text-dark';
+        $badge_class = 'bg-info text-dark';
+        $status = 'Advanced Profile';
+        $status_hi = 'उन्नत प्रोफ़ाइल';
+        $level = 'Advanced';
+        $level_hi = 'उन्नत';
+    } elseif ($percentage >= 40) {
+        $color = 'warning';
+        $progress_class = 'bg-warning text-dark';
+        $badge_class = 'bg-warning text-dark';
+        $status = 'Intermediate';
+        $status_hi = 'मध्यम प्रोफ़ाइल';
+        $level = 'Intermediate';
+        $level_hi = 'मध्यम';
+    } else {
+        $color = 'danger';
+        $progress_class = 'bg-danger text-white';
+        $badge_class = 'bg-danger text-white';
+        $status = 'Basic / Incomplete';
+        $status_hi = 'अपूर्ण प्रोफ़ाइल';
+        $level = 'Beginner';
+        $level_hi = 'शुरुआती';
+    }
+
+    return [
+        'percentage' => $percentage,
+        'completed_count' => $completedCount,
+        'total_count' => count($items),
+        'color' => $color,
+        'progress_class' => $progress_class,
+        'badge_class' => $badge_class,
+        'status' => $status,
+        'status_hi' => $status_hi,
+        'level' => $level,
+        'level_hi' => $level_hi,
+        'items' => $items,
+        'missing_items' => $missingItems,
+        'completed_items' => $completedItems
+    ];
+}
+
 
 function registerPublicUser($fullName, $mobile, $password, $email = '', $blockId = null, $address = '', $stateCode = null, $districtCode = null, $villageId = null, $usernameHandle = '') {
     $db = getDB();

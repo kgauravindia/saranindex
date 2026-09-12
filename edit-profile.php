@@ -72,6 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 $blocks = getBlocks();
 $all_categories = getCategoriesList();
 $prof_subcategories = getProfessionalSubcategories();
+$profileCompletion = getUserProfileCompletionDetails($user);
 
 $page_title = "Edit Profile & Settings – Saran Index";
 $meta_description = "Edit your professional profile, contact details, business information, and privacy settings on Saran Index.";
@@ -136,6 +137,55 @@ require_once __DIR__ . '/includes/header.php';
         <div class="row g-4">
             <!-- Left Column: Avatar & Account Settings Card (4 Cols) -->
             <div class="col-lg-4">
+                <!-- Profile Strength & Checklist Card -->
+                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                        <h6 class="fw-bold text-dark mb-0 font-heading">
+                            <i class="bi bi-speedometer2 text-primary me-2"></i>Profile Strength
+                        </h6>
+                        <span class="badge <?php echo $profileCompletion['badge_class']; ?> rounded-pill px-2.5 py-1 extra-small">
+                            <?php echo $profileCompletion['level']; ?>
+                        </span>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="d-flex align-items-center justify-content-center rounded-circle border border-3 border-<?php echo $profileCompletion['color']; ?> bg-<?php echo $profileCompletion['color']; ?>-subtle text-<?php echo $profileCompletion['color']; ?> fw-bold fs-4 flex-shrink-0 shadow-xs" style="width: 60px; height: 60px;">
+                            <?php echo $profileCompletion['percentage']; ?>%
+                        </div>
+                        <div>
+                            <div class="fw-bold text-dark small mb-0.5"><?php echo $profileCompletion['percentage']; ?>% Completed</div>
+                            <div class="text-muted extra-small"><?php echo $profileCompletion['completed_count']; ?> of <?php echo $profileCompletion['total_count']; ?> criteria fulfilled</div>
+                        </div>
+                    </div>
+
+                    <div class="progress rounded-pill mb-3 shadow-xs" style="height: 8px; background-color: #e2e8f0;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated <?php echo $profileCompletion['progress_class']; ?>" role="progressbar" style="width: <?php echo $profileCompletion['percentage']; ?>%" aria-valuenow="<?php echo $profileCompletion['percentage']; ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+
+                    <div class="border rounded-3 p-2.5 bg-light mb-1">
+                        <div class="extra-small fw-bold text-uppercase text-muted letter-spacing-1 mb-2">
+                            <i class="bi bi-check2-square text-primary me-1"></i>Profile Checklist
+                        </div>
+                        <ul class="list-unstyled mb-0 small">
+                            <?php foreach ($profileCompletion['items'] as $cItem): ?>
+                                <li class="d-flex align-items-center justify-content-between py-1.5 border-bottom border-light">
+                                    <span class="d-flex align-items-center gap-1.5 text-truncate <?php echo $cItem['completed'] ? 'text-dark' : 'text-muted'; ?>">
+                                        <i class="bi <?php echo $cItem['completed'] ? 'bi-check-circle-fill text-success' : 'bi-circle text-secondary opacity-50'; ?> fs-6"></i>
+                                        <a href="#<?php echo $cItem['field_id']; ?>" class="text-decoration-none <?php echo $cItem['completed'] ? 'text-dark' : 'text-primary fw-semibold'; ?> extra-small" onclick="focusProfileField('<?php echo $cItem['field_id']; ?>'); return false;">
+                                            <?php echo $cItem['title']; ?>
+                                        </a>
+                                    </span>
+                                    <?php if ($cItem['completed']): ?>
+                                        <span class="badge bg-success-subtle text-success rounded-pill extra-small"><i class="bi bi-check"></i></span>
+                                    <?php else: ?>
+                                        <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill extra-small">+<?php echo $cItem['weight']; ?>%</span>
+                                    <?php endif; ?>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                </div>
+
                 <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white text-center">
                     <h5 class="fw-bold text-dark mb-3 font-heading border-bottom pb-2">
                         <i class="bi bi-person-bounding-box text-primary me-2"></i>Profile Avatar
@@ -369,7 +419,6 @@ require_once __DIR__ . '/includes/header.php';
                     <?php endif; ?>
                 </div>
 
-                <!-- Action Buttons Bar -->
                 <div class="d-flex align-items-center justify-content-between pt-2">
                     <a href="dashboard.php" class="btn btn-outline-secondary rounded-pill px-4 fw-bold">Cancel</a>
                     <button type="submit" class="btn btn-primary rounded-pill px-5 py-2.5 fw-bold shadow-sm">
@@ -380,5 +429,19 @@ require_once __DIR__ . '/includes/header.php';
         </div>
     </form>
 </div>
+
+<script>
+function focusProfileField(id) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.focus();
+        el.classList.add('border-primary', 'shadow');
+        setTimeout(() => {
+            el.classList.remove('border-primary', 'shadow');
+        }, 2000);
+    }
+}
+</script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

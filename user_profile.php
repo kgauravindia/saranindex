@@ -72,6 +72,7 @@ if ($db) {
     }
 }
 
+$profileCompletion = getUserProfileCompletionDetails($user);
 $page_handle = !empty($user['username_handle']) ? $user['username_handle'] : ('@' . slugify($user['full_name']));
 $page_title = sanitizeInput($user['full_name']) . " (" . sanitizeInput($page_handle) . ") – Professional Profile | Saran Index";
 $meta_description = "View the official professional profile of " . sanitizeInput($user['full_name']) . " (" . sanitizeInput($user['designation'] ?: 'Professional') . ") in Saran District (Chapra, Bihar). Specialization, contact info, and listings.";
@@ -92,6 +93,20 @@ require_once __DIR__ . '/includes/header.php';
 </div>
 
 <div class="container py-5">
+    <?php if ($is_owner && $profileCompletion['percentage'] < 100): ?>
+        <div class="alert alert-warning border-warning rounded-4 shadow-sm mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-speedometer2 text-warning fs-4"></i>
+                <div>
+                    <strong>Your profile is <?php echo $profileCompletion['percentage']; ?>% complete.</strong> Add more details to unlock top rank and maximum customer calls!
+                </div>
+            </div>
+            <a href="edit-profile.php" class="btn btn-warning btn-sm rounded-pill fw-bold text-dark px-3.5 py-1.5 shadow-xs">
+                Complete Profile (+<?php echo 100 - $profileCompletion['percentage']; ?>%)
+            </a>
+        </div>
+    <?php endif; ?>
+
     <div class="row g-4">
         <!-- Main Professional Profile Card (8 columns) -->
         <div class="col-12 col-lg-8">
@@ -104,7 +119,7 @@ require_once __DIR__ . '/includes/header.php';
                             <?php if (!empty($user['profile_image']) && file_exists(__DIR__ . '/' . $user['profile_image'])): ?>
                                 <img src="<?php echo sanitizeInput($user['profile_image']); ?>" alt="<?php echo sanitizeInput($user['full_name']); ?>" class="rounded-circle img-thumbnail shadow" style="width: 110px; height: 110px; object-fit: cover;">
                             <?php else: ?>
-                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold fs-1 shadow border border-3 border-white" style="width: 110px; height: 110px; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
+                                <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center fw-bold fs-1 shadow border border-3 border-white" style="width: 110px; height: 110px; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
                                     <?php echo strtoupper(substr($user['full_name'] ?: 'U', 0, 1)); ?>
                                 </div>
                             <?php endif; ?>
@@ -125,6 +140,12 @@ require_once __DIR__ . '/includes/header.php';
                                 <?php elseif (($user['mobile_status'] ?? '') === 'VERIFIED'): ?>
                                     <span class="badge bg-primary text-white rounded-pill px-2.5 py-1 small" title="Verified Professional Account">
                                         <i class="bi bi-patch-check-fill me-1"></i>Verified Pro
+                                    </span>
+                                <?php endif; ?>
+
+                                <?php if ($profileCompletion['percentage'] >= 80): ?>
+                                    <span class="badge bg-success text-white rounded-pill px-2.5 py-1 small shadow-xs" title="Profile Completeness: <?php echo $profileCompletion['percentage']; ?>%">
+                                        <i class="bi bi-shield-fill-check me-1"></i><?php echo $profileCompletion['percentage']; ?>% Complete
                                     </span>
                                 <?php endif; ?>
                             </div>

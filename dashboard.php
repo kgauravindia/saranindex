@@ -146,6 +146,7 @@ $userListings = getUserListings($user['id']);
 $userPayments = getUserPayments($user['id']);
 $blocks = getBlocks();
 $all_categories = getCategoriesList();
+$profileCompletion = getUserProfileCompletionDetails($user);
 
 $active_listings_count = 0;
 $pending_claims_count = 0;
@@ -526,9 +527,9 @@ require_once __DIR__ . '/includes/header.php';
                                     <i class="bi bi-at"></i><?php echo sanitizeInput($cleanHandle); ?>
                                 </a>
                             <?php endif; ?>
-                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 small">
-                                <i class="bi bi-patch-check-fill me-1"></i>Verified Member
-                            </span>
+                            <a href="edit-profile.php" class="badge <?php echo $profileCompletion['badge_class']; ?> text-decoration-none border rounded-pill px-2.5 py-1 small" title="Profile Strength: <?php echo $profileCompletion['percentage']; ?>%">
+                                <i class="bi bi-speedometer2 me-1"></i>Profile <?php echo $profileCompletion['percentage']; ?>% (<?php echo $profileCompletion['level']; ?>)
+                            </a>
                         </div>
 
                         <div class="d-flex align-items-center gap-3 text-white-50 small flex-wrap">
@@ -570,6 +571,77 @@ require_once __DIR__ . '/includes/header.php';
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         <?php endif; ?>
+
+        <!-- Profile Strength & Completion Percentage Card -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white overflow-hidden">
+            <div class="card-body p-4">
+                <div class="row align-items-center g-3">
+                    <div class="col-lg-7">
+                        <div class="d-flex align-items-center gap-3.5">
+                            <div class="position-relative flex-shrink-0">
+                                <div class="d-flex align-items-center justify-content-center rounded-circle border border-3 border-<?php echo $profileCompletion['color']; ?> bg-<?php echo $profileCompletion['color']; ?>-subtle text-<?php echo $profileCompletion['color']; ?> fw-bold fs-4 shadow-xs" style="width: 72px; height: 72px;">
+                                    <?php echo $profileCompletion['percentage']; ?>%
+                                </div>
+                            </div>
+                            <div>
+                                <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                    <h5 class="fw-bold text-dark mb-0 font-heading">Profile Strength: <?php echo $profileCompletion['level']; ?></h5>
+                                    <span class="badge <?php echo $profileCompletion['badge_class']; ?> rounded-pill px-2.5 py-0.5 extra-small">
+                                        <?php echo $profileCompletion['percentage']; ?>% Completed (<?php echo $profileCompletion['completed_count']; ?>/<?php echo $profileCompletion['total_count']; ?>)
+                                    </span>
+                                </div>
+                                <p class="text-muted small mb-0">
+                                    <?php if ($profileCompletion['percentage'] >= 100): ?>
+                                        <span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Your profile is 100% complete!</span> You enjoy priority ranking and top visibility across the entire Saran Index directory.
+                                    <?php else: ?>
+                                        Complete your profile to unlock verified pro trust badges, boost search rank, and gain up to 4x more customer calls.
+                                    <?php endif; ?>
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="progress rounded-pill mt-3 shadow-xs" style="height: 10px; background-color: #e2e8f0;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated <?php echo $profileCompletion['progress_class']; ?>" role="progressbar" style="width: <?php echo $profileCompletion['percentage']; ?>%" aria-valuenow="<?php echo $profileCompletion['percentage']; ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-5">
+                        <?php if (!empty($profileCompletion['missing_items'])): ?>
+                            <div class="bg-light p-3 rounded-3 border">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <span class="extra-small fw-bold text-uppercase text-muted letter-spacing-1">
+                                        <i class="bi bi-lightning-charge-fill text-warning me-1"></i>Quick Actions (Earn +%):
+                                    </span>
+                                    <a href="edit-profile.php" class="extra-small text-primary fw-bold text-decoration-none">Complete All <i class="bi bi-arrow-right"></i></a>
+                                </div>
+                                <div class="d-flex flex-wrap gap-1.5">
+                                    <?php 
+                                    $missingSlice = array_slice($profileCompletion['missing_items'], 0, 3);
+                                    foreach ($missingSlice as $mItem): ?>
+                                        <a href="edit-profile.php#<?php echo $mItem['field_id']; ?>" class="badge bg-white text-dark border text-decoration-none py-1.5 px-2.5 rounded-pill extra-small shadow-xs d-inline-flex align-items-center gap-1">
+                                            <i class="bi <?php echo $mItem['icon']; ?> text-primary"></i>
+                                            <span><?php echo $mItem['title']; ?></span>
+                                            <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill">+<?php echo $mItem['weight']; ?>%</span>
+                                        </a>
+                                    <?php endforeach; ?>
+                                    <?php if (count($profileCompletion['missing_items']) > 3): ?>
+                                        <a href="edit-profile.php" class="badge bg-primary-subtle text-primary border border-primary-subtle text-decoration-none py-1.5 px-2.5 rounded-pill extra-small">
+                                            +<?php echo count($profileCompletion['missing_items']) - 3; ?> more
+                                        </a>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        <?php else: ?>
+                            <div class="bg-success-subtle p-3 rounded-3 border border-success-subtle text-center">
+                                <i class="bi bi-patch-check-fill text-success fs-3 mb-1 d-block"></i>
+                                <div class="fw-bold text-success-emphasis small">100% Complete & Verified Profile!</div>
+                                <div class="text-muted extra-small">Your professional profile is featured with top trust score in Saran Index.</div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Stat Metrics Grid Strip -->
         <div class="row g-3 mb-4">
@@ -656,6 +728,16 @@ require_once __DIR__ . '/includes/header.php';
                         <a href="edit-profile.php" class="small text-primary text-decoration-none fw-semibold">
                             <i class="bi bi-pencil me-1"></i>Edit
                         </a>
+                    </div>
+
+                    <div class="mb-3 p-2.5 bg-light rounded-3 border">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <span class="extra-small fw-semibold text-muted">Profile Strength</span>
+                            <span class="extra-small fw-bold text-<?php echo $profileCompletion['color']; ?>"><?php echo $profileCompletion['percentage']; ?>% (<?php echo $profileCompletion['level']; ?>)</span>
+                        </div>
+                        <div class="progress rounded-pill" style="height: 6px; background-color: #e2e8f0;">
+                            <div class="progress-bar <?php echo $profileCompletion['progress_class']; ?>" role="progressbar" style="width: <?php echo $profileCompletion['percentage']; ?>%"></div>
+                        </div>
                     </div>
 
                     <div class="small">
