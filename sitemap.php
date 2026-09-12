@@ -51,6 +51,7 @@ $staticPages = [
     'add-contact'       => ['freq' => 'monthly', 'prio' => '0.7'],
     'add-listing'       => ['freq' => 'monthly', 'prio' => '0.7'],
     'pricing'           => ['freq' => 'monthly', 'prio' => '0.7'],
+    'blog/'             => ['freq' => 'weekly',  'prio' => '0.8'],
     'sources'           => ['freq' => 'monthly', 'prio' => '0.6'],
     'about'             => ['freq' => 'monthly', 'prio' => '0.5'],
     'contact'           => ['freq' => 'monthly', 'prio' => '0.5'],
@@ -77,6 +78,7 @@ $staticPages = [
     'hindi/add-contact' => ['freq' => 'monthly', 'prio' => '0.6'],
     'hindi/add-listing' => ['freq' => 'monthly', 'prio' => '0.6'],
     'hindi/pricing'     => ['freq' => 'monthly', 'prio' => '0.6'],
+    'hindi/blog/'       => ['freq' => 'weekly',  'prio' => '0.8'],
     'hindi/sources'     => ['freq' => 'monthly', 'prio' => '0.6'],
     'hindi/about'       => ['freq' => 'monthly', 'prio' => '0.5'],
     'hindi/contact'     => ['freq' => 'monthly', 'prio' => '0.5'],
@@ -203,6 +205,24 @@ if ($db) {
             $mod = !empty($row['updated_at']) ? $row['updated_at'] : $row['created_at'];
             $cleanH = ltrim($row['username_handle'], '@');
             addSitemapUrl($baseUrl . '@' . rawurlencode($cleanH), $mod, 'weekly', '0.7');
+        }
+    } catch (Exception $e) {}
+
+    // ─────────────────────────────────────────────
+    // 10. Blog Articles & Local Guides
+    // ─────────────────────────────────────────────
+    try {
+        $stmt = $db->query("
+            SELECT slug, updated_at, created_at, published_at
+            FROM blogs
+            WHERE status = 'PUBLISHED'
+              AND slug IS NOT NULL AND slug != ''
+            ORDER BY published_at DESC, id DESC
+        ");
+        while ($row = $stmt->fetch()) {
+            $mod = !empty($row['updated_at']) ? $row['updated_at'] : (!empty($row['published_at']) ? $row['published_at'] : $row['created_at']);
+            addSitemapUrl($baseUrl . 'blog/post.php?slug=' . rawurlencode($row['slug']), $mod, 'weekly', '0.8');
+            addSitemapUrl($baseUrl . 'hindi/blog/post.php?slug=' . rawurlencode($row['slug']), $mod, 'weekly', '0.8');
         }
     } catch (Exception $e) {}
 }

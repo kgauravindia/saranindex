@@ -1,5 +1,5 @@
 <?php
-require_once dirname(__DIR__) . '/includes/functions.php';
+require_once dirname(dirname(__DIR__)) . '/includes/functions.php';
 
 $db = getDB();
 $slug = sanitizeInput($_GET['slug'] ?? '');
@@ -33,15 +33,15 @@ if ($db) {
 // 404 if not found
 if (!$blog) {
     header("HTTP/1.0 404 Not Found");
-    $page_title = "Article Not Found – Saran Index";
+    $page_title = "आलेख नहीं मिला – सारण इंडेक्स";
     require_once dirname(__DIR__) . '/includes/header.php';
     ?>
     <div class="container py-5 text-center my-5">
         <div class="display-1 text-muted fw-bold mb-3">404</div>
-        <h2 class="fw-bold text-dark mb-3">Blog Article Not Found</h2>
-        <p class="text-muted mb-4">The blog post or local guide you are looking for might have been moved or unpublished.</p>
-        <a href="<?php echo defined('BASE_URL') ? BASE_URL : './'; ?>blog/" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold">
-            <i class="bi bi-arrow-left me-1"></i> Back to Blog Directory
+        <h2 class="fw-bold text-dark mb-3">ब्लॉग आलेख नहीं मिला</h2>
+        <p class="text-muted mb-4">आप जिस आलेख या मार्गदर्शिका को खोज रहे हैं वह उपलब्ध नहीं है या हटा दी गई है।</p>
+        <a href="<?php echo defined('BASE_URL') ? BASE_URL : './'; ?>hindi/blog/" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold">
+            <i class="bi bi-arrow-left me-1"></i> ब्लॉग डायरेक्टरी पर वापस जाएं
         </a>
     </div>
     <?php
@@ -61,9 +61,10 @@ if ($db) {
     }
 }
 
-$page_title = $blog['title'] . " – Saran Index Guide";
-$meta_description = !empty($blog['summary']) ? $blog['summary'] : substr(strip_tags($blog['content'] ?? ''), 0, 160);
-$canonical_url = (defined('BASE_URL') ? BASE_URL : 'https://saranindex.com/') . 'blog/post.php?slug=' . urlencode($blog['slug']);
+$display_title = !empty($blog['title_hindi']) ? $blog['title_hindi'] : $blog['title'];
+$page_title = $display_title . " – सारण इंडेक्स";
+$meta_description = !empty($blog['summary_hindi']) ? $blog['summary_hindi'] : (!empty($blog['summary']) ? $blog['summary'] : substr(strip_tags($blog['content_hindi'] ?? ''), 0, 160));
+$canonical_url = (defined('BASE_URL') ? BASE_URL : 'https://saranindex.com/') . 'hindi/blog/post.php?slug=' . urlencode($blog['slug']);
 $og_image = !empty($blog['featured_image']) ? (BASE_URL . $blog['featured_image']) : ((defined('BASE_URL') ? BASE_URL : 'https://saranindex.com/') . 'assets/logo.png');
 
 require_once dirname(__DIR__) . '/includes/header.php';
@@ -139,12 +140,12 @@ require_once dirname(__DIR__) . '/includes/header.php';
 {
   "@context": "https://schema.org",
   "@type": "BlogPosting",
-  "headline": <?php echo json_encode($blog['title']); ?>,
+  "headline": <?php echo json_encode($display_title); ?>,
   "description": <?php echo json_encode($meta_description); ?>,
   "image": <?php echo json_encode($og_image); ?>,
   "author": {
     "@type": "Person",
-    "name": <?php echo json_encode($blog['author'] ?? 'Saran Index Editorial'); ?>
+    "name": "सारण इंडेक्स संपादकीय टीम"
   },
   "publisher": {
     "@type": "Organization",
@@ -169,32 +170,32 @@ require_once dirname(__DIR__) . '/includes/header.php';
         <!-- Breadcrumbs -->
         <nav aria-label="breadcrumb" class="mb-3">
             <ol class="breadcrumb small text-white-50 mb-0">
-                <li class="breadcrumb-item"><a href="<?php echo defined('BASE_URL') ? BASE_URL : './'; ?>" class="text-white-50 text-decoration-none"><i class="bi bi-house-door me-1"></i>Home</a></li>
-                <li class="breadcrumb-item"><a href="<?php echo defined('BASE_URL') ? BASE_URL : './'; ?>blog/" class="text-white-50 text-decoration-none">Blog & Guides</a></li>
-                <li class="breadcrumb-item active text-white" aria-current="page"><?php echo htmlspecialchars($blog['category'] ?? 'Article'); ?></li>
+                <li class="breadcrumb-item"><a href="<?php echo defined('BASE_URL') ? BASE_URL : './'; ?>hindi/" class="text-white-50 text-decoration-none"><i class="bi bi-house-door me-1"></i>मुख्य पृष्ठ</a></li>
+                <li class="breadcrumb-item"><a href="<?php echo defined('BASE_URL') ? BASE_URL : './'; ?>hindi/blog/" class="text-white-50 text-decoration-none">ब्लॉग एवं गाइड्स</a></li>
+                <li class="breadcrumb-item active text-white" aria-current="page"><?php echo htmlspecialchars($blog['category_hindi'] ?? $blog['category']); ?></li>
             </ol>
         </nav>
 
         <div class="d-inline-flex align-items-center bg-white bg-opacity-15 border border-white border-opacity-25 text-white fw-bold px-3 py-1 rounded-pill mb-3 shadow-sm fs-7">
-            <i class="bi <?php echo htmlspecialchars($blog['icon'] ?? 'bi-journal-text'); ?> text-warning me-1.5"></i><?php echo htmlspecialchars($blog['category'] ?? 'Local Guide'); ?>
+            <i class="bi <?php echo htmlspecialchars($blog['icon'] ?? 'bi-journal-text'); ?> text-warning me-1.5"></i><?php echo htmlspecialchars($blog['category_hindi'] ?? $blog['category']); ?>
         </div>
 
         <h1 class="fw-bolder font-heading text-white display-6 mb-3" style="line-height: 1.25;">
-            <?php echo htmlspecialchars($blog['title']); ?>
+            <?php echo htmlspecialchars($display_title); ?>
         </h1>
 
-        <?php if (!empty($blog['title_hindi'])): ?>
+        <?php if (!empty($blog['title']) && $blog['title'] !== $display_title): ?>
             <h4 class="text-warning text-opacity-95 fw-normal mb-3 fs-5 font-heading">
-                <?php echo htmlspecialchars($blog['title_hindi']); ?>
+                <?php echo htmlspecialchars($blog['title']); ?>
             </h4>
         <?php endif; ?>
 
         <div class="d-flex align-items-center flex-wrap gap-3 text-white-50 small mt-3 pt-3 border-top border-white border-opacity-15">
-            <span><i class="bi bi-person-fill text-warning me-1"></i><?php echo htmlspecialchars($blog['author'] ?? 'Saran Index Team'); ?></span>
+            <span><i class="bi bi-person-fill text-warning me-1"></i>सारण इंडेक्स टीम</span>
             <span>•</span>
-            <span><i class="bi bi-calendar3 text-warning me-1"></i><?php echo date('F d, Y', strtotime($blog['published_at'] ?? $blog['created_at'])); ?></span>
+            <span><i class="bi bi-calendar3 text-warning me-1"></i><?php echo date('d F, Y', strtotime($blog['published_at'] ?? $blog['created_at'])); ?></span>
             <span>•</span>
-            <span><i class="bi bi-eye text-warning me-1"></i><?php echo number_format(intval($blog['views'])); ?> Views</span>
+            <span><i class="bi bi-eye text-warning me-1"></i><?php echo number_format(intval($blog['views'])); ?> व्यूज</span>
         </div>
     </div>
 </div>
@@ -205,49 +206,51 @@ require_once dirname(__DIR__) . '/includes/header.php';
         <div class="col-lg-8">
             <article class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
                 <!-- Summary Key Takeaways Callout -->
-                <?php if (!empty($blog['summary'])): ?>
-                    <div class="p-3.5 mb-4 rounded-3 border-start border-4 border-primary bg-primary-subtle text-primary-emphasis fs-6" style="line-height: 1.7;">
-                        <div class="fw-bold mb-1 text-primary d-flex align-items-center">
-                            <i class="bi bi-info-circle-fill me-2 fs-5"></i> Key Highlights & Overview
+                <?php if (!empty($blog['summary_hindi']) || !empty($blog['summary'])): ?>
+                    <div class="p-3.5 mb-4 rounded-3 border-start border-4 border-warning bg-warning-subtle text-dark fs-6" style="line-height: 1.7;">
+                        <div class="fw-bold mb-1 text-dark d-flex align-items-center">
+                            <i class="bi bi-info-circle-fill text-warning me-2 fs-5"></i> मुख्य बिंदु एवं सारांश
                         </div>
-                        <div><?php echo htmlspecialchars($blog['summary']); ?></div>
+                        <div><?php echo htmlspecialchars(!empty($blog['summary_hindi']) ? $blog['summary_hindi'] : $blog['summary']); ?></div>
                     </div>
                 <?php endif; ?>
 
-                <!-- Language Selector Toggle Tabs (if Hindi content exists) -->
-                <?php if (!empty($blog['content_hindi'])): ?>
+                <!-- Language Selector Toggle Tabs -->
+                <?php if (!empty($blog['content']) && !empty($blog['content_hindi'])): ?>
                     <div class="d-flex align-items-center justify-content-between p-2.5 mb-4 bg-light rounded-3 border">
                         <div class="small fw-semibold text-dark">
-                            <i class="bi bi-translate text-primary me-1.5"></i> Read Article In:
+                            <i class="bi bi-translate text-primary me-1.5"></i> भाषा बदलें:
                         </div>
                         <div class="btn-group btn-group-sm" role="group">
-                            <button type="button" class="btn btn-outline-primary lang-tab-btn active px-3" id="btnShowEnglish">English</button>
-                            <button type="button" class="btn btn-outline-primary lang-tab-btn px-3" id="btnShowHindi">हिंदी</button>
-                            <button type="button" class="btn btn-outline-primary lang-tab-btn px-3" id="btnShowBoth">Both / दोनों</button>
+                            <button type="button" class="btn btn-outline-primary lang-tab-btn active px-3" id="btnShowHindi">हिंदी</button>
+                            <button type="button" class="btn btn-outline-primary lang-tab-btn px-3" id="btnShowEnglish">English</button>
+                            <button type="button" class="btn btn-outline-primary lang-tab-btn px-3" id="btnShowBoth">दोनों / Both</button>
                         </div>
                     </div>
                 <?php endif; ?>
 
-                <!-- English Article Body -->
-                <div id="englishContentSection" class="article-body">
+                <!-- Hindi Article Body (Default in Hindi page) -->
+                <div id="hindiContentSection" class="article-body">
                     <?php 
-                    $content = $blog['content'] ?? '';
-                    if (!empty($content)) {
-                        echo $content;
+                    $contentHindi = $blog['content_hindi'] ?? '';
+                    if (!empty($contentHindi)) {
+                        echo $contentHindi;
+                    } elseif (!empty($blog['content'])) {
+                        echo $blog['content'];
                     } else {
-                        echo '<p class="text-muted">Content is being updated by our editorial desk.</p>';
+                        echo '<p class="text-muted">संपादकीय टीम द्वारा आलेख अपडेट किया जा रहा है।</p>';
                     }
                     ?>
                 </div>
 
-                <!-- Hindi Article Body -->
-                <?php if (!empty($blog['content_hindi'])): ?>
-                    <div id="hindiContentSection" class="article-body <?php echo !empty($blog['content']) ? 'd-none' : ''; ?>">
-                        <div class="p-3 mb-4 rounded-3 border-start border-4 border-warning bg-warning-subtle text-dark">
-                            <strong><i class="bi bi-translate me-1"></i> हिंदी संस्करण:</strong> <?php echo htmlspecialchars($blog['summary_hindi'] ?? ''); ?>
+                <!-- English Article Body -->
+                <?php if (!empty($blog['content'])): ?>
+                    <div id="englishContentSection" class="article-body <?php echo !empty($blog['content_hindi']) ? 'd-none' : ''; ?>">
+                        <div class="p-3 mb-4 rounded-3 border-start border-4 border-primary bg-primary-subtle text-primary-emphasis">
+                            <strong><i class="bi bi-info-circle-fill me-1"></i> English Version:</strong> <?php echo htmlspecialchars($blog['summary'] ?? ''); ?>
                         </div>
-                        <div class="hindi-text">
-                            <?php echo $blog['content_hindi']; ?>
+                        <div>
+                            <?php echo $blog['content']; ?>
                         </div>
                     </div>
                 <?php endif; ?>
@@ -256,35 +259,35 @@ require_once dirname(__DIR__) . '/includes/header.php';
                 <hr class="my-5">
                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 p-3 bg-light rounded-3 border">
                     <div class="d-flex align-items-center gap-2 flex-wrap">
-                        <span class="fw-bold text-dark small"><i class="bi bi-share-fill text-primary me-1.5"></i>Share:</span>
+                        <span class="fw-bold text-dark small"><i class="bi bi-share-fill text-primary me-1.5"></i>शेयर करें:</span>
                         <?php 
                         $shareUrl = urlencode($canonical_url);
-                        $shareTitle = urlencode($blog['title'] . ' – Saran Index');
+                        $shareTitle = urlencode($display_title . ' – सारण इंडेक्स');
                         ?>
-                        <a href="https://api.whatsapp.com/send?text=<?php echo $shareTitle . '%20' . $shareUrl; ?>" target="_blank" class="btn btn-sm btn-success rounded-pill px-3 fw-semibold shadow-xs" title="Share on WhatsApp">
-                            <i class="bi bi-whatsapp me-1"></i> WhatsApp
+                        <a href="https://api.whatsapp.com/send?text=<?php echo $shareTitle . '%20' . $shareUrl; ?>" target="_blank" class="btn btn-sm btn-success rounded-pill px-3 fw-semibold shadow-xs" title="WhatsApp पर शेयर करें">
+                            <i class="bi bi-whatsapp me-1"></i> व्हाट्सएप
                         </a>
-                        <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo $shareUrl; ?>" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 fw-semibold shadow-xs" title="Share on Facebook">
-                            <i class="bi bi-facebook me-1"></i> Facebook
+                        <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo $shareUrl; ?>" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 fw-semibold shadow-xs" title="Facebook पर शेयर करें">
+                            <i class="bi bi-facebook me-1"></i> फेसबुक
                         </a>
-                        <a href="https://twitter.com/intent/tweet?text=<?php echo $shareTitle; ?>&url=<?php echo $shareUrl; ?>" target="_blank" class="btn btn-sm btn-dark rounded-pill px-3 fw-semibold shadow-xs" title="Share on X">
-                            <i class="bi bi-twitter-x me-1"></i> Post
+                        <a href="https://twitter.com/intent/tweet?text=<?php echo $shareTitle; ?>&url=<?php echo $shareUrl; ?>" target="_blank" class="btn btn-sm btn-dark rounded-pill px-3 fw-semibold shadow-xs" title="X पर शेयर करें">
+                            <i class="bi bi-twitter-x me-1"></i> पोस्ट
                         </a>
-                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold" id="copyLinkBtn" title="Copy Link to Clipboard">
-                            <i class="bi bi-link-45deg me-1"></i> Copy Link
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold" id="copyLinkBtn" title="लिंक कॉपी करें">
+                            <i class="bi bi-link-45deg me-1"></i> लिंक कॉपी
                         </button>
                     </div>
 
                     <div>
-                        <a href="<?php echo defined('BASE_URL') ? BASE_URL : './'; ?>blog/" class="btn btn-outline-primary btn-sm rounded-pill px-3.5 fw-semibold">
-                            <i class="bi bi-arrow-left me-1"></i> All Articles
+                        <a href="<?php echo defined('BASE_URL') ? BASE_URL : './'; ?>hindi/blog/" class="btn btn-outline-primary btn-sm rounded-pill px-3.5 fw-semibold">
+                            <i class="bi bi-arrow-left me-1"></i> सभी आलेख
                         </a>
                     </div>
                 </div>
 
                 <!-- Toast Notification for Copy Link -->
                 <div id="copyToast" class="alert alert-success small py-2 px-3 rounded-pill mt-3 d-none text-center">
-                    <i class="bi bi-check-circle-fill me-1"></i> Article link copied to clipboard!
+                    <i class="bi bi-check-circle-fill me-1"></i> आलेख का लिंक सफलतापूर्वक कॉपी हो गया!
                 </div>
             </article>
         </div>
@@ -295,10 +298,10 @@ require_once dirname(__DIR__) . '/includes/header.php';
             <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white toc-box sticky-top" style="top: 20px; z-index: 10;">
                 <div class="d-flex align-items-center mb-2">
                     <i class="bi bi-list-nested text-primary me-2 fs-5"></i>
-                    <h6 class="fw-bold mb-0 text-dark">Table of Contents</h6>
+                    <h6 class="fw-bold mb-0 text-dark">विषय सूची (अनुक्रम)</h6>
                 </div>
                 <div id="tocList" class="ps-1">
-                    <span class="text-muted small">Loading sections...</span>
+                    <span class="text-muted small">लोड हो रहा है...</span>
                 </div>
             </div>
 
@@ -309,24 +312,24 @@ require_once dirname(__DIR__) . '/includes/header.php';
                         <i class="bi bi-feather"></i>
                     </div>
                     <div>
-                        <h6 class="fw-bold mb-0 text-dark"><?php echo htmlspecialchars($blog['author'] ?? 'Saran Index Editorial'); ?></h6>
-                        <small class="text-muted"><i class="bi bi-patch-check-fill text-primary me-1"></i>Verified Editorial Desk</small>
+                        <h6 class="fw-bold mb-0 text-dark">सारण इंडेक्स संपादकीय टीम</h6>
+                        <small class="text-muted"><i class="bi bi-patch-check-fill text-primary me-1"></i>प्रमाणित स्थानीय ज्ञान केंद्र</small>
                     </div>
                 </div>
                 <p class="text-muted small mb-0" style="line-height: 1.6;">
-                    Curating authentic local narratives, civic guides, emergency health directories, and business growth insights across Saran district.
+                    सारण जिले के 20 प्रखंडों के इतिहास, संस्कृति, नागरिक सेवाओं, स्वास्थ्य और व्यापार पर आधारित प्रामाणिक जानकारियों का प्रकाशन।
                 </p>
             </div>
 
             <!-- List Your Business Promotion Card -->
             <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 text-white" style="background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);">
-                <span class="badge bg-warning text-dark fw-bold px-3 py-1 rounded-pill mb-2 align-self-start">Grow Your Business</span>
-                <h5 class="fw-bold font-heading text-white mb-2">Are you a business in Saran?</h5>
+                <span class="badge bg-warning text-dark fw-bold px-3 py-1 rounded-pill mb-2 align-self-start">व्यापार बढ़ाएं</span>
+                <h5 class="fw-bold font-heading text-white mb-2">क्या आपका सारण में व्यवसाय है?</h5>
                 <p class="text-white text-opacity-75 small mb-3">
-                    Get listed on Saran Index and connect with customers searching across all 20 blocks.
+                    सारण इंडेक्स पर आज ही अपनी दुकान, क्लिनिक या फर्म को जोड़ें और 20 प्रखंडों के ग्राहकों से जुड़ें।
                 </p>
-                <a href="<?php echo defined('BASE_URL') ? BASE_URL : './'; ?>add-contact" class="btn btn-warning text-dark fw-bold rounded-pill w-100 py-2 shadow-sm">
-                    <i class="bi bi-plus-circle me-1"></i> Add Free Listing
+                <a href="<?php echo defined('BASE_URL') ? BASE_URL : './'; ?>hindi/add-contact" class="btn btn-warning text-dark fw-bold rounded-pill w-100 py-2 shadow-sm">
+                    <i class="bi bi-plus-circle me-1"></i> निःशुल्क लिस्टिंग जोड़ें
                 </a>
             </div>
 
@@ -334,21 +337,21 @@ require_once dirname(__DIR__) . '/includes/header.php';
             <?php if (!empty($related_blogs)): ?>
                 <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
                     <div class="d-flex align-items-center justify-content-between mb-3">
-                        <h6 class="fw-bold font-heading text-dark mb-0">More Guides from Saran</h6>
-                        <a href="<?php echo defined('BASE_URL') ? BASE_URL : './'; ?>blog/" class="small text-primary text-decoration-none fw-semibold">View All</a>
+                        <h6 class="fw-bold font-heading text-dark mb-0">सारण से जुड़े अन्य आलेख</h6>
+                        <a href="<?php echo defined('BASE_URL') ? BASE_URL : './'; ?>hindi/blog/" class="small text-primary text-decoration-none fw-semibold">सभी देखें</a>
                     </div>
                     <div class="d-flex flex-column gap-3">
                         <?php foreach ($related_blogs as $rb): ?>
                             <div class="border-bottom pb-2.5">
-                                <a href="<?php echo getBlogUrl($rb['slug']); ?>" class="text-decoration-none">
+                                <a href="<?php echo getBlogUrl($rb['slug'], true); ?>" class="text-decoration-none">
                                     <span class="badge <?php echo htmlspecialchars($rb['badge_class'] ?? 'bg-primary'); ?> rounded-pill small mb-1" style="font-size: 0.7rem;">
-                                        <?php echo htmlspecialchars($rb['category'] ?? 'Guide'); ?>
+                                        <?php echo htmlspecialchars($rb['category_hindi'] ?? $rb['category']); ?>
                                     </span>
                                     <h6 class="fw-bold text-dark mb-1 hover-text-primary fs-7" style="line-height: 1.45;">
-                                        <?php echo htmlspecialchars($rb['title']); ?>
+                                        <?php echo htmlspecialchars(!empty($rb['title_hindi']) ? $rb['title_hindi'] : $rb['title']); ?>
                                     </h6>
                                     <span class="text-muted small" style="font-size: 0.75rem;">
-                                        <i class="bi bi-calendar3 me-1"></i><?php echo date('M d, Y', strtotime($rb['published_at'] ?? $rb['created_at'])); ?>
+                                        <i class="bi bi-calendar3 me-1"></i><?php echo date('d M, Y', strtotime($rb['published_at'] ?? $rb['created_at'])); ?>
                                     </span>
                                 </a>
                             </div>

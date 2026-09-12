@@ -1298,6 +1298,177 @@ function getAdminStats() {
     return $stats;
 }
 
+function getDailyAnalyticsData($days = 30) {
+    $db = getDB();
+    $days = max(7, min(90, intval($days)));
+    
+    $timeline = [];
+    $startDate = new DateTime();
+    $startDate->modify('-' . ($days - 1) . ' days');
+    $endDate = new DateTime();
+    
+    $curr = clone $startDate;
+    while ($curr <= $endDate) {
+        $dateStr = $curr->format('Y-m-d');
+        $labelStr = $curr->format('d M');
+        $timeline[$dateStr] = [
+            'date' => $dateStr,
+            'label' => $labelStr,
+            'day_name' => $curr->format('D'),
+            'listings' => 0,
+            'verified_listings' => 0,
+            'users' => 0,
+            'revenue' => 0,
+            'reviews' => 0
+        ];
+        $curr->modify('+1 day');
+    }
+    
+    $windowStart = $startDate->format('Y-m-d 00:00:00');
+    
+    if ($db) {
+        // Daily Listings
+        try {
+            $stmt = $db->prepare("SELECT DATE(created_at) as log_date, 
+                                         COUNT(*) as cnt,
+                                         SUM(CASE WHEN is_verified = 'YES' THEN 1 ELSE 0 END) as verified_cnt
+                                  FROM listings 
+                                  WHERE created_at >= :start_date 
+                                  GROUP BY DATE(created_at)");
+            $stmt->execute([':start_date' => $windowStart]);
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $d = $row['log_date'];
+                if (isset($timeline[$d])) {
+                    $timeline[$d]['listings'] = (int)$row['cnt'];
+                    $timeline[$d]['verified_listings'] = (int)$row['verified_cnt'];
+                }
+            }
+        } catch (PDOException $e) {}
+        
+        // Daily Users
+        try {
+            $stmt = $db->prepare("SELECT DATE(created_at) as log_date, COUNT(*) as cnt 
+                                  FROM users 
+                                  WHERE created_at >= :start_date 
+                                  GROUP BY DATE(created_at)");
+            $stmt->execute([':start_date' => $windowStart]);
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $d = $row['log_date'];
+                if (isset($timeline[$d])) {
+                    $timeline[$d]['users'] = (int)$row['cnt'];
+                }
+            }
+        } catch (PDOException $e) {}
+
+        // Daily Revenue
+        try {
+            $stmt = $db->prepare("SELECT DATE(created_at) as log_date, 
+                                         COUNT(*) as cnt, 
+                                         COALESCE(SUM(amount), 0) as total_amt 
+                                  FROM payments 
+                                  WHERE payment_status = 'SUCCESS' AND created_at >= :start_date 
+                                  GROUP BY DATE(created_at)");
+            $stmt->execute([':start_date' => $windowStart]);
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $d = $row['log_date'];
+                if (isset($timeline[$d])) {
+                    $timeline[$d]['revenue'] = (float)$row['total_amt'];
+                }
+            }
+        } catch (PDOException $e) {}
+
+        // Daily Reviews
+        try {
+            $stmt = $db->prepare("SELECT DATE(created_at) as log_date, COUNT(*) as cnt 
+                                  FROM reviews 
+                                  WHERE created_at >= :start_date 
+                                  GROUP BY DATE(created_at)");
+            $stmt->execute([':start_date' => $windowStart]);
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $d = $row['log_date'];
+                if (isset($timeline[$d])) {
+                    $timeline[$d]['reviews'] = (int)$row['cnt'];
+                }
+            }
+        } catch (PDOException $e) {}
+    }
+    
+    $labels = [];
+    $listingsData = [];
+    $usersData = [];
+    $revenueData = [];
+    $verifiedData = [];
+    
+    $totalListingsInPeriod = 0;
+    $totalUsersInPeriod = 0;
+    $totalRevenueInPeriod = 0;
+    $peakDayCount = 0;
+    $peakDayDate = '';
+    
+    $todayStr = (new DateTime())->format('Y-m-d');
+    $yesterdayStr = (new DateTime('-1 day'))->format('Y-m-d');
+    
+    $todayListings = $timeline[$todayStr]['listings'] ?? 0;
+    $yesterdayListings = $timeline[$yesterdayStr]['listings'] ?? 0;
+    $todayUsers = $timeline[$todayStr]['users'] ?? 0;
+    $yesterdayUsers = $timeline[$yesterdayStr]['users'] ?? 0;
+    
+    foreach ($timeline as $dateStr => $item) {
+        $labels[] = $item['label'];
+        $listingsData[] = $item['listings'];
+        $usersData[] = $item['users'];
+        $revenueData[] = $item['revenue'];
+        $verifiedData[] = $item['verified_listings'];
+        
+        $totalListingsInPeriod += $item['listings'];
+        $totalUsersInPeriod += $item['users'];
+        $totalRevenueInPeriod += $item['revenue'];
+        
+        if ($item['listings'] > $peakDayCount) {
+            $peakDayCount = $item['listings'];
+            $peakDayDate = $item['label'];
+        }
+    }
+    
+    $avgDailyListings = $days > 0 ? round($totalListingsInPeriod / $days, 1) : 0;
+    $avgDailyUsers = $days > 0 ? round($totalUsersInPeriod / $days, 1) : 0;
+    
+    return [
+        'timeline' => array_values($timeline),
+        'chart' => [
+            'labels' => $labels,
+            'dates' => array_keys($timeline),
+            'listings' => $listingsData,
+            'users' => $usersData,
+            'revenue' => $revenueData,
+            'verified' => $verifiedData
+        ],
+        'summary' => [
+            'period_days' => $days,
+            'today_listings' => $todayListings,
+            'yesterday_listings' => $yesterdayListings,
+            'today_users' => $todayUsers,
+            'yesterday_users' => $yesterdayUsers,
+            'total_listings' => $totalListingsInPeriod,
+            'total_users' => $totalUsersInPeriod,
+            'total_revenue' => $totalRevenueInPeriod,
+            'avg_daily_listings' => $avgDailyListings,
+            'avg_daily_users' => $avgDailyUsers,
+            'peak_count' => $peakDayCount,
+            'peak_date' => $peakDayDate
+        ]
+    ];
+}
+
+function getMultiPeriodAnalyticsData() {
+    return [
+        '7' => getDailyAnalyticsData(7),
+        '14' => getDailyAnalyticsData(14),
+        '30' => getDailyAnalyticsData(30),
+        '60' => getDailyAnalyticsData(60)
+    ];
+}
+
 function countAllAdminListings($status = null, $search = null, $category_id = null, $subcategory_id = null, $block_id = null) {
     $db = getDB();
     if ($db) {
@@ -5081,4 +5252,16 @@ function getSiteHreflangTags($canonicalUrl) {
     $tags .= '    <link rel="alternate" hreflang="x-default" href="' . htmlspecialchars($enUrl) . '">' . "\n";
 
     return $tags;
+}
+
+/**
+ * Generates URL for a Blog Post or Blog Directory
+ */
+function getBlogUrl($slug = '', $isHindi = false) {
+    $baseUrl = defined('BASE_URL') ? BASE_URL : '/';
+    $prefix = $isHindi ? 'hindi/blog/' : 'blog/';
+    if (empty($slug)) {
+        return $baseUrl . $prefix;
+    }
+    return $baseUrl . $prefix . 'post.php?slug=' . urlencode($slug);
 }

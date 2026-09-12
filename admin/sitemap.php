@@ -51,6 +51,7 @@ function buildSitemapPayload($customBaseUrl = null) {
         'add-contact'       => ['freq' => 'monthly', 'prio' => '0.7', 'lang' => 'en'],
         'add-listing'       => ['freq' => 'monthly', 'prio' => '0.7', 'lang' => 'en'],
         'pricing'           => ['freq' => 'monthly', 'prio' => '0.7', 'lang' => 'en'],
+        'blog/'             => ['freq' => 'weekly',  'prio' => '0.8', 'lang' => 'en'],
         'sources'           => ['freq' => 'monthly', 'prio' => '0.6', 'lang' => 'en'],
         'about'             => ['freq' => 'monthly', 'prio' => '0.5', 'lang' => 'en'],
         'contact'           => ['freq' => 'monthly', 'prio' => '0.5', 'lang' => 'en'],
@@ -77,6 +78,7 @@ function buildSitemapPayload($customBaseUrl = null) {
         'hindi/add-contact' => ['freq' => 'monthly', 'prio' => '0.6', 'lang' => 'hi'],
         'hindi/add-listing' => ['freq' => 'monthly', 'prio' => '0.6', 'lang' => 'hi'],
         'hindi/pricing'     => ['freq' => 'monthly', 'prio' => '0.6', 'lang' => 'hi'],
+        'hindi/blog/'       => ['freq' => 'weekly',  'prio' => '0.8', 'lang' => 'hi'],
         'hindi/sources'     => ['freq' => 'monthly', 'prio' => '0.6', 'lang' => 'hi'],
         'hindi/about'       => ['freq' => 'monthly', 'prio' => '0.5', 'lang' => 'hi'],
         'hindi/contact'     => ['freq' => 'monthly', 'prio' => '0.5', 'lang' => 'hi'],
@@ -200,6 +202,23 @@ function buildSitemapPayload($customBaseUrl = null) {
                 $cleanH = ltrim($row['username_handle'], '@');
                 $items[] = ['loc' => $baseUrl . '@' . rawurlencode($cleanH), 'lastmod' => $mod, 'changefreq' => 'weekly', 'priority' => '0.7', 'type' => 'User Profile', 'lang' => 'both'];
                 $counts['users']++;
+            }
+        } catch (Exception $e) {}
+
+        // 10. Blog Articles & Guides
+        try {
+            $stmt = $db->query("
+                SELECT slug, updated_at, created_at, published_at
+                FROM blogs
+                WHERE status = 'PUBLISHED'
+                  AND slug IS NOT NULL AND slug != ''
+                ORDER BY published_at DESC, id DESC
+            ");
+            while ($row = $stmt->fetch()) {
+                $mod = !empty($row['updated_at']) ? date('Y-m-d', strtotime($row['updated_at'])) : (!empty($row['published_at']) ? date('Y-m-d', strtotime($row['published_at'])) : $today);
+                $items[] = ['loc' => $baseUrl . 'blog/post.php?slug=' . rawurlencode($row['slug']), 'lastmod' => $mod, 'changefreq' => 'weekly', 'priority' => '0.8', 'type' => 'Blog Guide', 'lang' => 'en'];
+                $items[] = ['loc' => $baseUrl . 'hindi/blog/post.php?slug=' . rawurlencode($row['slug']), 'lastmod' => $mod, 'changefreq' => 'weekly', 'priority' => '0.8', 'type' => 'Blog Guide', 'lang' => 'hi'];
+                $counts['blogs'] = ($counts['blogs'] ?? 0) + 2;
             }
         } catch (Exception $e) {}
     }

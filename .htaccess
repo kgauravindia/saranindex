@@ -80,6 +80,10 @@ ErrorDocument 404 /saranindex/404.php
     RewriteRule ^refund-policy/?$ refund-policy.php [L,QSA]
     RewriteRule ^pricing/?$ pricing.php [L,QSA]
     RewriteRule ^categories/?$ categories.php [L,QSA]
+    RewriteRule ^blog/?$ blog/index.php [L,QSA]
+    RewriteRule ^blog/([a-zA-Z0-9_-]+)/?$ blog/post.php?slug=$1 [L,QSA]
+    RewriteRule ^hindi/blog/?$ hindi/blog/index.php [L,QSA]
+    RewriteRule ^hindi/blog/([a-zA-Z0-9_-]+)/?$ hindi/blog/post.php?slug=$1 [L,QSA]
 
     # Category & Subcategory Friendly URLs
     RewriteRule ^category/([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/?$ category.php?slug=$1&sub=$2 [L,QSA]

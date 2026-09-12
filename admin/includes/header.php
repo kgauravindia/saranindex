@@ -25,6 +25,9 @@ $admin_name = $_SESSION['admin_full_name'] ?? 'Administrator';
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
+    <!-- Chart.js 4.4.4 for Daily Analytics Graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
     <!-- Instant Sidebar State Initialization Script -->
     <script>
         (function() {
@@ -237,6 +240,11 @@ $admin_name = $_SESSION['admin_full_name'] ?? 'Administrator';
             <li class="nav-item">
                 <a class="nav-link <?php echo $current_page === 'index.php' ? 'active' : ''; ?>" href="index.php" title="Dashboard">
                     <i class="bi bi-speedometer2"></i> <span class="nav-text">Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <?php echo $current_page === 'analytics.php' ? 'active' : ''; ?>" href="analytics.php" title="Daily Analytics">
+                    <i class="bi bi-graph-up-arrow text-info"></i> <span class="nav-text">Daily Analytics</span>
                 </a>
             </li>
             <li class="nav-item">

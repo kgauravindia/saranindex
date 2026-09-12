@@ -1,10 +1,9 @@
 <?php
-require_once dirname(__DIR__) . '/includes/functions.php';
+require_once dirname(dirname(__DIR__)) . '/includes/functions.php';
 
-$page_title = "Blog & Local Guides – Saran Index | Stories, Updates & Insights";
-$meta_description = "Read authentic articles, local guides, district updates, travel itineraries, business spotlights, and cultural stories across Chapra and all 20 blocks of Saran District, Bihar.";
-$meta_keywords = "Saran blog, Chapra news, Chirand archaeology, Sonpur Mela guide, Chapra hospitals directory, Saran district blocks, JPU Chapra colleges, business in Chapra";
-$canonical_url = (defined('BASE_URL') ? BASE_URL : 'https://saranindex.com/') . 'blog/';
+$page_title = "ब्लॉग एवं स्थानीय मार्गदर्शिका – सारण इंडेक्स | इतिहास, स्वास्थ्य व व्यापार";
+$meta_description = "सारण (छपरा) जिले के 20 प्रखंडों के ऐतिहासिक स्थल, आयुष्मान भारत अस्पताल, जन औषधि केंद्र, जेपीयू कॉलेज, सोनपुर मेला व व्यापार वृद्धि पर प्रमाणिक लेख व गाइड्स।";
+$canonical_url = (defined('BASE_URL') ? BASE_URL : 'https://saranindex.com/') . 'hindi/blog/';
 
 require_once dirname(__DIR__) . '/includes/header.php';
 
@@ -18,24 +17,21 @@ if ($db) {
         if ($stmt) {
             $raw_blogs = $stmt->fetchAll(PDO::FETCH_ASSOC);
             foreach ($raw_blogs as $rb) {
-                $cat = !empty($rb['category']) ? trim($rb['category']) : 'General';
+                $cat = !empty($rb['category_hindi']) ? trim($rb['category_hindi']) : (!empty($rb['category']) ? trim($rb['category']) : 'सामान्य');
                 if (!in_array($cat, $categories)) {
                     $categories[] = $cat;
                 }
                 $blogs[] = [
                     'id' => $rb['id'],
-                    'title' => $rb['title'],
-                    'title_hindi' => $rb['title_hindi'] ?? '',
+                    'title' => !empty($rb['title_hindi']) ? $rb['title_hindi'] : $rb['title'],
+                    'title_en' => $rb['title'],
                     'slug' => $rb['slug'],
                     'category' => $cat,
-                    'category_hindi' => $rb['category_hindi'] ?? '',
-                    'author' => $rb['author'] ?? 'Saran Index Editorial',
-                    'date' => !empty($rb['published_at']) ? date('M d, Y', strtotime($rb['published_at'])) : date('M d, Y'),
-                    'read_time' => $rb['read_time'] ?? '5 min read',
-                    'image' => $rb['featured_image'] ?? 'assets/img/hero-bg.jpg',
+                    'author' => 'सारण इंडेक्स संपादकीय टीम',
+                    'date' => !empty($rb['published_at']) ? date('d M, Y', strtotime($rb['published_at'])) : date('d M, Y'),
+                    'read_time' => $rb['read_time'] ?? '5 मिनट पठन',
                     'icon' => $rb['icon'] ?? 'bi-journal-text',
-                    'excerpt' => $rb['summary'] ?? (substr(strip_tags($rb['content'] ?? ''), 0, 160) . '...'),
-                    'excerpt_hindi' => $rb['summary_hindi'] ?? '',
+                    'excerpt' => !empty($rb['summary_hindi']) ? $rb['summary_hindi'] : ($rb['summary'] ?? ''),
                     'badge_class' => $rb['badge_class'] ?? 'bg-primary',
                     'views' => intval($rb['views'] ?? 0)
                 ];
@@ -53,17 +49,6 @@ if ($db) {
     color: #ffffff;
     position: relative;
     overflow: hidden;
-}
-.blog-hero-gradient::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -10%;
-    width: 500px;
-    height: 500px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 70%);
-    border-radius: 50%;
-    pointer-events: none;
 }
 .blog-card {
     transition: transform 0.25s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.25s ease;
@@ -105,20 +90,20 @@ if ($db) {
         <!-- Breadcrumb -->
         <nav aria-label="breadcrumb" class="mb-3">
             <ol class="breadcrumb justify-content-center mb-0 small text-white-50">
-                <li class="breadcrumb-item"><a href="<?php echo defined('BASE_URL') ? BASE_URL : './'; ?>" class="text-white-50 text-decoration-none"><i class="bi bi-house-door-fill"></i> Home</a></li>
-                <li class="breadcrumb-item active text-white fw-semibold" aria-current="page">Blog & Local Guides</li>
+                <li class="breadcrumb-item"><a href="<?php echo defined('BASE_URL') ? BASE_URL : './'; ?>hindi/" class="text-white-50 text-decoration-none"><i class="bi bi-house-door-fill"></i> मुख्य पृष्ठ</a></li>
+                <li class="breadcrumb-item active text-white fw-semibold" aria-current="page">ब्लॉग एवं स्थानीय मार्गदर्शिका</li>
             </ol>
         </nav>
 
         <div class="d-inline-flex align-items-center bg-white bg-opacity-10 border border-white border-opacity-25 text-white fw-bold px-3.5 py-1.5 rounded-pill mb-3 shadow-sm fs-7">
-            <i class="bi bi-journal-richtext text-warning me-2"></i>SARAN DISTRICT INSIGHTS & STORIES
+            <i class="bi bi-journal-richtext text-warning me-2"></i>सारण जिला ज्ञान केंद्र एवं लेख
         </div>
 
         <h1 class="fw-bolder font-heading text-white display-5 mb-3">
-            Stories, Guides & Knowledge Hub of Saran
+            सारण की कहानियां, इतिहास एवं उपयोगी मार्गदर्शिका
         </h1>
         <p class="lead text-white text-opacity-75 fs-6 mb-4 mx-auto" style="max-width: 720px;">
-            Explore curated travel itineraries, historical discoveries, healthcare navigation guides, and local business insights across Chapra and all 20 blocks of Saran district.
+            छपरा एवं सारण जिले के 20 प्रखंडों के प्राचीन इतिहास, धार्मिक तीर्थ, आयुष्मान भारत अस्पताल, कॉलेज और व्यापारिक विकास पर आधारित शोधपरक आलेख।
         </p>
 
         <!-- Live Instant Search Bar -->
@@ -128,9 +113,9 @@ if ($db) {
                     <span class="input-group-text bg-white border-0 ps-3 text-muted">
                         <i class="bi bi-search fs-5 text-primary"></i>
                     </span>
-                    <input type="text" id="blogSearchInput" class="form-control border-0 shadow-none ps-2 fs-6 font-body" placeholder="Search guides, historical sites, healthcare, colleges..." autocomplete="off">
+                    <input type="text" id="blogSearchInput" class="form-control border-0 shadow-none ps-2 fs-6 font-body" placeholder="इतिहास, चिरांद, अस्पताल, कॉलेज या प्रखंड खोजें..." autocomplete="off">
                     <button class="btn btn-primary rounded-pill px-4 fw-semibold" type="button" id="blogSearchBtn">
-                        Search
+                        खोजें
                     </button>
                 </div>
             </div>
@@ -142,7 +127,7 @@ if ($db) {
     <!-- Category Filter Tabs -->
     <div class="d-flex align-items-center gap-2 mb-4 overflow-auto pb-2 flex-nowrap flex-md-wrap justify-content-start justify-content-md-center">
         <button type="button" class="btn btn-sm rounded-pill px-3.5 py-2 fw-semibold blog-cat-pill bg-white text-dark active" data-category="ALL">
-            <i class="bi bi-grid-fill me-1.5"></i> All Stories (<?php echo count($blogs); ?>)
+            <i class="bi bi-grid-fill me-1.5"></i> सभी आलेख (<?php echo count($blogs); ?>)
         </button>
         <?php foreach ($categories as $cat): ?>
             <button type="button" class="btn btn-sm rounded-pill px-3.5 py-2 fw-semibold blog-cat-pill bg-white text-dark" data-category="<?php echo htmlspecialchars($cat); ?>">
@@ -159,22 +144,17 @@ if ($db) {
                 <div>
                     <div class="d-flex align-items-center gap-2 mb-3">
                         <span class="badge bg-warning text-dark fw-bold px-3 py-1 rounded-pill">
-                            <i class="bi bi-star-fill me-1"></i> Featured Article
+                            <i class="bi bi-star-fill me-1"></i> प्रमुख आलेख (Featured)
                         </span>
                         <span class="badge bg-primary px-3 py-1 rounded-pill">
                             <?php echo htmlspecialchars($featured['category']); ?>
                         </span>
                     </div>
                     <h2 class="fw-bold font-heading text-white mb-3 display-6 fs-3">
-                        <a href="<?php echo getBlogUrl($featured['slug']); ?>" class="text-white text-decoration-none">
+                        <a href="<?php echo getBlogUrl($featured['slug'], true); ?>" class="text-white text-decoration-none">
                             <?php echo htmlspecialchars($featured['title']); ?>
                         </a>
                     </h2>
-                    <?php if (!empty($featured['title_hindi'])): ?>
-                        <h5 class="text-warning text-opacity-90 fw-normal mb-3 fs-6">
-                            <?php echo htmlspecialchars($featured['title_hindi']); ?>
-                        </h5>
-                    <?php endif; ?>
                     <p class="text-white-50 mb-4 line-clamp-3" style="line-height: 1.7;">
                         <?php echo htmlspecialchars($featured['excerpt']); ?>
                     </p>
@@ -185,8 +165,8 @@ if ($db) {
                         <div><i class="bi bi-person-fill text-warning me-1"></i><?php echo htmlspecialchars($featured['author']); ?></div>
                         <div><i class="bi bi-calendar3 text-warning me-1"></i><?php echo htmlspecialchars($featured['date']); ?></div>
                     </div>
-                    <a href="<?php echo getBlogUrl($featured['slug']); ?>" class="btn btn-warning text-dark fw-bold rounded-pill px-4 py-2 shadow-sm">
-                        Read Complete Guide <i class="bi bi-arrow-right ms-1"></i>
+                    <a href="<?php echo getBlogUrl($featured['slug'], true); ?>" class="btn btn-warning text-dark fw-bold rounded-pill px-4 py-2 shadow-sm">
+                        पूरा आलेख पढ़ें <i class="bi bi-arrow-right ms-1"></i>
                     </a>
                 </div>
             </div>
@@ -198,28 +178,24 @@ if ($db) {
                             <i class="bi <?php echo htmlspecialchars($featured['icon']); ?>"></i>
                         </div>
                         <div>
-                            <h5 class="fw-bold mb-0 text-dark">Verified Local Narrative</h5>
-                            <span class="text-muted small">Researched & Authored for Saran District</span>
+                            <h5 class="fw-bold mb-0 text-dark">प्रमाणित स्थानीय सामग्री</h5>
+                            <span class="text-muted small">सारण इंडेक्स संपादकीय मंडल द्वारा शोधित</span>
                         </div>
                     </div>
                     <p class="text-secondary small mb-3" style="line-height: 1.7;">
-                        <?php if (!empty($featured['excerpt_hindi'])): ?>
-                            <i class="bi bi-translate text-primary me-1"></i> <?php echo htmlspecialchars($featured['excerpt_hindi']); ?>
-                        <?php else: ?>
-                            In-depth historical, cultural, and administrative documentation curated by the Saran Index editorial desk.
-                        <?php endif; ?>
+                        सारण जिले के सभी 20 प्रखंडों के इतिहास, संस्कृति, नागरिक सुविधाओं और विकास से जुड़े विस्तृत तथ्य।
                     </p>
                     <div class="row g-2 pt-2 border-top">
                         <div class="col-6">
                             <div class="p-2 bg-white rounded border text-center">
-                                <div class="fw-bold text-dark fs-6">20 Blocks</div>
-                                <div class="text-muted small">District Reach</div>
+                                <div class="fw-bold text-dark fs-6">20 प्रखंड</div>
+                                <div class="text-muted small">कवरेज</div>
                             </div>
                         </div>
                         <div class="col-6">
                             <div class="p-2 bg-white rounded border text-center">
                                 <div class="fw-bold text-success fs-6"><i class="bi bi-check-circle-fill me-1"></i>100%</div>
-                                <div class="text-muted small">Verified</div>
+                                <div class="text-muted small">सत्यापित</div>
                             </div>
                         </div>
                     </div>
@@ -233,16 +209,16 @@ if ($db) {
     <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
         <div>
             <h3 class="fw-bold font-heading text-dark fs-4 mb-1">
-                <i class="bi bi-grid text-primary me-2"></i>Articles & District Guides
+                <i class="bi bi-grid text-primary me-2"></i>सभी आलेख एवं मार्गदर्शिकाएं
             </h3>
-            <p class="text-muted small mb-0">Browse in-depth stories, civic tutorials, and verified local insights.</p>
+            <p class="text-muted small mb-0">सारण जिले की प्रामाणिक जानकारियां एवं नागरिक गाइड पढ़ें।</p>
         </div>
         <div class="d-flex gap-2">
-            <a href="<?php echo defined('BASE_URL') ? BASE_URL : './'; ?>categories" class="btn btn-outline-primary btn-sm rounded-pill px-3.5 py-1.5 fw-semibold">
-                <i class="bi bi-collection-fill me-1"></i> Directory
+            <a href="<?php echo defined('BASE_URL') ? BASE_URL : './'; ?>hindi/categories" class="btn btn-outline-primary btn-sm rounded-pill px-3.5 py-1.5 fw-semibold">
+                <i class="bi bi-collection-fill me-1"></i> डायरेक्टरी
             </a>
-            <a href="<?php echo defined('BASE_URL') ? BASE_URL : './'; ?>add-contact" class="btn btn-primary btn-sm rounded-pill px-3.5 py-1.5 fw-semibold">
-                <i class="bi bi-plus-circle me-1"></i> Add Listing
+            <a href="<?php echo defined('BASE_URL') ? BASE_URL : './'; ?>hindi/add-contact" class="btn btn-primary btn-sm rounded-pill px-3.5 py-1.5 fw-semibold">
+                <i class="bi bi-plus-circle me-1"></i> लिस्टिंग जोड़ें
             </a>
         </div>
     </div>
@@ -252,7 +228,7 @@ if ($db) {
         <?php foreach ($blogs as $post): ?>
             <div class="col-lg-4 col-md-6 blog-post-col" 
                  data-category="<?php echo htmlspecialchars($post['category']); ?>"
-                 data-title="<?php echo htmlspecialchars(strtolower($post['title'] . ' ' . $post['title_hindi'] . ' ' . $post['category'] . ' ' . $post['excerpt'])); ?>">
+                 data-title="<?php echo htmlspecialchars(strtolower($post['title'] . ' ' . $post['title_en'] . ' ' . $post['category'] . ' ' . $post['excerpt'])); ?>">
                 <div class="card h-100 rounded-4 shadow-sm blog-card bg-white d-flex flex-column justify-content-between overflow-hidden">
                     <div class="p-4">
                         <!-- Card Header Meta -->
@@ -269,15 +245,10 @@ if ($db) {
                             </div>
                             <div>
                                 <h5 class="card-title fw-bold text-dark mb-1 fs-6 line-clamp-2">
-                                    <a href="<?php echo getBlogUrl($post['slug']); ?>" class="text-dark text-decoration-none hover-text-primary">
+                                    <a href="<?php echo getBlogUrl($post['slug'], true); ?>" class="text-dark text-decoration-none hover-text-primary">
                                         <?php echo htmlspecialchars($post['title']); ?>
                                     </a>
                                 </h5>
-                                <?php if (!empty($post['title_hindi'])): ?>
-                                    <div class="text-muted small fw-medium fs-8 line-clamp-1">
-                                        <?php echo htmlspecialchars($post['title_hindi']); ?>
-                                    </div>
-                                <?php endif; ?>
                             </div>
                         </div>
 
@@ -292,8 +263,8 @@ if ($db) {
                         <div class="small text-muted fs-8">
                             <i class="bi bi-calendar3 me-1 text-primary"></i><?php echo htmlspecialchars($post['date']); ?>
                         </div>
-                        <a href="<?php echo getBlogUrl($post['slug']); ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-semibold fs-8">
-                            Read Guide <i class="bi bi-chevron-right ms-1"></i>
+                        <a href="<?php echo getBlogUrl($post['slug'], true); ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-semibold fs-8">
+                            पूरा पढ़ें <i class="bi bi-chevron-right ms-1"></i>
                         </a>
                     </div>
                 </div>
@@ -304,10 +275,10 @@ if ($db) {
     <!-- No Results State -->
     <div id="noResultsBox" class="text-center py-5 d-none">
         <div class="display-6 text-muted mb-3"><i class="bi bi-journal-x"></i></div>
-        <h4 class="fw-bold text-dark mb-2">No Matching Articles Found</h4>
-        <p class="text-muted small mb-3">Try searching for other keywords or select another category filter.</p>
+        <h4 class="fw-bold text-dark mb-2">कोई आलेख नहीं मिला</h4>
+        <p class="text-muted small mb-3">कृपया अन्य शब्द खोजें या अन्य श्रेणी चुनें।</p>
         <button type="button" id="resetFiltersBtn" class="btn btn-primary btn-sm rounded-pill px-4 fw-semibold">
-            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset All Filters
+            <i class="bi bi-arrow-counterclockwise me-1"></i> सभी फिल्टर रीसेट करें
         </button>
     </div>
 
@@ -315,18 +286,18 @@ if ($db) {
     <div class="card border-0 rounded-4 shadow-sm mt-5 text-white overflow-hidden" style="background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #0284c7 100%);">
         <div class="card-body p-4 p-md-5 text-center">
             <div class="d-inline-flex align-items-center bg-warning text-dark fw-bold px-3 py-1 rounded-pill mb-3 fs-7">
-                <i class="bi bi-pen-fill me-1.5"></i> Community Contributions & Business Growth
+                <i class="bi bi-pen-fill me-1.5"></i> आलेख प्रकाशन एवं व्यापार संवर्धन
             </div>
-            <h3 class="fw-bold font-heading text-white mb-2">Have a local story or business in Saran?</h3>
+            <h3 class="fw-bold font-heading text-white mb-2">क्या आपके पास सारण से जुड़ी कोई ऐतिहासिक जानकारी या व्यवसाय है?</h3>
             <p class="text-white text-opacity-80 mx-auto mb-4" style="max-width: 640px;">
-                Share verified historical insights, local event announcements, or register your shop, firm, or healthcare facility across all 20 blocks.
+                सारण जिले के इतिहास, उत्सवों से जुड़े अपने लेख साझा करें या अपनी दुकान, फर्म व सेवा को 20 प्रखंडों के डायरेक्टरी में निःशुल्क जोड़ें।
             </p>
             <div class="d-flex justify-content-center gap-3 flex-wrap">
-                <a href="<?php echo defined('BASE_URL') ? BASE_URL : './'; ?>contact" class="btn btn-warning text-dark fw-bold rounded-pill px-4 py-2 shadow-sm">
-                    <i class="bi bi-envelope-fill me-1"></i> Contact Editorial Desk
+                <a href="<?php echo defined('BASE_URL') ? BASE_URL : './'; ?>hindi/contact" class="btn btn-warning text-dark fw-bold rounded-pill px-4 py-2 shadow-sm">
+                    <i class="bi bi-envelope-fill me-1"></i> संपादकीय टीम से संपर्क करें
                 </a>
-                <a href="<?php echo defined('BASE_URL') ? BASE_URL : './'; ?>add-contact" class="btn btn-outline-light rounded-pill px-4 py-2 fw-semibold">
-                    <i class="bi bi-building-add me-1"></i> List Your Business Free
+                <a href="<?php echo defined('BASE_URL') ? BASE_URL : './'; ?>hindi/add-contact" class="btn btn-outline-light rounded-pill px-4 py-2 fw-semibold">
+                    <i class="bi bi-building-add me-1"></i> व्यवसाय निःशुल्क जोड़ें
                 </a>
             </div>
         </div>
@@ -364,7 +335,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Toggle featured container if search is active or non-all category
         if (featuredCard) {
             if (currentCategory !== 'ALL' || searchQuery !== '') {
                 featuredCard.classList.add('d-none');
