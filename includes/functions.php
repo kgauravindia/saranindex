@@ -4339,8 +4339,11 @@ function uploadUserProfilePhoto($file, $userId) {
                     $quality -= 10;
                 } while ($fileSize > $maxSize && $quality >= 20);
 
-                imagedestroy($srcImg);
-                imagedestroy($dstImg);
+                if (PHP_VERSION_ID < 80000 && function_exists('imagedestroy')) {
+                    @imagedestroy($srcImg);
+                    @imagedestroy($dstImg);
+                }
+                unset($srcImg, $dstImg);
 
                 if (file_exists($targetPath)) {
                     return 'uploads/users/' . $filename;
