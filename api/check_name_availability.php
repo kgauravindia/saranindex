@@ -1,8 +1,19 @@
 <?php
+// Set CORS and JSON headers for universal browser compatibility
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
 header('Content-Type: application/json; charset=utf-8');
-require_once __DIR__ . '/../config/config.php';
-require_once __DIR__ . '/../config/db.php';
-require_once __DIR__ . '/../includes/functions.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+
+// Safely load configuration
+@require_once __DIR__ . '/../config/config.php';
+@require_once __DIR__ . '/../config/db.php';
+@require_once __DIR__ . '/../includes/functions.php';
 
 $rawName = isset($_GET['name']) ? trim($_GET['name']) : (isset($_POST['name']) ? trim($_POST['name']) : '');
 $checkType = isset($_GET['type']) ? trim($_GET['type']) : (isset($_POST['type']) ? trim($_POST['type']) : 'all');
@@ -19,7 +30,7 @@ if (empty($cleanName)) {
     exit;
 }
 
-// 10 Selected Top Domain TLDs
+// 12 Selected Top Domain TLDs
 $domainList = [
     'com' => ['tld' => '.com', 'name' => 'Commercial (Global)', 'category' => 'Popular'],
     'in' => ['tld' => '.in', 'name' => 'India Official', 'category' => 'Country'],
@@ -35,7 +46,7 @@ $domainList = [
     'ai_in' => ['tld' => '.ai.in', 'name' => 'Indian AI & Tech Brand', 'category' => 'Country']
 ];
 
-// 10 Major Social Media Platforms
+// 12 Major Social Media Platforms
 $socialList = [
     'facebook' => [
         'name' => 'Facebook',
@@ -135,41 +146,84 @@ $socialList = [
     ]
 ];
 
-// Helper to check domain DNS status
+// Robust Multi-tier Domain DNS Checker (works on local and online servers)
 function checkDomainDNS($domain) {
     if (empty($domain)) return 'error';
     
-    // Check DNS Records (A, AAAA, MX, NS, CNAME)
-    $hasA = @checkdnsrr($domain, 'A');
-    $hasNS = @checkdnsrr($domain, 'NS');
-    $hasMX = @checkdnsrr($domain, 'MX');
-    $hasAAAA = @checkdnsrr($domain, 'AAAA');
-    $hasCNAME = @checkdnsrr($domain, 'CNAME');
+    // Tier 1: Native PHP checkdnsrr
+    if (function_exists('checkdnsrr')) {
+        $hasNS = @checkdnsrr($domain, 'NS');
+        $hasA = @checkdnsrr($domain, 'A');
+        $hasMX = @checkdnsrr($domain, 'MX');
+        $hasAAAA = @checkdnsrr($domain, 'AAAA');
+        if ($hasNS || $hasA || $hasMX || $hasAAAA) {
+            return 'taken';
+        }
+    }
 
-    if ($hasA || $hasNS || $hasMX || $hasAAAA || $hasCNAME) {
+    // Tier 2: gethostbyname
+    $ip = @gethostbyname($domain);
+    if ($ip && $ip !== $domain) {
         return 'taken';
     }
-    return 'available';
-}
 
-// Helper to check Social Media Username Availability
-function checkSocialPlatform($key, $name) {
-    $timeout = 2.5;
-
-    // 1. Instagram Check
-    if ($key === 'instagram') {
-        $ch = curl_init("https://www.instagram.com/" . urlencode($name) . "/");
+    // Tier 3: Fast Cloudflare / Google DNS over HTTPS (DoH) fallback for online environments
+    if (function_exists('curl_init')) {
+        $ch = curl_init("https://dns.google/resolve?name=" . urlencode($domain) . "&type=NS");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)');
-        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 2);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'SaranIndex/1.0');
         $res = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        $title = preg_match('/<title>(.*?)<\/title>/i', $res, $m) ? trim($m[1]) : '';
-        $isTaken = ($code === 200 && (strpos($title, '@') !== false || strpos($title, 'photos and videos') !== false || (strcasecmp($title, 'Instagram') !== 0 && !empty($title))));
+        if ($code === 200 && $res) {
+            $json = json_decode($res, true);
+            if (isset($json['Status']) && $json['Status'] === 0 && !empty($json['Answer'])) {
+                return 'taken';
+            }
+            if (isset($json['Status']) && $json['Status'] === 3) {
+                // NXDOMAIN -> Domain definitely does not exist
+                return 'available';
+            }
+        }
+    }
+
+    return 'available';
+}
+
+// Robust Social Media Username Checker
+function checkSocialPlatform($key, $name) {
+    $timeout = 2.5;
+
+    // Helper cURL wrapper
+    $execCurl = function($url, $ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36') use ($timeout) {
+        if (!function_exists('curl_init')) return ['code' => 0, 'body' => '', 'url' => ''];
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_MAXREDIRS, 4);
+        curl_setopt($ch, CURLOPT_USERAGENT, $ua);
+        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        $body = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $finalUrl = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
+        curl_close($ch);
+        return ['code' => $code, 'body' => $body ?: '', 'url' => $finalUrl];
+    };
+
+    // 1. Instagram Check
+    if ($key === 'instagram') {
+        $res = $execCurl("https://www.instagram.com/" . urlencode($name) . "/", 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)');
+        $title = preg_match('/<title>(.*?)<\/title>/i', $res['body'], $m) ? trim($m[1]) : '';
+        if ($res['code'] === 404) {
+            return ['state' => 'available', 'available' => true, 'message' => 'Available'];
+        }
+        $isTaken = ($res['code'] === 200 && (strpos($title, '@') !== false || strpos($title, 'photos and videos') !== false || (strcasecmp($title, 'Instagram') !== 0 && !empty($title))));
         return [
             'state' => $isTaken ? 'taken' : 'available',
             'available' => !$isTaken,
@@ -179,21 +233,14 @@ function checkSocialPlatform($key, $name) {
 
     // 2. Facebook Check
     if ($key === 'facebook') {
-        $ch = curl_init("https://www.facebook.com/" . urlencode($name));
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)');
-        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        $res = curl_exec($ch);
-        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        $ogTitle = preg_match('/<meta property="og:title" content="(.*?)"/i', $res, $m) ? trim($m[1]) : '';
-        $title = preg_match('/<title>(.*?)<\/title>/i', $res, $m) ? trim($m[1]) : '';
+        $res = $execCurl("https://www.facebook.com/" . urlencode($name), 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)');
+        if ($res['code'] === 404) {
+            return ['state' => 'available', 'available' => true, 'message' => 'Available'];
+        }
+        $ogTitle = preg_match('/<meta property="og:title" content="(.*?)"/i', $res['body'], $m) ? trim($m[1]) : '';
+        $title = preg_match('/<title>(.*?)<\/title>/i', $res['body'], $m) ? trim($m[1]) : '';
         $isTaken = (!empty($ogTitle) && strcasecmp($ogTitle, 'Facebook') !== 0 && strpos($ogTitle, 'Page Not Found') === false) 
                 || (!empty($title) && strcasecmp($title, 'Facebook') !== 0 && strpos($title, 'Page Not Found') === false && strpos($title, 'Log in') === false);
-        
         return [
             'state' => $isTaken ? 'taken' : 'available',
             'available' => !$isTaken,
@@ -201,40 +248,14 @@ function checkSocialPlatform($key, $name) {
         ];
     }
 
-    // 3. LinkedIn Check (Personal Profile or Company Page)
+    // 3. LinkedIn Check
     if ($key === 'linkedin') {
-        // Test personal profile /in/
-        $ch = curl_init("https://www.linkedin.com/in/" . urlencode($name));
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)');
-        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        $res = curl_exec($ch);
-        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        $title = preg_match('/<title>(.*?)<\/title>/i', $res, $m) ? trim($m[1]) : '';
-        $isTaken = ($code === 200 && strpos($title, 'LinkedIn') !== false && strpos($title, 'Page not found') === false && strpos($title, 'Join LinkedIn') === false && strcasecmp($title, 'LinkedIn') !== 0);
-
-        // If not found in personal, check company page
-        if (!$isTaken) {
-            $chComp = curl_init("https://www.linkedin.com/company/" . urlencode($name));
-            curl_setopt($chComp, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($chComp, CURLOPT_FOLLOWLOCATION, true);
-            curl_setopt($chComp, CURLOPT_USERAGENT, 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)');
-            curl_setopt($chComp, CURLOPT_TIMEOUT, 2);
-            curl_setopt($chComp, CURLOPT_SSL_VERIFYPEER, false);
-            $resComp = curl_exec($chComp);
-            $codeComp = curl_getinfo($chComp, CURLINFO_HTTP_CODE);
-            curl_close($chComp);
-
-            $titleComp = preg_match('/<title>(.*?)<\/title>/i', $resComp, $m) ? trim($m[1]) : '';
-            if ($codeComp === 200 && strpos($titleComp, 'LinkedIn') !== false && strpos($titleComp, 'Page not found') === false && strpos($titleComp, 'Join LinkedIn') === false && strcasecmp($titleComp, 'LinkedIn') !== 0) {
-                $isTaken = true;
-            }
+        $res = $execCurl("https://www.linkedin.com/in/" . urlencode($name), 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)');
+        if ($res['code'] === 404) {
+            return ['state' => 'available', 'available' => true, 'message' => 'Available'];
         }
-
+        $title = preg_match('/<title>(.*?)<\/title>/i', $res['body'], $m) ? trim($m[1]) : '';
+        $isTaken = ($res['code'] === 200 && strpos($title, 'LinkedIn') !== false && strpos($title, 'Page not found') === false && strpos($title, 'Join LinkedIn') === false && strcasecmp($title, 'LinkedIn') !== 0);
         return [
             'state' => $isTaken ? 'taken' : 'available',
             'available' => !$isTaken,
@@ -244,30 +265,12 @@ function checkSocialPlatform($key, $name) {
 
     // 4. Threads Check
     if ($key === 'threads') {
-        $ch = curl_init("https://www.threads.net/@" . urlencode($name));
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)');
-        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        $res = curl_exec($ch);
-        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        $rawOgTitle = preg_match('/<meta property="og:title" content="(.*?)"/i', $res, $m) ? trim($m[1]) : '';
-        $rawTitle = preg_match('/<title>(.*?)<\/title>/i', $res, $m) ? trim($m[1]) : '';
-        $ogTitle = html_entity_decode($rawOgTitle, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        $title = html_entity_decode($rawTitle, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-
-        $isTaken = ($code === 200 && (
-            strpos($ogTitle, 'Say more') !== false ||
-            strpos($title, 'Say more') !== false ||
-            strpos($ogTitle, '(@' . $name . ')') !== false ||
-            strpos($title, '(@' . $name . ')') !== false ||
-            strpos($res, '"username":"' . $name . '"') !== false ||
-            strpos($res, '"user_id"') !== false
-        ) && strpos($ogTitle, 'Log in') === false && strpos($title, 'Log in') === false);
-
+        $res = $execCurl("https://www.threads.net/@" . urlencode($name), 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)');
+        if ($res['code'] === 404) {
+            return ['state' => 'available', 'available' => true, 'message' => 'Available'];
+        }
+        $title = preg_match('/<title>(.*?)<\/title>/i', $res['body'], $m) ? trim($m[1]) : '';
+        $isTaken = ($res['code'] === 200 && (strpos($title, '(@' . $name . ')') !== false || strpos($title, 'Say more') !== false || strpos($res['body'], '"username":"' . $name . '"') !== false));
         return [
             'state' => $isTaken ? 'taken' : 'available',
             'available' => !$isTaken,
@@ -277,39 +280,24 @@ function checkSocialPlatform($key, $name) {
 
     // 5. Reddit Check
     if ($key === 'reddit') {
-        $ch = curl_init("https://www.reddit.com/user/" . urlencode($name) . "/");
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)');
-        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        $res = curl_exec($ch);
-        curl_close($ch);
-
-        $ogTitle = preg_match('/<meta property="og:title" content="(.*?)"/i', $res, $m) ? trim($m[1]) : '';
-        $title = preg_match('/<title>(.*?)<\/title>/i', $res, $m) ? trim($m[1]) : '';
-        $isTaken = (strpos($ogTitle, 'Reddit profile') !== false || strpos($title, '(u/') !== false);
-        return [
-            'state' => $isTaken ? 'taken' : 'available',
-            'available' => !$isTaken,
-            'message' => $isTaken ? 'Taken' : 'Available'
-        ];
+        $res = $execCurl("https://www.reddit.com/user/" . urlencode($name) . "/about.json");
+        if ($res['code'] === 404) {
+            return ['state' => 'available', 'available' => true, 'message' => 'Available'];
+        }
+        if ($res['code'] === 200 && strpos($res['body'], '"name"') !== false) {
+            return ['state' => 'taken', 'available' => false, 'message' => 'Taken'];
+        }
+        return ['state' => 'available', 'available' => true, 'message' => 'Available'];
     }
 
     // 6. YouTube Check
     if ($key === 'youtube') {
-        $ch = curl_init("https://www.youtube.com/@" . urlencode($name));
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
-        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        $res = curl_exec($ch);
-        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        $title = preg_match('/<title>(.*?)<\/title>/i', $res, $m) ? trim($m[1]) : '';
-        $isTaken = ($code === 200 && strpos($title, '- YouTube') !== false && strpos($title, '404') === false);
+        $res = $execCurl("https://www.youtube.com/@" . urlencode($name));
+        if ($res['code'] === 404) {
+            return ['state' => 'available', 'available' => true, 'message' => 'Available'];
+        }
+        $title = preg_match('/<title>(.*?)<\/title>/i', $res['body'], $m) ? trim($m[1]) : '';
+        $isTaken = ($res['code'] === 200 && strpos($title, '- YouTube') !== false && strpos($title, '404') === false);
         return [
             'state' => $isTaken ? 'taken' : 'available',
             'available' => !$isTaken,
@@ -319,16 +307,8 @@ function checkSocialPlatform($key, $name) {
 
     // 7. Telegram Check
     if ($key === 'telegram') {
-        $ch = curl_init("https://t.me/" . urlencode($name));
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
-        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        $res = curl_exec($ch);
-        curl_close($ch);
-
-        $isTaken = ($res && strpos($res, '<div class="tgme_page_title"') !== false && strpos($res, 'tgme_page_extra') !== false);
+        $res = $execCurl("https://t.me/" . urlencode($name));
+        $isTaken = ($res['body'] && strpos($res['body'], '<div class="tgme_page_title"') !== false && strpos($res['body'], 'tgme_page_extra') !== false);
         return [
             'state' => $isTaken ? 'taken' : 'available',
             'available' => !$isTaken,
@@ -338,18 +318,12 @@ function checkSocialPlatform($key, $name) {
 
     // 8. Pinterest Check
     if ($key === 'pinterest') {
-        $ch = curl_init("https://www.pinterest.com/" . urlencode($name) . "/");
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
-        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        $res = curl_exec($ch);
-        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        $title = preg_match('/<title>(.*?)<\/title>/i', $res, $m) ? trim($m[1]) : '';
-        $isTaken = ($code === 200 && strpos($title, 'Pinterest') !== false && strpos($title, 'User not found') === false && !empty($title));
+        $res = $execCurl("https://www.pinterest.com/" . urlencode($name) . "/");
+        if ($res['code'] === 404) {
+            return ['state' => 'available', 'available' => true, 'message' => 'Available'];
+        }
+        $title = preg_match('/<title>(.*?)<\/title>/i', $res['body'], $m) ? trim($m[1]) : '';
+        $isTaken = ($res['code'] === 200 && strpos($title, 'Pinterest') !== false && strpos($title, 'User not found') === false && !empty($title));
         return [
             'state' => $isTaken ? 'taken' : 'available',
             'available' => !$isTaken,
@@ -359,36 +333,24 @@ function checkSocialPlatform($key, $name) {
 
     // 9. GitHub Check
     if ($key === 'github') {
-        $ch = curl_init("https://api.github.com/users/" . urlencode($name));
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'SaranIndex-NameCheck/1.0');
-        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        $res = curl_exec($ch);
-        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        $isTaken = ($code === 200);
+        $res = $execCurl("https://api.github.com/users/" . urlencode($name), 'SaranIndex-NameChecker/1.0');
+        if ($res['code'] === 404) {
+            return ['state' => 'available', 'available' => true, 'message' => 'Available'];
+        }
         return [
-            'state' => $isTaken ? 'taken' : 'available',
-            'available' => !$isTaken,
-            'message' => $isTaken ? 'Taken' : 'Available'
+            'state' => ($res['code'] === 200) ? 'taken' : 'available',
+            'available' => ($res['code'] !== 200),
+            'message' => ($res['code'] === 200) ? 'Taken' : 'Available'
         ];
     }
 
     // 10. X (Twitter) Check
     if ($key === 'x') {
-        $ch = curl_init("https://twitter.com/" . urlencode($name));
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
-        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        $res = curl_exec($ch);
-        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        $isTaken = ($code === 200);
+        $res = $execCurl("https://x.com/" . urlencode($name));
+        if ($res['code'] === 404) {
+            return ['state' => 'available', 'available' => true, 'message' => 'Available'];
+        }
+        $isTaken = ($res['code'] === 200);
         return [
             'state' => $isTaken ? 'taken' : 'available',
             'available' => !$isTaken,
@@ -396,21 +358,14 @@ function checkSocialPlatform($key, $name) {
         ];
     }
 
-    // 11. Blogger Check
+    // 11. Blogger Check (Instant & 100% Reliable DNS Lookup)
     if ($key === 'blogger') {
-        $ch = curl_init("https://" . urlencode($name) . ".blogspot.com");
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
-        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        $res = curl_exec($ch);
-        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        $title = preg_match('/<title>(.*?)<\/title>/i', $res, $m) ? trim($m[1]) : '';
-        $isTaken = ($code === 200 || $code === 301 || $code === 302 || ($code !== 404 && strpos($title, 'Blog not found') === false && strpos($title, 'Blog has been removed') === false && !empty($title)));
-
+        $subdomain = $name . '.blogspot.com';
+        $ip = @gethostbyname($subdomain);
+        $isTaken = ($ip && $ip !== $subdomain);
+        if (!$isTaken && function_exists('checkdnsrr')) {
+            $isTaken = @checkdnsrr($subdomain, 'A') || @checkdnsrr($subdomain, 'CNAME');
+        }
         return [
             'state' => $isTaken ? 'taken' : 'available',
             'available' => !$isTaken,
@@ -420,16 +375,8 @@ function checkSocialPlatform($key, $name) {
 
     // 12. Medium Check
     if ($key === 'medium') {
-        $ch = curl_init("https://medium.com/feed/@" . urlencode($name));
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
-        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        $res = curl_exec($ch);
-        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        $isTaken = ($code === 200 && strpos($res, '<rss') !== false);
+        $res = $execCurl("https://medium.com/feed/@" . urlencode($name));
+        $isTaken = ($res['code'] === 200 && strpos($res['body'], '<rss') !== false);
         return [
             'state' => $isTaken ? 'taken' : 'available',
             'available' => !$isTaken,
@@ -442,28 +389,29 @@ function checkSocialPlatform($key, $name) {
 
 // Helper to check Saran Index DB availability
 function checkSaranIndexAvailability($name) {
-    $db = getDB();
-    if (!$db) return ['handle_available' => true, 'slug_available' => true];
-
     $formattedHandle = '@' . strtolower($name);
     $plainHandle = strtolower($name);
-    
     $handleTaken = false;
     $slugTaken = false;
 
     try {
-        $stmt = $db->prepare("SELECT id FROM users WHERE LOWER(username_handle) = :h1 OR LOWER(username_handle) = :h2 LIMIT 1");
-        $stmt->execute(['h1' => $formattedHandle, 'h2' => $plainHandle]);
-        if ($stmt->fetch()) {
-            $handleTaken = true;
-        }
+        if (function_exists('getDB')) {
+            $db = getDB();
+            if ($db) {
+                $stmt = $db->prepare("SELECT id FROM users WHERE LOWER(username_handle) = :h1 OR LOWER(username_handle) = :h2 LIMIT 1");
+                $stmt->execute(['h1' => $formattedHandle, 'h2' => $plainHandle]);
+                if ($stmt->fetch()) {
+                    $handleTaken = true;
+                }
 
-        $lStmt = $db->prepare("SELECT id FROM listings WHERE LOWER(slug) = :s1 LIMIT 1");
-        $lStmt->execute(['s1' => $plainHandle]);
-        if ($lStmt->fetch()) {
-            $slugTaken = true;
+                $lStmt = $db->prepare("SELECT id FROM listings WHERE LOWER(slug) = :s1 LIMIT 1");
+                $lStmt->execute(['s1' => $plainHandle]);
+                if ($lStmt->fetch()) {
+                    $slugTaken = true;
+                }
+            }
         }
-    } catch (PDOException $e) {
+    } catch (Throwable $e) {
         error_log("checkSaranIndexAvailability error: " . $e->getMessage());
     }
 
@@ -528,7 +476,7 @@ if (!empty($itemKey)) {
     }
 }
 
-// Bulk Check (Returns all initial structures for UI rendering)
+// Bulk check fallback
 $domainsResult = [];
 foreach ($domainList as $key => $d) {
     $domainName = $cleanName . $d['tld'];

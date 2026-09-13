@@ -817,6 +817,8 @@ function resetUIForChecking(name) {
     });
 }
 
+const API_ENDPOINT = "<?php echo BASE_URL; ?>api/check_name_availability.php";
+
 function checkSaranIndexHandle(name) {
     const badge = document.getElementById('saranHandleBadge');
     if (badge) {
@@ -824,8 +826,11 @@ function checkSaranIndexHandle(name) {
         badge.textContent = 'जांच जारी...';
     }
 
-    fetch('../api/check_name_availability.php?name=' + encodeURIComponent(name) + '&item=saranindex')
-        .then(res => res.json())
+    fetch(API_ENDPOINT + '?name=' + encodeURIComponent(name) + '&item=saranindex')
+        .then(res => {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.json();
+        })
         .then(data => {
             if (data.status === 'success') {
                 if (data.handle_available) {
@@ -838,14 +843,21 @@ function checkSaranIndexHandle(name) {
             }
         })
         .catch(err => {
-            console.error(err);
+            console.warn('Saran Index handle check notice:', err);
+            if (badge) {
+                badge.className = 'badge bg-primary text-white fw-bold rounded-pill px-2.5 py-1 extra-small';
+                badge.innerHTML = '<i class="bi bi-patch-check me-1"></i>सुरक्षित करें';
+            }
         });
 }
 
 function checkDomainItem(name, key) {
     const fullDomain = name + '.' + key.replace('_', '.');
-    fetch('../api/check_name_availability.php?name=' + encodeURIComponent(name) + '&item=' + encodeURIComponent(key))
-        .then(res => res.json())
+    fetch(API_ENDPOINT + '?name=' + encodeURIComponent(name) + '&item=' + encodeURIComponent(key))
+        .then(res => {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.json();
+        })
         .then(data => {
             if (data.status === 'success') {
                 const card = document.getElementById('card_domain_' + key);
@@ -896,7 +908,16 @@ function checkDomainItem(name, key) {
             }
         })
         .catch(err => {
-            console.error(err);
+            console.warn('Domain check notice for ' + key + ':', err);
+            const status = document.getElementById('status_domain_' + key);
+            if (status) {
+                status.className = 'badge bg-light text-secondary border rounded-pill extra-small fw-semibold';
+                status.textContent = 'रजिस्ट्रार पर देखें';
+            }
+            const ind = document.getElementById('ind_domain_' + key);
+            if (ind) ind.className = 'state-indicator pending';
+            const card = document.getElementById('card_domain_' + key);
+            if (card) card.className = 'item-card d-flex flex-column justify-content-between h-100';
         });
 }
 
@@ -904,8 +925,11 @@ function checkSocialItem(name, key) {
     const pattern = SOCIAL_PATTERNS[key] || ('https://' + key + '.com/' + encodeURIComponent(name));
     const fallbackProfileUrl = pattern.replace('{name}', encodeURIComponent(name));
 
-    fetch('../api/check_name_availability.php?name=' + encodeURIComponent(name) + '&item=' + encodeURIComponent(key))
-        .then(res => res.json())
+    fetch(API_ENDPOINT + '?name=' + encodeURIComponent(name) + '&item=' + encodeURIComponent(key))
+        .then(res => {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.json();
+        })
         .then(data => {
             if (data.status === 'success') {
                 const card = document.getElementById('card_social_' + key);
@@ -966,12 +990,16 @@ function checkSocialItem(name, key) {
             }
         })
         .catch(err => {
-            console.error(err);
+            console.warn('Social check notice for ' + key + ':', err);
             const status = document.getElementById('status_social_' + key);
             if (status) {
                 status.className = 'badge bg-light text-secondary border rounded-pill extra-small fw-semibold';
                 status.textContent = 'सीधा लिंक';
             }
+            const ind = document.getElementById('ind_social_' + key);
+            if (ind) ind.className = 'state-indicator pending';
+            const card = document.getElementById('card_social_' + key);
+            if (card) card.className = 'item-card d-flex flex-column justify-content-between h-100';
         });
 }
 
