@@ -264,11 +264,17 @@ function checkSocialPlatform($key, $name) {
     // 1. Instagram Check
     if ($key === 'instagram') {
         $res = $execCurl("https://www.instagram.com/" . urlencode($name) . "/", 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)');
-        $title = preg_match('/<title>(.*?)<\/title>/i', $res['body'], $m) ? trim($m[1]) : '';
         if ($res['code'] === 404) {
             return ['state' => 'available', 'available' => true, 'message' => 'Available'];
         }
-        $isTaken = ($res['code'] === 200 && (strpos($title, '@') !== false || strpos($title, 'photos and videos') !== false || (strcasecmp($title, 'Instagram') !== 0 && !empty($title))));
+        $title = preg_match('/<title>(.*?)<\/title>/i', $res['body'], $m) ? trim($m[1]) : '';
+        $decoded = html_entity_decode($title, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        
+        $isTaken = ($res['code'] === 200 && (
+            stripos($decoded, '@' . $name) !== false ||
+            stripos($decoded, 'photos and videos') !== false ||
+            (stripos($decoded, 'Instagram') !== false && strcasecmp(trim($decoded), 'Instagram') !== 0 && stripos($decoded, 'Login') === false && stripos($decoded, 'Page not found') === false)
+        ));
         return [
             'state' => $isTaken ? 'taken' : 'available',
             'available' => !$isTaken,
@@ -284,8 +290,12 @@ function checkSocialPlatform($key, $name) {
         }
         $ogTitle = preg_match('/<meta property="og:title" content="(.*?)"/i', $res['body'], $m) ? trim($m[1]) : '';
         $title = preg_match('/<title>(.*?)<\/title>/i', $res['body'], $m) ? trim($m[1]) : '';
-        $isTaken = (!empty($ogTitle) && strcasecmp($ogTitle, 'Facebook') !== 0 && strpos($ogTitle, 'Page Not Found') === false) 
-                || (!empty($title) && strcasecmp($title, 'Facebook') !== 0 && strpos($title, 'Page Not Found') === false && strpos($title, 'Log in') === false);
+        $decoded = html_entity_decode($title, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        $isTaken = ($res['code'] === 200 && (
+            (!empty($ogTitle) && strcasecmp(trim($ogTitle), 'Facebook') !== 0 && stripos($ogTitle, 'Page Not Found') === false && stripos($ogTitle, 'Log in') === false) ||
+            (!empty($decoded) && strcasecmp(trim($decoded), 'Facebook') !== 0 && stripos($decoded, 'Page Not Found') === false && stripos($decoded, 'Log in') === false)
+        ));
         return [
             'state' => $isTaken ? 'taken' : 'available',
             'available' => !$isTaken,
