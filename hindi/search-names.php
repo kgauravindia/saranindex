@@ -817,7 +817,33 @@ function resetUIForChecking(name) {
     });
 }
 
-const API_ENDPOINT = "<?php echo BASE_URL; ?>api/check_name_availability.php";
+const API_ENDPOINT = (function() {
+    const pathname = window.location.pathname;
+    if (pathname.includes('/hindi/')) {
+        return '../api/check_name_availability.php';
+    }
+    return 'api/check_name_availability.php';
+})();
+
+async function fetchAPI(params) {
+    const relUrl = API_ENDPOINT + params;
+    try {
+        const res = await fetch(relUrl);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const text = await res.text();
+        return JSON.parse(text);
+    } catch (err) {
+        // Fallback to absolute BASE_URL endpoint if relative fetch fails
+        try {
+            const absUrl = "<?php echo BASE_URL; ?>api/check_name_availability.php" + params;
+            const res2 = await fetch(absUrl);
+            const text2 = await res2.text();
+            return JSON.parse(text2);
+        } catch (err2) {
+            throw err;
+        }
+    }
+}
 
 function checkSaranIndexHandle(name) {
     const badge = document.getElementById('saranHandleBadge');
@@ -826,13 +852,9 @@ function checkSaranIndexHandle(name) {
         badge.textContent = 'जांच जारी...';
     }
 
-    fetch(API_ENDPOINT + '?name=' + encodeURIComponent(name) + '&item=saranindex')
-        .then(res => {
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-            return res.json();
-        })
+    fetchAPI('?name=' + encodeURIComponent(name) + '&item=saranindex')
         .then(data => {
-            if (data.status === 'success') {
+            if (data && data.status === 'success') {
                 if (data.handle_available) {
                     badge.className = 'badge bg-success text-white fw-bold rounded-pill px-3 py-1 extra-small shadow-xs';
                     badge.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>सारण इंडेक्स पर उपलब्ध';
@@ -853,13 +875,9 @@ function checkSaranIndexHandle(name) {
 
 function checkDomainItem(name, key) {
     const fullDomain = name + '.' + key.replace('_', '.');
-    fetch(API_ENDPOINT + '?name=' + encodeURIComponent(name) + '&item=' + encodeURIComponent(key))
-        .then(res => {
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-            return res.json();
-        })
+    fetchAPI('?name=' + encodeURIComponent(name) + '&item=' + encodeURIComponent(key))
         .then(data => {
-            if (data.status === 'success') {
+            if (data && data.status === 'success') {
                 const card = document.getElementById('card_domain_' + key);
                 const ind = document.getElementById('ind_domain_' + key);
                 const status = document.getElementById('status_domain_' + key);
@@ -925,13 +943,9 @@ function checkSocialItem(name, key) {
     const pattern = SOCIAL_PATTERNS[key] || ('https://' + key + '.com/' + encodeURIComponent(name));
     const fallbackProfileUrl = pattern.replace('{name}', encodeURIComponent(name));
 
-    fetch(API_ENDPOINT + '?name=' + encodeURIComponent(name) + '&item=' + encodeURIComponent(key))
-        .then(res => {
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-            return res.json();
-        })
+    fetchAPI('?name=' + encodeURIComponent(name) + '&item=' + encodeURIComponent(key))
         .then(data => {
-            if (data.status === 'success') {
+            if (data && data.status === 'success') {
                 const card = document.getElementById('card_social_' + key);
                 const ind = document.getElementById('ind_social_' + key);
                 const status = document.getElementById('status_social_' + key);

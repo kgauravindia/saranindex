@@ -1,19 +1,35 @@
 <?php
+// Suppress warnings/notices to prevent JSON payload corruption on production servers
+@ini_set('display_errors', '0');
+@error_reporting(0);
+if (!ob_get_level()) {
+    ob_start();
+}
+
 // Set CORS and JSON headers for universal browser compatibility
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
 header('Content-Type: application/json; charset=utf-8');
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+if (isset($_SERVER['REQUEST_METHOD']) && strtoupper($_SERVER['REQUEST_METHOD']) === 'OPTIONS') {
     http_response_code(200);
+    if (ob_get_length()) ob_clean();
     exit;
 }
 
 // Safely load configuration
-@require_once __DIR__ . '/../config/config.php';
-@require_once __DIR__ . '/../config/db.php';
-@require_once __DIR__ . '/../includes/functions.php';
+try {
+    @require_once __DIR__ . '/../config/config.php';
+    @require_once __DIR__ . '/../config/db.php';
+    @require_once __DIR__ . '/../includes/functions.php';
+} catch (Throwable $e) {
+    // Graceful fallback if database or config is partially unreachable
+}
+
+// Reset error display again in case config.php enabled it
+@ini_set('display_errors', '0');
+@error_reporting(0);
 
 $rawName = isset($_GET['name']) ? trim($_GET['name']) : (isset($_POST['name']) ? trim($_POST['name']) : '');
 $checkType = isset($_GET['type']) ? trim($_GET['type']) : (isset($_POST['type']) ? trim($_POST['type']) : 'all');
@@ -23,6 +39,7 @@ $itemKey = isset($_GET['item']) ? trim($_GET['item']) : (isset($_POST['item']) ?
 $cleanName = strtolower(trim(preg_replace('/[^a-zA-Z0-9_-]/', '', ltrim($rawName, '@'))));
 
 if (empty($cleanName)) {
+    if (ob_get_length()) ob_clean();
     echo json_encode([
         'status' => 'error',
         'message' => 'Please enter a valid brand or business name.'
@@ -156,7 +173,8 @@ function checkDomainDNS($domain) {
         $hasA = @checkdnsrr($domain, 'A');
         $hasMX = @checkdnsrr($domain, 'MX');
         $hasAAAA = @checkdnsrr($domain, 'AAAA');
-        if ($hasNS || $hasA || $hasMX || $hasAAAA) {
+        $hasSOA = @checkdnsrr($domain, 'SOA');
+        if ($hasNS || $hasA || $hasMX || $hasAAAA || $hasSOA) {
             return 'taken';
         }
     }
@@ -167,24 +185,49 @@ function checkDomainDNS($domain) {
         return 'taken';
     }
 
-    // Tier 3: Fast Cloudflare / Google DNS over HTTPS (DoH) fallback for online environments
+    // Tier 3: Fast Google DNS over HTTPS (DoH) fallback for online environments
     if (function_exists('curl_init')) {
-        $ch = curl_init("https://dns.google/resolve?name=" . urlencode($domain) . "&type=NS");
+        $ch = curl_init("https://dns.google/resolve?name=" . urlencode($domain) . "&type=A");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 2);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 3);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'SaranIndex/1.0');
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0');
         $res = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
         if ($code === 200 && $res) {
-            $json = json_decode($res, true);
+            $json = @json_decode($res, true);
             if (isset($json['Status']) && $json['Status'] === 0 && !empty($json['Answer'])) {
                 return 'taken';
             }
             if (isset($json['Status']) && $json['Status'] === 3) {
                 // NXDOMAIN -> Domain definitely does not exist
+                return 'available';
+            }
+        }
+
+        // Tier 4: Cloudflare DoH Fallback
+        $ch2 = curl_init("https://cloudflare-dns.com/dns-query?name=" . urlencode($domain) . "&type=A");
+        curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch2, CURLOPT_HTTPHEADER, ['Accept: application/dns-json']);
+        curl_setopt($ch2, CURLOPT_TIMEOUT, 3);
+        curl_setopt($ch2, CURLOPT_CONNECTTIMEOUT, 2);
+        curl_setopt($ch2, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch2, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch2, CURLOPT_USERAGENT, 'Mozilla/5.0');
+        $res2 = curl_exec($ch2);
+        $code2 = curl_getinfo($ch2, CURLINFO_HTTP_CODE);
+        curl_close($ch2);
+
+        if ($code2 === 200 && $res2) {
+            $json2 = @json_decode($res2, true);
+            if (isset($json2['Status']) && $json2['Status'] === 0 && !empty($json2['Answer'])) {
+                return 'taken';
+            }
+            if (isset($json2['Status']) && $json2['Status'] === 3) {
                 return 'available';
             }
         }
@@ -202,8 +245,10 @@ function checkSocialPlatform($key, $name) {
         if (!function_exists('curl_init')) return ['code' => 0, 'body' => '', 'url' => ''];
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_MAXREDIRS, 4);
+        if (!ini_get('open_basedir')) {
+            @curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        }
+        @curl_setopt($ch, CURLOPT_MAXREDIRS, 4);
         curl_setopt($ch, CURLOPT_USERAGENT, $ua);
         curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
@@ -432,6 +477,7 @@ if (!empty($itemKey)) {
         $domainName = $cleanName . $tld;
         $status = checkDomainDNS($domainName);
         
+        if (ob_get_length()) ob_clean();
         echo json_encode([
             'status' => 'success',
             'type' => 'domain',
@@ -455,6 +501,7 @@ if (!empty($itemKey)) {
         $profileUrl = str_replace('{name}', urlencode($cleanName), $soc['url_pattern']);
         $socCheck = checkSocialPlatform($itemKey, $cleanName);
 
+        if (ob_get_length()) ob_clean();
         echo json_encode([
             'status' => 'success',
             'type' => 'social',
@@ -472,6 +519,7 @@ if (!empty($itemKey)) {
     // 3. Saran Index check
     if ($itemKey === 'saranindex') {
         $saranCheck = checkSaranIndexAvailability($cleanName);
+        if (ob_get_length()) ob_clean();
         echo json_encode(array_merge(['status' => 'success', 'type' => 'saranindex'], $saranCheck));
         exit;
     }
@@ -511,6 +559,7 @@ foreach ($socialList as $key => $s) {
 
 $saranResult = checkSaranIndexAvailability($cleanName);
 
+if (ob_get_length()) ob_clean();
 echo json_encode([
     'status' => 'success',
     'search_name' => $cleanName,
