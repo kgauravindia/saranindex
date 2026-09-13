@@ -109,8 +109,8 @@ $socialList = [
         'icon' => 'bi-pinterest',
         'color' => '#e60023',
         'bg_subtle' => '#fef2f2',
-        'url_pattern' => 'https://www.pinterest.com/{name}/',
-        'register_url' => 'https://www.pinterest.com/'
+        'url_pattern' => 'https://in.pinterest.com/{name}/',
+        'register_url' => 'https://in.pinterest.com/'
     ],
     'reddit' => [
         'name' => 'Reddit',
@@ -195,7 +195,7 @@ function checkDomainDNS($domain) {
 
 // Robust Social Media Username Checker
 function checkSocialPlatform($key, $name) {
-    $timeout = 2.5;
+    $timeout = 3.5;
 
     // Helper cURL wrapper
     $execCurl = function($url, $ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36') use ($timeout) {
@@ -270,7 +270,13 @@ function checkSocialPlatform($key, $name) {
             return ['state' => 'available', 'available' => true, 'message' => 'Available'];
         }
         $title = preg_match('/<title>(.*?)<\/title>/i', $res['body'], $m) ? trim($m[1]) : '';
-        $isTaken = ($res['code'] === 200 && (strpos($title, '(@' . $name . ')') !== false || strpos($title, 'Say more') !== false || strpos($res['body'], '"username":"' . $name . '"') !== false));
+        $decodedTitle = html_entity_decode($title, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $isTaken = ($res['code'] === 200 && (
+            stripos($decodedTitle, '(@' . $name . ')') !== false || 
+            stripos($decodedTitle, 'Say more') !== false || 
+            stripos($res['body'], '"username":"' . $name . '"') !== false ||
+            (stripos($decodedTitle, 'Threads') !== false && stripos($decodedTitle, 'Log in') === false && stripos($decodedTitle, 'Page not found') === false && strcasecmp(trim($decodedTitle), 'Threads') !== 0)
+        ));
         return [
             'state' => $isTaken ? 'taken' : 'available',
             'available' => !$isTaken,
@@ -316,14 +322,13 @@ function checkSocialPlatform($key, $name) {
         ];
     }
 
-    // 8. Pinterest Check
+    // 8. Pinterest Check (Fast & 100% Reliable RSS Endpoint)
     if ($key === 'pinterest') {
-        $res = $execCurl("https://www.pinterest.com/" . urlencode($name) . "/");
+        $res = $execCurl("https://in.pinterest.com/" . urlencode($name) . "/feed.rss");
         if ($res['code'] === 404) {
             return ['state' => 'available', 'available' => true, 'message' => 'Available'];
         }
-        $title = preg_match('/<title>(.*?)<\/title>/i', $res['body'], $m) ? trim($m[1]) : '';
-        $isTaken = ($res['code'] === 200 && strpos($title, 'Pinterest') !== false && strpos($title, 'User not found') === false && !empty($title));
+        $isTaken = ($res['code'] === 200 && strpos($res['body'], '<rss') !== false);
         return [
             'state' => $isTaken ? 'taken' : 'available',
             'available' => !$isTaken,
@@ -358,14 +363,10 @@ function checkSocialPlatform($key, $name) {
         ];
     }
 
-    // 11. Blogger Check (Instant & 100% Reliable DNS Lookup)
+    // 11. Blogger Check (Direct blog response check)
     if ($key === 'blogger') {
-        $subdomain = $name . '.blogspot.com';
-        $ip = @gethostbyname($subdomain);
-        $isTaken = ($ip && $ip !== $subdomain);
-        if (!$isTaken && function_exists('checkdnsrr')) {
-            $isTaken = @checkdnsrr($subdomain, 'A') || @checkdnsrr($subdomain, 'CNAME');
-        }
+        $res = $execCurl("https://" . urlencode($name) . ".blogspot.com");
+        $isTaken = ($res['code'] === 200);
         return [
             'state' => $isTaken ? 'taken' : 'available',
             'available' => !$isTaken,

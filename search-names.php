@@ -84,8 +84,8 @@ $socialPlatforms = [
         'name' => 'Pinterest',
         'icon' => 'bi-pinterest',
         'brand_color' => '#e60023',
-        'url_pattern' => 'https://www.pinterest.com/{name}/',
-        'register_url' => 'https://www.pinterest.com/'
+        'url_pattern' => 'https://in.pinterest.com/{name}/',
+        'register_url' => 'https://in.pinterest.com/'
     ],
     'reddit' => [
         'name' => 'Reddit',
@@ -722,7 +722,7 @@ const SOCIAL_PATTERNS = {
     telegram: 'https://t.me/{name}',
     linkedin: 'https://www.linkedin.com/in/{name}',
     github: 'https://github.com/{name}',
-    pinterest: 'https://www.pinterest.com/{name}/',
+    pinterest: 'https://in.pinterest.com/{name}/',
     reddit: 'https://www.reddit.com/user/{name}',
     threads: 'https://www.threads.net/@{name}',
     blogger: 'https://{name}.blogspot.com',
