@@ -93,8 +93,8 @@ $socialList = [
         'icon' => 'bi-linkedin',
         'color' => '#0a66c2',
         'bg_subtle' => '#eff6ff',
-        'url_pattern' => 'https://www.linkedin.com/in/{name}',
-        'register_url' => 'https://www.linkedin.com/signup'
+        'url_pattern' => 'https://www.linkedin.com/company/{name}',
+        'register_url' => 'https://www.linkedin.com/company/setup/new/'
     ],
     'github' => [
         'name' => 'GitHub',
@@ -248,14 +248,14 @@ function checkSocialPlatform($key, $name) {
         ];
     }
 
-    // 3. LinkedIn Check
+    // 3. LinkedIn Check (Company / Brand Page)
     if ($key === 'linkedin') {
-        $res = $execCurl("https://www.linkedin.com/in/" . urlencode($name), 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)');
+        $res = $execCurl("https://www.linkedin.com/company/" . urlencode($name));
         if ($res['code'] === 404) {
             return ['state' => 'available', 'available' => true, 'message' => 'Available'];
         }
         $title = preg_match('/<title>(.*?)<\/title>/i', $res['body'], $m) ? trim($m[1]) : '';
-        $isTaken = ($res['code'] === 200 && strpos($title, 'LinkedIn') !== false && strpos($title, 'Page not found') === false && strpos($title, 'Join LinkedIn') === false && strcasecmp($title, 'LinkedIn') !== 0);
+        $isTaken = ($res['code'] === 200 && strpos($title, 'LinkedIn') !== false && strpos($title, 'Page not found') === false && strcasecmp($title, 'LinkedIn') !== 0 && !empty($title));
         return [
             'state' => $isTaken ? 'taken' : 'available',
             'available' => !$isTaken,

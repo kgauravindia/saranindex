@@ -70,8 +70,8 @@ $socialPlatforms = [
         'name' => 'LinkedIn',
         'icon' => 'bi-linkedin',
         'brand_color' => '#0a66c2',
-        'url_pattern' => 'https://www.linkedin.com/in/{name}',
-        'register_url' => 'https://www.linkedin.com/signup'
+        'url_pattern' => 'https://www.linkedin.com/company/{name}',
+        'register_url' => 'https://www.linkedin.com/company/setup/new/'
     ],
     'github' => [
         'name' => 'GitHub',
@@ -720,7 +720,7 @@ const SOCIAL_PATTERNS = {
     instagram: 'https://www.instagram.com/{name}/',
     youtube: 'https://www.youtube.com/@{name}',
     telegram: 'https://t.me/{name}',
-    linkedin: 'https://www.linkedin.com/in/{name}',
+    linkedin: 'https://www.linkedin.com/company/{name}',
     github: 'https://github.com/{name}',
     pinterest: 'https://in.pinterest.com/{name}/',
     reddit: 'https://www.reddit.com/user/{name}',
