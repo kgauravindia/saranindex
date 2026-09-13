@@ -34,6 +34,8 @@
     RewriteRule ^person/([a-zA-Z0-9_-]+)/?$ person.php?slug=$1 [L,QSA]
     
     # Core Pages
+    RewriteRule ^search-names/?$ search-names.php [L,QSA]
+    RewriteRule ^names/?$ search-names.php [L,QSA]
     RewriteRule ^search/?$ search.php [L,QSA]
     RewriteRule ^login/?$ login.php [L,QSA]
     RewriteRule ^register/?$ register.php [L,QSA]

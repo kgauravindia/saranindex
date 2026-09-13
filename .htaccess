@@ -20,10 +20,10 @@ ErrorDocument 404 /saranindex/404.php
     RewriteRule ^hindi/index\.php$ /hindi/ [R=301,L]
 
     # 3. Canonical Clean URLs for Core Pages (/about.php -> /about)
-    RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /(about|contact|terms|privacy-policy|refund-policy|pricing|sources|emergency|health|history|river|nahar|university|categories|add-contact|login|register|forgot-password|dashboard|my-listings|pay|search)\.php[?\s] [NC]
+    RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /(about|contact|terms|privacy-policy|refund-policy|pricing|sources|emergency|health|history|river|nahar|university|categories|add-contact|login|register|forgot-password|dashboard|my-listings|pay|search|search-names|names)\.php[?\s] [NC]
     RewriteRule ^([a-zA-Z0-9_-]+)\.php$ $1 [R=301,L]
 
-    RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /hindi/(about|contact|terms|privacy-policy|refund-policy|pricing|sources|emergency|health|history|river|nahar|university|categories|add-contact|login|register|dashboard|search)\.php[?\s] [NC]
+    RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /hindi/(about|contact|terms|privacy-policy|refund-policy|pricing|sources|emergency|health|history|river|nahar|university|categories|add-contact|login|register|dashboard|search|search-names|names)\.php[?\s] [NC]
     RewriteRule ^hindi/([a-zA-Z0-9_-]+)\.php$ hindi/$1 [R=301,L]
 
     # Do not rewrite existing files or directories (assets, uploads, images, admin, etc.)
@@ -50,6 +50,8 @@ ErrorDocument 404 /saranindex/404.php
     
     # Core Static Pages
     RewriteRule ^sitemap\.xml$ sitemap.php [L,QSA]
+    RewriteRule ^search-names/?$ search-names.php [L,QSA]
+    RewriteRule ^names/?$ search-names.php [L,QSA]
     RewriteRule ^search/?$ search.php [L,QSA]
     RewriteRule ^login/?$ login.php [L,QSA]
     RewriteRule ^register/?$ register.php [L,QSA]
