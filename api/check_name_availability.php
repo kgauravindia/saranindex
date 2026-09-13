@@ -261,7 +261,7 @@ function checkSocialPlatform($key, $name) {
         return ['code' => $code, 'body' => $body ?: '', 'url' => $finalUrl];
     };
 
-    // 1. Instagram Check
+    // 1. Instagram Check (Robust OpenGraph & Title Inspection)
     if ($key === 'instagram') {
         $res = $execCurl("https://www.instagram.com/" . urlencode($name) . "/", 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)');
         if ($res['code'] === 404) {
@@ -269,10 +269,15 @@ function checkSocialPlatform($key, $name) {
         }
         $title = preg_match('/<title>(.*?)<\/title>/i', $res['body'], $m) ? trim($m[1]) : '';
         $decoded = html_entity_decode($title, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $ogTitle = preg_match('/<meta property="og:title" content="(.*?)"/i', $res['body'], $mOg) ? trim($mOg[1]) : '';
+        $ogDesc = preg_match('/<meta property="og:description" content="(.*?)"/i', $res['body'], $mDesc) ? trim($mDesc[1]) : '';
         
         $isTaken = ($res['code'] === 200 && (
+            !empty($ogTitle) ||
+            !empty($ogDesc) ||
             stripos($decoded, '@' . $name) !== false ||
             stripos($decoded, 'photos and videos') !== false ||
+            stripos($decoded, 'Followers') !== false ||
             (stripos($decoded, 'Instagram') !== false && strcasecmp(trim($decoded), 'Instagram') !== 0 && stripos($decoded, 'Login') === false && stripos($decoded, 'Page not found') === false)
         ));
         return [
@@ -282,8 +287,15 @@ function checkSocialPlatform($key, $name) {
         ];
     }
 
-    // 2. Facebook Check
+    // 2. Facebook Check (Dual-tier: Public Graph & Web Hit)
     if ($key === 'facebook') {
+        // Tier 1: Fast Graph Public Endpoint
+        $gRes = $execCurl("https://graph.facebook.com/" . urlencode($name) . "/picture?type=normal");
+        if ($gRes['code'] === 200 || $gRes['code'] === 302) {
+            return ['state' => 'taken', 'available' => false, 'message' => 'Taken'];
+        }
+
+        // Tier 2: Public OpenGraph and Web Profile Hit
         $res = $execCurl("https://www.facebook.com/" . urlencode($name), 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)');
         if ($res['code'] === 404) {
             return ['state' => 'available', 'available' => true, 'message' => 'Available'];
