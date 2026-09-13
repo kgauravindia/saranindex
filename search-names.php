@@ -656,6 +656,18 @@ $socialPlatforms = [
                 </div>
             <?php endforeach; ?>
         </div>
+
+        <!-- Manual Verification Disclaimer -->
+        <div class="alert alert-warning-subtle border border-warning-subtle rounded-4 p-3.5 mt-4 mb-0 shadow-2xs d-flex align-items-start gap-3">
+            <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center flex-shrink-0 mt-0.5" style="width: 28px; height: 28px;">
+                <i class="bi bi-info-circle-fill"></i>
+            </div>
+            <div class="small text-dark">
+                <strong class="d-block mb-1 font-heading text-dark"><i class="bi bi-shield-exclamation me-1 text-warning"></i>Important Notice & Manual Verification:</strong>
+                Automated availability results are for quick guidance and may vary due to third-party platform privacy policies, rate limits, or trademark holds. 
+                <strong>Please click the direct links (e.g., <em>"Claim"</em>, <em>"Visit / Check"</em>, or the <em>@handle</em> link)</strong> to manually verify and register your username on each official platform before finalizing any branding or marketing materials.
+            </div>
+        </div>
     </div>
 
     <!-- 4. Smart Name Variations Generator -->

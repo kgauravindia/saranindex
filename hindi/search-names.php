@@ -647,6 +647,18 @@ $socialPlatforms = [
                 </div>
             <?php endforeach; ?>
         </div>
+
+        <!-- Manual Verification Disclaimer (Hindi) -->
+        <div class="alert alert-warning-subtle border border-warning-subtle rounded-4 p-3.5 mt-4 mb-0 shadow-2xs d-flex align-items-start gap-3">
+            <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center flex-shrink-0 mt-0.5" style="width: 28px; height: 28px;">
+                <i class="bi bi-info-circle-fill"></i>
+            </div>
+            <div class="small text-dark">
+                <strong class="d-block mb-1 font-heading text-dark"><i class="bi bi-shield-exclamation me-1 text-warning"></i>महत्वपूर्ण सूचना एवं मैनुअल सत्यापन (Disclaimer):</strong>
+                उपलब्धता के परिणाम स्वचालित (Automated) जांच पर आधारित हैं। सोशल मीडिया प्लेटफॉर्म्स की गोपनीयता नीतियों एवं तकनीकी सीमाओं के कारण इनमें भिन्नता संभव है। 
+                <strong>कृपया अपने ब्रांड या व्यवसाय का नाम अंतिम रूप से तय करने से पहले दिए गए सीधे लिंक (जैसे <em>"दावा करें"</em>, <em>"जांचें / देखें"</em> अथवा <em>@handle</em>) पर क्लिक करके प्रत्येक प्लेटफॉर्म पर मैनुअल रूप से अवश्य जांच व रजिस्टर करें।</strong>
+            </div>
+        </div>
     </div>
 
     <!-- 4. Smart Name Variations Generator -->
