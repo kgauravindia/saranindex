@@ -119,37 +119,44 @@ $socialPlatforms = [
 ?>
 
 <style>
+/* Custom NameCheck Theme Styles */
 .namechk-hero {
-    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #1e3a8a 100%);
+    background: linear-gradient(135deg, #090d16 0%, #0f172a 45%, #1e3a8a 100%);
     position: relative;
     overflow: hidden;
 }
 .namechk-hero::before {
     content: '';
     position: absolute;
-    top: -50%;
-    right: -20%;
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(0,0,0,0) 70%);
+    top: -30%;
+    right: -10%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, rgba(0,0,0,0) 70%);
     border-radius: 50%;
     pointer-events: none;
 }
 .namechk-search-card {
     background: #ffffff;
     border-radius: 24px;
-    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.15);
-    border: 1px solid rgba(226, 232, 240, 0.8);
+    box-shadow: 0 20px 45px -12px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .namechk-input-wrap {
     position: relative;
+    display: flex;
+    align-items: center;
 }
 .namechk-input {
-    font-size: 1.25rem;
+    font-size: 1.2rem;
     font-weight: 600;
-    padding: 16px 20px 16px 52px;
+    padding: 15px 48px 15px 50px;
     border-radius: 16px;
     border: 2px solid #e2e8f0;
+    transition: all 0.25s ease;
+    letter-spacing: -0.01em;
+    background: #f8fafc;
 }
 .namechk-input:focus {
     border-color: #2563eb;
@@ -158,40 +165,68 @@ $socialPlatforms = [
 }
 .namechk-input-icon {
     position: absolute;
-    left: 20px;
+    left: 18px;
     top: 50%;
     transform: translateY(-50%);
     font-size: 1.35rem;
-    color: #94a3b8;
+    color: #64748b;
+    pointer-events: none;
+}
+.namechk-clear-btn {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #e2e8f0;
+    color: #475569;
+    border: none;
+    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.namechk-clear-btn:hover {
+    background: #cbd5e1;
+    color: #0f172a;
 }
 .item-card {
-    border-radius: 16px;
+    border-radius: 18px;
     border: 1px solid #e2e8f0;
     background: #ffffff;
-    padding: 16px 18px;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 18px 20px;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
 }
 .item-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.09);
+    border-color: #cbd5e1;
 }
 .item-card.state-available {
     border-color: #86efac;
-    background: #f0fdf4;
+    background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);
+    box-shadow: 0 4px 20px -4px rgba(34, 197, 94, 0.15);
 }
 .item-card.state-taken {
     border-color: #fecdd3;
-    background: #fff1f2;
+    background: linear-gradient(180deg, #fff1f2 0%, #ffffff 100%);
 }
 .item-card.state-checking {
     border-color: #93c5fd;
-    background: #eff6ff;
+    background: linear-gradient(180deg, #eff6ff 0%, #ffffff 100%);
 }
 .state-indicator {
     width: 10px;
     height: 10px;
     border-radius: 50%;
     display: inline-block;
+    flex-shrink: 0;
 }
 .state-indicator.available {
     background-color: #22c55e;
@@ -213,10 +248,23 @@ $socialPlatforms = [
     50% { opacity: 0.5; transform: scale(1.3); }
 }
 .saran-vip-card {
-    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-    border-radius: 20px;
+    background: linear-gradient(135deg, #090d16 0%, #1e3a8a 60%, #2563eb 100%);
+    border-radius: 22px;
     color: #ffffff;
-    box-shadow: 0 15px 30px -10px rgba(37, 99, 235, 0.35);
+    box-shadow: 0 16px 36px -8px rgba(37, 99, 235, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    position: relative;
+    overflow: hidden;
+}
+.saran-vip-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 250px;
+    height: 250px;
+    background: radial-gradient(circle, rgba(251, 191, 36, 0.15) 0%, rgba(0,0,0,0) 70%);
+    pointer-events: none;
 }
 .nav-pill-custom {
     border-radius: 50rem;
@@ -227,11 +275,12 @@ $socialPlatforms = [
     border: 1px solid transparent;
     cursor: pointer;
     transition: all 0.2s ease;
+    white-space: nowrap;
 }
 .nav-pill-custom.active {
     background-color: #2563eb;
     color: #ffffff !important;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
 }
 .nav-pill-custom:hover:not(.active) {
     background-color: #f1f5f9;
@@ -242,35 +291,58 @@ $socialPlatforms = [
     -webkit-overflow-scrolling: touch;
     max-width: 100%;
     scrollbar-width: none;
+    padding: 2px;
 }
 .filter-tabs-container::-webkit-scrollbar {
     display: none;
 }
-.domain-name-text {
-    word-break: break-all;
+.example-pills-wrap {
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.example-pills-wrap::-webkit-scrollbar {
+    display: none;
+}
+.example-pill {
+    transition: all 0.18s ease;
+    cursor: pointer;
+    border: 1px solid #e2e8f0;
+    font-weight: 500;
+    font-size: 0.8rem;
+    user-select: none;
+}
+.example-pill:hover, .example-pill:active {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+    border-color: #2563eb !important;
+    transform: translateY(-1px);
 }
 
-/* Mobile Friendly Optimization Rules */
+/* Mobile Friendly Optimization Rules (Touch Ergonomics) */
 @media (max-width: 767.98px) {
     .namechk-hero {
-        padding-top: 1.75rem !important;
+        padding-top: 1.5rem !important;
         padding-bottom: 2rem !important;
     }
     .namechk-hero h1 {
-        font-size: 1.55rem !important;
-        line-height: 1.3;
+        font-size: 1.5rem !important;
+        line-height: 1.28;
     }
     .namechk-hero p.lead {
         font-size: 0.88rem !important;
+        line-height: 1.5;
     }
     .namechk-search-card {
-        padding: 1rem !important;
+        padding: 0.85rem !important;
         border-radius: 18px;
     }
     .namechk-input {
         font-size: 1.05rem;
-        padding: 12px 14px 12px 42px;
-        border-radius: 12px;
+        padding: 12px 42px 12px 42px;
+        border-radius: 14px;
     }
     .namechk-input-icon {
         left: 14px;
@@ -278,40 +350,50 @@ $socialPlatforms = [
     }
     #checkBtn {
         padding: 12px 16px !important;
-        border-radius: 12px !important;
-        font-size: 0.95rem !important;
+        border-radius: 14px !important;
+        font-size: 1rem !important;
+        min-height: 48px;
     }
     .saran-vip-card {
-        padding: 1.15rem !important;
-        border-radius: 16px;
+        padding: 1.25rem !important;
+        border-radius: 18px;
     }
     .saran-vip-card .fs-5 {
-        font-size: 1.05rem !important;
+        font-size: 1.08rem !important;
     }
     .nav-pill-custom {
-        padding: 6px 13px;
-        font-size: 0.78rem;
-        white-space: nowrap;
+        padding: 7px 14px;
+        font-size: 0.8rem;
     }
     .item-card {
-        padding: 14px;
-        border-radius: 14px;
+        padding: 15px;
+        border-radius: 16px;
+    }
+    .item-card .font-heading {
+        font-size: 1.05rem !important;
+    }
+    .item-card .btn-sm {
+        min-height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem !important;
     }
     #saranUrlPreview {
         word-break: break-all;
         white-space: normal;
         display: inline-block;
-        margin-top: 4px;
+        margin-top: 6px;
         font-size: 0.8rem;
+        padding: 4px 10px !important;
     }
-    .example-pills-wrap {
-        overflow-x: auto;
-        white-space: nowrap;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
+    .card-actions-wrap {
+        flex-wrap: wrap;
+        width: 100%;
     }
-    .example-pills-wrap::-webkit-scrollbar {
-        display: none;
+    .card-actions-wrap > a, .card-actions-wrap > button {
+        flex: 1 1 auto;
+        text-align: center;
     }
 }
 </style>
@@ -325,7 +407,7 @@ $socialPlatforms = [
             </div>
             <h1 class="fw-bolder font-heading text-white display-5 mb-2">ब्रांड नाम, डोमेन एवं सोशल मीडिया उपलब्धता जांचें</h1>
             <p class="lead text-white-50 fs-6 mb-0 mx-auto" style="max-width: 680px;">
-                देखें कि आपका व्यापार या ब्रांड नाम <strong>10 शीर्ष डोमेन एक्सटेंशन</strong>, <strong>10 प्रमुख सोशल मीडिया नेटवर्क</strong> पर उपलब्ध है या नहीं, और अपना <strong>सारण इंडेक्स @Handle</strong> सुरक्षित करें।
+                देखें कि आपका व्यापार या ब्रांड नाम <strong>12 शीर्ष डोमेन एक्सटेंशन</strong>, <strong>12 प्रमुख सोशल मीडिया नेटवर्क</strong> पर उपलब्ध है या नहीं, और अपना <strong>सारण इंडेक्स @Handle</strong> सुरक्षित करें।
             </p>
         </div>
 
@@ -341,7 +423,11 @@ $socialPlatforms = [
                                        class="form-control namechk-input" 
                                        placeholder="अपना ब्रांड या यूजरनेम दर्ज करें (उदा. yourbrand)" 
                                        value="<?php echo htmlspecialchars($cleanName); ?>" 
+                                       oninput="toggleClearBtn()"
                                        autocomplete="off" required autofocus>
+                                <button type="button" id="clearInputBtn" class="namechk-clear-btn" onclick="clearSearchInput()" title="साफ करें">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
                             </div>
                         </div>
                         <div class="col-md-4 col-lg-3">
@@ -355,13 +441,13 @@ $socialPlatforms = [
                     <!-- Popular Presets / Suggestions (Mobile Friendly Touch Scroll) -->
                     <div class="d-flex align-items-center gap-1.5 mt-2.5 pt-2 border-top text-muted extra-small example-pills-wrap">
                         <span class="fw-bold text-secondary flex-shrink-0"><i class="bi bi-lightbulb me-1 text-warning"></i>उदाहरण:</span>
-                        <span class="badge bg-light text-dark border px-2.5 py-1 rounded-pill flex-shrink-0" style="cursor: pointer;" onclick="setAndCheck('bharatbazaar')">bharatbazaar</span>
-                        <span class="badge bg-light text-dark border px-2.5 py-1 rounded-pill flex-shrink-0" style="cursor: pointer;" onclick="setAndCheck('saranhospital')">saranhospital</span>
-                        <span class="badge bg-light text-dark border px-2.5 py-1 rounded-pill flex-shrink-0" style="cursor: pointer;" onclick="setAndCheck('chapraadvocate')">chapraadvocate</span>
-                        <span class="badge bg-light text-dark border px-2.5 py-1 rounded-pill flex-shrink-0" style="cursor: pointer;" onclick="setAndCheck('patliputratech')">patliputratech</span>
-                        <span class="badge bg-light text-dark border px-2.5 py-1 rounded-pill flex-shrink-0" style="cursor: pointer;" onclick="setAndCheck('biharmart')">biharmart</span>
-                        <span class="badge bg-light text-dark border px-2.5 py-1 rounded-pill flex-shrink-0" style="cursor: pointer;" onclick="setAndCheck('desikart')">desikart</span>
-                        <span class="badge bg-light text-dark border px-2.5 py-1 rounded-pill flex-shrink-0" style="cursor: pointer;" onclick="setAndCheck('offerplant')">offerplant</span>
+                        <span class="badge bg-light text-dark px-2.5 py-1.5 rounded-pill flex-shrink-0 example-pill" onclick="setAndCheck('bharatbazaar')">bharatbazaar</span>
+                        <span class="badge bg-light text-dark px-2.5 py-1.5 rounded-pill flex-shrink-0 example-pill" onclick="setAndCheck('saranhospital')">saranhospital</span>
+                        <span class="badge bg-light text-dark px-2.5 py-1.5 rounded-pill flex-shrink-0 example-pill" onclick="setAndCheck('chapraadvocate')">chapraadvocate</span>
+                        <span class="badge bg-light text-dark px-2.5 py-1.5 rounded-pill flex-shrink-0 example-pill" onclick="setAndCheck('patliputratech')">patliputratech</span>
+                        <span class="badge bg-light text-dark px-2.5 py-1.5 rounded-pill flex-shrink-0 example-pill" onclick="setAndCheck('biharmart')">biharmart</span>
+                        <span class="badge bg-light text-dark px-2.5 py-1.5 rounded-pill flex-shrink-0 example-pill" onclick="setAndCheck('desikart')">desikart</span>
+                        <span class="badge bg-light text-dark px-2.5 py-1.5 rounded-pill flex-shrink-0 example-pill" onclick="setAndCheck('offerplant')">offerplant</span>
                     </div>
                 </div>
             </div>
@@ -383,7 +469,7 @@ $socialPlatforms = [
                 <?php endif; ?>
             </h2>
             <p class="text-muted small mb-0" id="currentSearchSubtitle">
-                10 डोमेन + 10 सोशल मीडिया नेटवर्क + सारण इंडेक्स पर वास्तविक समय जांच।
+                <strong><?php echo count($domainExtensions); ?> डोमेन</strong> + <strong><?php echo count($socialPlatforms); ?> सोशल मीडिया नेटवर्क</strong> + सारण इंडेक्स पर वास्तविक समय जांच।
             </p>
         </div>
 
@@ -404,7 +490,7 @@ $socialPlatforms = [
             <div class="col-lg-8">
                 <div class="d-flex align-items-center gap-2.5 gap-md-3">
                     <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center fw-bold fs-3 shadow-xs flex-shrink-0" style="width: 48px; height: 48px;">
-                        <i class="bi bi-award-fill"></i>
+                        <i class="bi bi-award-fill text-warning"></i>
                     </div>
                     <div>
                         <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -423,8 +509,9 @@ $socialPlatforms = [
                 </div>
             </div>
             <div class="col-lg-4 text-lg-end">
-                <a href="../register<?php echo !empty($cleanName) ? '?handle=' . urlencode($cleanName) : ''; ?>" id="saranClaimBtn" class="btn btn-warning text-dark fw-bold rounded-pill px-4 py-2.5 shadow-sm w-100 w-lg-auto d-inline-block text-center">
-                    <i class="bi bi-patch-check-fill me-1"></i>सारण इंडेक्स पर सुरक्षित करें
+                <a href="../register<?php echo !empty($cleanName) ? '?handle=' . urlencode($cleanName) : ''; ?>" id="saranClaimBtn" class="btn btn-warning text-dark fw-bold rounded-pill px-4 py-2.5 shadow-sm w-100 w-lg-auto d-inline-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-patch-check-fill"></i>
+                    <span>सारण इंडेक्स पर सुरक्षित करें</span>
                 </a>
             </div>
         </div>
@@ -607,8 +694,26 @@ const SOCIAL_PATTERNS = {
 };
 let currentSearchName = "<?php echo htmlspecialchars($cleanName); ?>";
 
+function toggleClearBtn() {
+    const input = document.getElementById('nameInput');
+    const clearBtn = document.getElementById('clearInputBtn');
+    if (input && clearBtn) {
+        clearBtn.style.display = input.value.length > 0 ? 'inline-flex' : 'none';
+    }
+}
+
+function clearSearchInput() {
+    const input = document.getElementById('nameInput');
+    if (input) {
+        input.value = '';
+        input.focus();
+        toggleClearBtn();
+    }
+}
+
 function setAndCheck(name) {
     document.getElementById('nameInput').value = name;
+    toggleClearBtn();
     runAvailabilityCheck(name);
 }
 
