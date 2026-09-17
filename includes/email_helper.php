@@ -380,13 +380,17 @@ if (!function_exists('verifyUserEmailToken')) {
         if (!$db) return ['success' => false, 'message' => 'Database connection failed.'];
 
         try {
+            ensureUsersEmailColumns();
             $input = trim($token_or_otp);
             if (empty($input)) {
                 return ['success' => false, 'message' => 'Please provide a valid verification token or OTP code.'];
             }
 
-            $sql = "SELECT * FROM users WHERE (token = :val OR email_token = :val)";
-            $params = ['val' => $input];
+            $sql = "SELECT * FROM users WHERE (token = :tok OR email_token = :etok)";
+            $params = [
+                'tok' => $input,
+                'etok' => $input
+            ];
 
             if (!empty($email)) {
                 $sql .= " AND email = :em";
@@ -411,8 +415,9 @@ if (!function_exists('verifyUserEmailToken')) {
                     'user' => $user
                 ];
             }
-        } catch (PDOException $e) {
+        } catch (Throwable $e) {
             error_log("verifyUserEmailToken error: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Verification error: ' . $e->getMessage()];
         }
 
         return ['success' => false, 'message' => 'An error occurred during user email verification.'];
@@ -434,8 +439,8 @@ if (!function_exists('verifyListingEmailToken')) {
                 return ['success' => false, 'message' => 'Please provide a valid verification token or OTP code.'];
             }
 
-            $sql = "SELECT * FROM listings WHERE email_token = :val";
-            $params = ['val' => $input];
+            $sql = "SELECT * FROM listings WHERE (email_token = :etok)";
+            $params = ['etok' => $input];
 
             if (!empty($email)) {
                 $sql .= " AND email = :em";
@@ -460,8 +465,9 @@ if (!function_exists('verifyListingEmailToken')) {
                     'listing' => $listing
                 ];
             }
-        } catch (PDOException $e) {
+        } catch (Throwable $e) {
             error_log("verifyListingEmailToken error: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Verification error: ' . $e->getMessage()];
         }
 
         return ['success' => false, 'message' => 'An error occurred during listing email verification.'];
