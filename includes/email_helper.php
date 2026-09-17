@@ -191,6 +191,26 @@ if (!function_exists('ensureListingsEmailColumns')) {
     }
 }
 
+if (!function_exists('getEmailVerificationBaseUrl')) {
+    /**
+     * Compute clean public URL for verification links (always routes to live domain for real emails)
+     */
+    function getEmailVerificationBaseUrl() {
+        $host = $_SERVER['HTTP_HOST'] ?? '';
+        if (empty($host) || strpos($host, 'localhost') !== false || strpos($host, '127.0.0.1') !== false || php_sapi_name() === 'cli') {
+            if (defined('REMOTE_LIVE_URL') && !empty(REMOTE_LIVE_URL)) {
+                return rtrim(REMOTE_LIVE_URL, '/') . '/';
+            }
+            return 'https://saranindex.com/';
+        }
+
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+        $baseUrl = $protocol . $host . rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? ''), '/\\') . '/';
+        $baseUrl = str_replace('/admin/', '/', $baseUrl);
+        return $baseUrl;
+    }
+}
+
 if (!function_exists('sendUserEmailVerification')) {
     /**
      * Generate token & OTP, send user email verification link & code
@@ -218,13 +238,8 @@ if (!function_exists('sendUserEmailVerification')) {
                 'id' => $user['id']
             ]);
 
-            // Build site base URL
-            $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
-            $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-            $baseUrl = $protocol . $host . rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? ''), '/\\') . '/';
-            // Adjust if called from admin
-            $baseUrl = str_replace('/admin/', '/', $baseUrl);
-
+            // Build site base URL (live canonical domain for external recipients)
+            $baseUrl = getEmailVerificationBaseUrl();
             $verifyLink = $baseUrl . "verify_email.php?type=user&token=" . urlencode($token);
             $user_name = !empty($user['full_name']) ? sanitizeInput($user['full_name']) : 'User';
 
@@ -301,11 +316,8 @@ if (!function_exists('sendListingEmailVerification')) {
                 'id' => $listing['id']
             ]);
 
-            $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
-            $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-            $baseUrl = $protocol . $host . rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? ''), '/\\') . '/';
-            $baseUrl = str_replace('/admin/', '/', $baseUrl);
-
+            // Build site base URL (live canonical domain for external recipients)
+            $baseUrl = getEmailVerificationBaseUrl();
             $verifyLink = $baseUrl . "verify_email.php?type=listing&token=" . urlencode($token);
             $title = !empty($listing['title']) ? sanitizeInput($listing['title']) : 'Business Listing';
 
