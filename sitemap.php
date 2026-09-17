@@ -221,8 +221,8 @@ if ($db) {
         ");
         while ($row = $stmt->fetch()) {
             $mod = !empty($row['updated_at']) ? $row['updated_at'] : (!empty($row['published_at']) ? $row['published_at'] : $row['created_at']);
-            addSitemapUrl($baseUrl . 'blog/post.php?slug=' . rawurlencode($row['slug']), $mod, 'weekly', '0.8');
-            addSitemapUrl($baseUrl . 'hindi/blog/post.php?slug=' . rawurlencode($row['slug']), $mod, 'weekly', '0.8');
+            addSitemapUrl($baseUrl . 'blog/' . rawurlencode($row['slug']), $mod, 'weekly', '0.8');
+            addSitemapUrl($baseUrl . 'hindi/blog/' . rawurlencode($row['slug']), $mod, 'weekly', '0.8');
         }
     } catch (Exception $e) {}
 }

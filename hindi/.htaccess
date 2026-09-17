@@ -8,8 +8,8 @@
 
     # Friendly URLs Rewrites for Hindi Section
     RewriteRule ^sitemap\.xml$ ../sitemap.php [L]
-    RewriteRule ^sitemap-villages\.xml$ ../sitemap-villages.php [L]
-    RewriteRule ^village-sitemap\.xml$ ../sitemap-villages.php [L]
+    RewriteRule ^sitemap-villages\.xml$ ../sitemap.php [L]
+    RewriteRule ^village-sitemap\.xml$ ../sitemap.php [L]
     RewriteRule ^blocks/?$ block.php [L,QSA]
     RewriteRule ^blocks/([a-zA-Z0-9_-]+)/?$ block.php?slug=$1 [L,QSA]
     RewriteRule ^block/([a-zA-Z0-9_-]+)/?$ block.php?slug=$1 [L,QSA]
@@ -31,7 +31,7 @@
     
     # Listing & Person Profiles
     RewriteRule ^listing/([a-zA-Z0-9_-]+)/?$ profile.php?slug=$1 [L,QSA]
-    RewriteRule ^person/([a-zA-Z0-9_-]+)/?$ person.php?slug=$1 [L,QSA]
+    RewriteRule ^person/([a-zA-Z0-9_-]+)/?$ profile.php?slug=$1 [L,QSA]
     
     # Core Pages
     RewriteRule ^search-names/?$ search-names.php [L,QSA]

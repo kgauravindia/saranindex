@@ -216,8 +216,8 @@ function buildSitemapPayload($customBaseUrl = null) {
             ");
             while ($row = $stmt->fetch()) {
                 $mod = !empty($row['updated_at']) ? date('Y-m-d', strtotime($row['updated_at'])) : (!empty($row['published_at']) ? date('Y-m-d', strtotime($row['published_at'])) : $today);
-                $items[] = ['loc' => $baseUrl . 'blog/post.php?slug=' . rawurlencode($row['slug']), 'lastmod' => $mod, 'changefreq' => 'weekly', 'priority' => '0.8', 'type' => 'Blog Guide', 'lang' => 'en'];
-                $items[] = ['loc' => $baseUrl . 'hindi/blog/post.php?slug=' . rawurlencode($row['slug']), 'lastmod' => $mod, 'changefreq' => 'weekly', 'priority' => '0.8', 'type' => 'Blog Guide', 'lang' => 'hi'];
+                $items[] = ['loc' => $baseUrl . 'blog/' . rawurlencode($row['slug']), 'lastmod' => $mod, 'changefreq' => 'weekly', 'priority' => '0.8', 'type' => 'Blog Guide', 'lang' => 'en'];
+                $items[] = ['loc' => $baseUrl . 'hindi/blog/' . rawurlencode($row['slug']), 'lastmod' => $mod, 'changefreq' => 'weekly', 'priority' => '0.8', 'type' => 'Blog Guide', 'lang' => 'hi'];
                 $counts['blogs'] = ($counts['blogs'] ?? 0) + 2;
             }
         } catch (Exception $e) {}

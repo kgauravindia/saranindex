@@ -1,5 +1,6 @@
 # SaranIndex.com Apache Rewrite Engine
-ErrorDocument 404 /saranindex/404.php
+ErrorDocument 404 /404.php
+ErrorDocument 500 /404.php
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
@@ -95,7 +96,7 @@ ErrorDocument 404 /saranindex/404.php
     RewriteRule ^@([a-zA-Z0-9_-]+)/?$ user_profile.php?handle=$1 [L,QSA]
     RewriteRule ^u/([a-zA-Z0-9_-]+)/?$ user_profile.php?handle=$1 [L,QSA]
     RewriteRule ^listing/([a-zA-Z0-9_-]+)/?$ profile.php?slug=$1 [L,QSA]
-    RewriteRule ^person/([a-zA-Z0-9_-]+)/?$ person.php?slug=$1 [L,QSA]
+    RewriteRule ^person/([a-zA-Z0-9_-]+)/?$ profile.php?slug=$1 [L,QSA]
 
     # Direct 2-Segment SEO Subcategory Rewrite (e.g. /classifieds/tenders)
     RewriteRule ^([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/?$ category.php?slug=$1&sub=$2 [L,QSA]
