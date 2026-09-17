@@ -1,0 +1,12 @@
+<?php
+// SMTP Email Configuration Template for SaranIndex (Hostinger Mail)
+return [
+    'use_smtp'   => true,
+    'host'       => 'smtp.hostinger.com',
+    'port'       => 587,
+    'username'   => 'info@saranindex.com',
+    'password'   => 'YOUR_HOSTINGER_EMAIL_PASSWORD',
+    'encryption' => 'tls', // 'tls' (for 587) or 'ssl' (for 465)
+    'from_email' => 'info@saranindex.com',
+    'from_name'  => 'Saran Index'
+];

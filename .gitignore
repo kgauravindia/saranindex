@@ -6,6 +6,7 @@
 *.sql.gz
 *.sql.bak
 config/config.php
+config/email.php
 config/db.local.php
 config/config.local.php
 .env

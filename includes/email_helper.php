@@ -1,148 +1,145 @@
 <?php
 /**
  * Email Helper & Verification Dispatcher
- * Saran Index - Digital Directory
+ * Saran Index - Digital Directory (Powered by PHPMailer & Hostinger SMTP)
  */
 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\SMTP;
+
+require_once __DIR__ . '/PHPMailer/Exception.php';
+require_once __DIR__ . '/PHPMailer/PHPMailer.php';
+require_once __DIR__ . '/PHPMailer/SMTP.php';
 require_once __DIR__ . '/functions.php';
+
+// Global variable to store last email sending error
+$email_last_error = '';
+
+/**
+ * Get the last error encountered during email sending.
+ */
+function getEmailLastError() {
+    global $email_last_error;
+    return $email_last_error;
+}
 
 if (!function_exists('sendSystemEmail')) {
     /**
-     * Send HTML system email using authenticated SMTP socket (Hostinger) with mail() fallback
+     * Send HTML system email using PHPMailer with Hostinger SMTP and fallback
      */
     function sendSystemEmail($to_email, $to_name, $subject, $body_html) {
+        global $email_last_error;
+        $email_last_error = '';
+
         $to_email = trim($to_email);
         if (empty($to_email) || !filter_var($to_email, FILTER_VALIDATE_EMAIL)) {
+            $email_last_error = 'Invalid destination email address.';
             return [
                 'status' => 'error',
-                'msg' => 'Invalid destination email address.'
+                'msg' => $email_last_error
             ];
         }
 
-        $host = defined('SMTP_HOST') ? SMTP_HOST : 'smtp.hostinger.com';
-        $port = defined('SMTP_PORT') ? intval(SMTP_PORT) : 587;
-        $user = defined('SMTP_USER') ? SMTP_USER : 'info@saranindex.com';
-        $pass = defined('SMTP_PASS') ? SMTP_PASS : 'Index@@2026';
-        $fromEmail = defined('SYSTEM_FROM_EMAIL') ? SYSTEM_FROM_EMAIL : $user;
-        $fromName = defined('SYSTEM_FROM_NAME') ? SYSTEM_FROM_NAME : 'Saran Index';
+        // Load config/email.php or fallback to defined constants
+        $config_file = __DIR__ . '/../config/email.php';
+        $config = file_exists($config_file) ? include($config_file) : [];
 
-        // Try authenticated SMTP socket transmission
-        $smtpSuccess = false;
-        $smtpError = '';
+        $host       = $config['host'] ?? (defined('SMTP_HOST') ? SMTP_HOST : 'smtp.hostinger.com');
+        $port       = intval($config['port'] ?? (defined('SMTP_PORT') ? SMTP_PORT : 587));
+        $username   = $config['username'] ?? (defined('SMTP_USER') ? SMTP_USER : 'info@saranindex.com');
+        $password   = $config['password'] ?? (defined('SMTP_PASS') ? SMTP_PASS : 'Index@@2026');
+        $encryption = strtolower($config['encryption'] ?? (defined('SMTP_SECURE') ? SMTP_SECURE : 'tls'));
+        $from_email = $config['from_email'] ?? (defined('SYSTEM_FROM_EMAIL') ? SYSTEM_FROM_EMAIL : 'info@saranindex.com');
+        $from_name  = $config['from_name'] ?? (defined('SYSTEM_FROM_NAME') ? SYSTEM_FROM_NAME : 'Saran Index');
 
-        try {
-            $connectHost = ($port === 465) ? "ssl://{$host}" : $host;
-            $socket = @fsockopen($connectHost, $port, $errno, $errstr, 12);
+        $use_smtp = $config['use_smtp'] ?? true;
 
-            if (!$socket && $port !== 465) {
-                // Fallback attempt with SSL on port 465
-                $connectHost = "ssl://{$host}";
-                $port = 465;
-                $socket = @fsockopen($connectHost, $port, $errno, $errstr, 12);
-            }
+        if ($use_smtp && !empty($password) && $password !== 'YOUR_HOSTINGER_EMAIL_PASSWORD') {
+            $mail = new PHPMailer(true);
+            try {
+                $mail->isSMTP();
+                $mail->Host       = $host;
+                $mail->SMTPAuth   = true;
+                $mail->Username   = $username;
+                $mail->Password   = $password;
 
-            if ($socket) {
-                stream_set_timeout($socket, 15);
-
-                $read = function($sock) {
-                    $data = '';
-                    while ($str = fgets($sock, 515)) {
-                        $data .= $str;
-                        if (substr($str, 3, 1) === ' ') break;
-                    }
-                    return $data;
-                };
-
-                $write = function($sock, $cmd) use ($read) {
-                    fputs($sock, $cmd . "\r\n");
-                    return $read($sock);
-                };
-
-                $banner = $read($socket);
-                $serverHost = $_SERVER['SERVER_NAME'] ?? 'localhost';
-                $ehlo = $write($socket, "EHLO {$serverHost}");
-
-                if ($port === 587 && strpos($ehlo, 'STARTTLS') !== false) {
-                    $write($socket, "STARTTLS");
-                    stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
-                    $ehlo = $write($socket, "EHLO {$serverHost}");
-                }
-
-                $write($socket, "AUTH LOGIN");
-                $write($socket, base64_encode($user));
-                $authRes = $write($socket, base64_encode($pass));
-
-                if (strpos($authRes, '235') !== false) {
-                    $write($socket, "MAIL FROM: <{$fromEmail}>");
-                    $write($socket, "RCPT TO: <{$to_email}>");
-                    $write($socket, "DATA");
-
-                    $encodedSubject = "=?UTF-8?B?" . base64_encode($subject) . "?=";
-                    $encodedFromName = "=?UTF-8?B?" . base64_encode($fromName) . "?=";
-
-                    $msg = "From: {$encodedFromName} <{$fromEmail}>\r\n";
-                    $msg .= "To: {$to_email}\r\n";
-                    $msg .= "Subject: {$encodedSubject}\r\n";
-                    $msg .= "MIME-Version: 1.0\r\n";
-                    $msg .= "Content-Type: text/html; charset=UTF-8\r\n";
-                    $msg .= "Date: " . date('r') . "\r\n";
-                    $msg .= "X-Mailer: SaranIndex-SMTP/1.3\r\n";
-                    $msg .= "\r\n";
-                    $msg .= $body_html . "\r\n.\r\n";
-
-                    fputs($socket, $msg);
-                    $sendRes = $read($socket);
-                    $write($socket, "QUIT");
-                    fclose($socket);
-
-                    if (strpos($sendRes, '250') !== false) {
-                        $smtpSuccess = true;
-                    } else {
-                        $smtpError = "SMTP data rejection: " . trim($sendRes);
-                    }
+                if ($encryption === 'ssl' || $port === 465) {
+                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+                    $mail->Port       = $port ?: 465;
+                } elseif ($encryption === 'tls' || $port === 587) {
+                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                    $mail->Port       = $port ?: 587;
                 } else {
-                    fclose($socket);
-                    $smtpError = "SMTP Auth failed: " . trim($authRes);
+                    $mail->Port       = $port ?: 25;
                 }
-            } else {
-                $smtpError = "Socket connect failed to {$host}:{$port} ({$errstr})";
+
+                $mail->Timeout = 12;
+                $mail->CharSet = 'UTF-8';
+
+                $mail->setFrom($from_email, $from_name);
+                $mail->addAddress($to_email, $to_name ?: '');
+                $mail->addReplyTo($from_email, $from_name);
+
+                $mail->isHTML(true);
+                $mail->Subject = $subject;
+                $mail->Body    = $body_html;
+
+                $mail->send();
+
+                $log_entry = date('Y-m-d H:i:s') . " | Recipient: {$to_email} | Sender: {$from_email} | Transport: PHPMailer (Hostinger SMTP) | Subject: {$subject} | Status: SUCCESS" . PHP_EOL;
+                @file_put_contents(__DIR__ . '/../email_debug.log', $log_entry, FILE_APPEND);
+
+                return [
+                    'status' => 'success',
+                    'msg' => 'Email dispatched successfully via Hostinger SMTP (' . $from_email . ')',
+                    'sent' => true,
+                    'sender' => $from_email,
+                    'transport' => 'PHPMAILER_HOSTINGER'
+                ];
+            } catch (Exception $e) {
+                $email_last_error = "PHPMailer SMTP Error: " . $mail->ErrorInfo;
+                error_log("PHPMailer SMTP Error for {$to_email}: " . $mail->ErrorInfo);
             }
-        } catch (Throwable $e) {
-            $smtpError = "SMTP Exception: " . $e->getMessage();
         }
 
-        // Fallback to standard mail() if SMTP socket failed
-        $mailSent = false;
-        if (!$smtpSuccess) {
-            $headers = "From: {$fromName} <{$fromEmail}>\r\n";
-            $headers .= "Reply-To: {$fromEmail}\r\n";
-            $headers .= "MIME-Version: 1.0\r\n";
-            $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
-            $headers .= "X-Mailer: SaranIndex-PHP/" . phpversion() . "\r\n";
-            $mailSent = @mail($to_email, $subject, $body_html, $headers);
-        }
+        // Fallback to PHP mail()
+        $headers = "From: {$from_name} <{$from_email}>\r\n";
+        $headers .= "Reply-To: {$from_email}\r\n";
+        $headers .= "MIME-Version: 1.0\r\n";
+        $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+        $headers .= "X-Mailer: SaranIndex-PHP/" . phpversion() . "\r\n";
 
-        $status = ($smtpSuccess || $mailSent) ? 'SUCCESS' : 'FAILED';
-        $transport = $smtpSuccess ? 'SMTP_HOSTINGER' : ($mailSent ? 'PHP_MAIL_FALLBACK' : 'FAILED');
-
-        $log_entry = date('Y-m-d H:i:s') . " | Recipient: {$to_email} | Sender: {$fromEmail} | Transport: {$transport} | Subject: {$subject} | Status: {$status} | Info: " . ($smtpSuccess ? 'Delivered via Hostinger' : $smtpError) . PHP_EOL;
+        $mailSent = @mail($to_email, $subject, $body_html, $headers);
+        $status = $mailSent ? 'SUCCESS' : 'FAILED';
+        $log_entry = date('Y-m-d H:i:s') . " | Recipient: {$to_email} | Sender: {$from_email} | Transport: PHP_MAIL_FALLBACK | Subject: {$subject} | Status: {$status} | Error: {$email_last_error}" . PHP_EOL;
         @file_put_contents(__DIR__ . '/../email_debug.log', $log_entry, FILE_APPEND);
 
-        if ($smtpSuccess || $mailSent) {
+        if ($mailSent) {
             return [
                 'status' => 'success',
-                'msg' => 'Email dispatched successfully via ' . ($smtpSuccess ? 'Hostinger SMTP (' . $fromEmail . ')' : 'Server Mail'),
+                'msg' => 'Email dispatched successfully via Server Mail',
                 'sent' => true,
-                'sender' => $fromEmail,
-                'transport' => $transport
+                'sender' => $from_email,
+                'transport' => 'PHP_MAIL_FALLBACK'
             ];
         }
 
         return [
             'status' => 'error',
-            'msg' => 'Email delivery failed: ' . ($smtpError ?: 'Mail server unavailable.'),
+            'msg' => 'Email delivery failed: ' . ($email_last_error ?: 'Mail server unavailable.'),
             'sent' => false
         ];
+    }
+}
+
+if (!function_exists('sendEmail')) {
+    /**
+     * Send email wrapper matching AdvocateIndex sendEmail signature
+     */
+    function sendEmail($to, $subject, $message, $name = '') {
+        $res = sendSystemEmail($to, $name, $subject, $message);
+        return ($res['status'] === 'success');
     }
 }
 
