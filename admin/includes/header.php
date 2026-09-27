@@ -308,6 +308,11 @@ $admin_name = $_SESSION['admin_full_name'] ?? 'Administrator';
                 </a>
             </li>
             <li class="nav-item">
+                <a class="nav-link <?php echo $current_page === 'pincode_lookup.php' ? 'active' : ''; ?>" href="pincode_lookup.php" title="PIN & IFSC API">
+                    <i class="bi bi-geo-fill text-primary"></i> <span class="nav-text">PIN & IFSC API</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link <?php echo $current_page === 'categories.php' ? 'active' : ''; ?>" href="categories.php" title="Categories">
                     <i class="bi bi-grid-fill"></i> <span class="nav-text">Categories</span>
                 </a>

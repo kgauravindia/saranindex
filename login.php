@@ -9,7 +9,7 @@ if (isUserLoggedIn()) {
 $error = '';
 $success = '';
 $not_registered_mobile = '';
-$default_mode = isset($_GET['mode']) && $_GET['mode'] === 'password' ? 'password' : 'otp';
+$default_mode = isset($_GET['mode']) && $_GET['mode'] === 'otp' ? 'otp' : 'password';
 
 // Standard POST fallback for Password Login or Non-JS OTP Login
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -160,16 +160,66 @@ require_once __DIR__ . '/includes/header.php';
 
                         <!-- Smart Login Mode Tabs -->
                         <div class="bg-light p-1 rounded-pill mb-4 d-flex border" role="tablist">
-                            <button type="button" class="btn btn-sm rounded-pill flex-fill fw-bold py-2 transition-all <?php echo $default_mode === 'otp' ? 'btn-white bg-white text-primary shadow-sm' : 'text-muted'; ?>" id="tabBtnOtp" onclick="switchLoginMode('otp')">
-                                <i class="bi bi-shield-lock-fill me-1 text-warning"></i> Login with OTP
-                            </button>
                             <button type="button" class="btn btn-sm rounded-pill flex-fill fw-bold py-2 transition-all <?php echo $default_mode === 'password' ? 'btn-white bg-white text-primary shadow-sm' : 'text-muted'; ?>" id="tabBtnPassword" onclick="switchLoginMode('password')">
                                 <i class="bi bi-key-fill me-1 text-primary"></i> Password Login
+                            </button>
+                            <button type="button" class="btn btn-sm rounded-pill flex-fill fw-bold py-2 transition-all <?php echo $default_mode === 'otp' ? 'btn-white bg-white text-primary shadow-sm' : 'text-muted'; ?>" id="tabBtnOtp" onclick="switchLoginMode('otp')">
+                                <i class="bi bi-shield-lock-fill me-1 text-warning"></i> Login with OTP
                             </button>
                         </div>
 
                         <!-- ========================================================= -->
-                        <!-- MODE 1: SMART OTP LOGIN CONTAINER -->
+                        <!-- MODE 1: CLASSIC PASSWORD LOGIN CONTAINER (1st Preference) -->
+                        <!-- ========================================================= -->
+                        <div id="passwordLoginSection" style="<?php echo $default_mode === 'password' ? 'display: block;' : 'display: none;'; ?>">
+                            <form action="" method="POST" id="passwordLoginForm">
+                                <input type="hidden" name="action" value="password_login">
+
+                                <!-- Mobile / Email / Username Field -->
+                                <div class="form-floating mb-3">
+                                    <input type="text" name="mobile" id="passwordMobileInput" class="form-control border-secondary-subtle rounded-3"
+                                           placeholder="Mobile No, Email, or @username"
+                                           required
+                                           <?php echo $default_mode === 'password' ? 'autofocus' : ''; ?>
+                                           value="<?php echo isset($_POST['mobile']) ? htmlspecialchars($_POST['mobile']) : ''; ?>">
+                                    <label for="passwordMobileInput" class="text-muted"><i class="bi bi-person-badge me-2"></i>Mobile, Email, or @username</label>
+                                </div>
+                                
+                                <!-- Password Field -->
+                                <div class="form-floating mb-2 position-relative">
+                                    <input type="password" name="password" id="passwordField" class="form-control border-secondary-subtle rounded-3" style="padding-right: 50px;" placeholder="Enter Password" required>
+                                    <label for="passwordField" class="text-muted"><i class="bi bi-lock me-2"></i>Password</label>
+                                    <button class="btn border-0 text-muted position-absolute end-0 top-0 h-100 px-3 d-flex align-items-center justify-content-center" type="button" id="togglePassword">
+                                        <i class="bi bi-eye-slash-fill fs-5" id="togglePasswordIcon"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Caps Lock Warning -->
+                                <div id="capsLockWarning" class="alert alert-warning py-1 px-2.5 small rounded-2 mb-2 d-none" style="font-size: 0.75rem;">
+                                    <i class="bi bi-exclamation-circle me-1"></i> Caps Lock is ON
+                                </div>
+
+                                <!-- Options -->
+                                <div class="d-flex align-items-center justify-content-between mb-4 px-1">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="remember" id="rememberMe" checked>
+                                        <label class="form-check-label small text-muted user-select-none" for="rememberMe">
+                                            Remember me
+                                        </label>
+                                    </div>
+                                    <a href="forgot-password.php" class="small fw-semibold text-primary text-decoration-none hover-underline">Forgot Password?</a>
+                                </div>
+
+                                <!-- Submit Button -->
+                                <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold mb-3 search-submit-btn fs-6 d-flex align-items-center justify-content-center gap-2">
+                                    <span>Log In Securely</span>
+                                    <i class="bi bi-arrow-right-circle-fill"></i>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- ========================================================= -->
+                        <!-- MODE 2: SMART OTP LOGIN CONTAINER (2nd Preference) -->
                         <!-- ========================================================= -->
                         <div id="otpLoginSection" style="<?php echo $default_mode === 'otp' ? 'display: block;' : 'display: none;'; ?>">
                             
@@ -185,7 +235,7 @@ require_once __DIR__ . '/includes/header.php';
                                                placeholder="Enter 10-digit mobile number" 
                                                maxlength="14" 
                                                autocomplete="tel" 
-                                               autofocus
+                                               <?php echo $default_mode === 'otp' ? 'autofocus' : ''; ?>
                                                value="<?php echo isset($_POST['mobile']) ? htmlspecialchars($_POST['mobile']) : ''; ?>">
                                     </div>
                                     <small class="text-muted" style="font-size: 0.75rem;">
@@ -250,55 +300,6 @@ require_once __DIR__ . '/includes/header.php';
                                     <div class="spinner-border spinner-border-sm text-light d-none" id="btnVerifyOtpSpinner" role="status"></div>
                                 </button>
                             </div>
-                        </div>
-
-                        <!-- ========================================================= -->
-                        <!-- MODE 2: CLASSIC PASSWORD LOGIN CONTAINER -->
-                        <!-- ========================================================= -->
-                        <div id="passwordLoginSection" style="<?php echo $default_mode === 'password' ? 'display: block;' : 'display: none;'; ?>">
-                            <form action="" method="POST" id="passwordLoginForm">
-                                <input type="hidden" name="action" value="password_login">
-
-                                <!-- Mobile / Email / Username Field -->
-                                <div class="form-floating mb-3">
-                                    <input type="text" name="mobile" id="passwordMobileInput" class="form-control border-secondary-subtle rounded-3"
-                                           placeholder="Mobile No, Email, or @username"
-                                           required
-                                           value="<?php echo isset($_POST['mobile']) ? htmlspecialchars($_POST['mobile']) : ''; ?>">
-                                    <label for="passwordMobileInput" class="text-muted"><i class="bi bi-person-badge me-2"></i>Mobile, Email, or @username</label>
-                                </div>
-                                
-                                <!-- Password Field -->
-                                <div class="form-floating mb-2 position-relative">
-                                    <input type="password" name="password" id="passwordField" class="form-control border-secondary-subtle rounded-3" style="padding-right: 50px;" placeholder="Enter Password" required>
-                                    <label for="passwordField" class="text-muted"><i class="bi bi-lock me-2"></i>Password</label>
-                                    <button class="btn border-0 text-muted position-absolute end-0 top-0 h-100 px-3 d-flex align-items-center justify-content-center" type="button" id="togglePassword">
-                                        <i class="bi bi-eye-slash-fill fs-5" id="togglePasswordIcon"></i>
-                                    </button>
-                                </div>
-
-                                <!-- Caps Lock Warning -->
-                                <div id="capsLockWarning" class="alert alert-warning py-1 px-2.5 small rounded-2 mb-2 d-none" style="font-size: 0.75rem;">
-                                    <i class="bi bi-exclamation-circle me-1"></i> Caps Lock is ON
-                                </div>
-
-                                <!-- Options -->
-                                <div class="d-flex align-items-center justify-content-between mb-4 px-1">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="remember" id="rememberMe" checked>
-                                        <label class="form-check-label small text-muted user-select-none" for="rememberMe">
-                                            Remember me
-                                        </label>
-                                    </div>
-                                    <a href="forgot-password.php" class="small fw-semibold text-primary text-decoration-none hover-underline">Forgot Password?</a>
-                                </div>
-
-                                <!-- Submit Button -->
-                                <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold mb-3 search-submit-btn fs-6 d-flex align-items-center justify-content-center gap-2">
-                                    <span>Log In Securely</span>
-                                    <i class="bi bi-arrow-right-circle-fill"></i>
-                                </button>
-                            </form>
                         </div>
 
                         <!-- Divider -->

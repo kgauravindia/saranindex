@@ -273,7 +273,14 @@ $all_categories = getCategoriesList();
 
                     <div class="col-12 col-md-4">
                         <label for="pincode" class="form-label small fw-semibold">Pincode</label>
-                        <input type="text" class="form-control" id="pincode" name="pincode" value="<?php echo sanitizeInput($user['pincode']); ?>" placeholder="841301">
+                        <div class="input-group">
+                            <input type="text" class="form-control font-monospace fw-bold" id="pincode" name="pincode" value="<?php echo sanitizeInput($user['pincode']); ?>" placeholder="841301" maxlength="6">
+                            <button class="btn btn-outline-primary" type="button" id="btnLookupPin" title="Lookup PIN Code API">
+                                <i class="bi bi-search" id="pinLookupIcon"></i>
+                                <span class="spinner-border spinner-border-sm d-none" id="pinLookupSpinner"></span>
+                            </button>
+                        </div>
+                        <div id="pincodeApiFeedback" class="mt-1.5" style="display: none;"></div>
                     </div>
                 </div>
             </div>
@@ -493,6 +500,65 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentSubId = "<?php echo $user['subcategory_id'] ?? ''; ?>";
     if (catSelect && catSelect.value) {
         loadUserSubcategories(catSelect.value, currentSubId);
+    }
+
+    // ─── PIN CODE API LOOKUP ────────────────────────────────────────────────
+    const pinInput = document.getElementById('pincode');
+    const btnLookupPin = document.getElementById('btnLookupPin');
+    const pinIcon = document.getElementById('pinLookupIcon');
+    const pinSpinner = document.getElementById('pinLookupSpinner');
+    const pinFeedback = document.getElementById('pincodeApiFeedback');
+
+    async function performPinLookup(pincode) {
+        const clean = pincode.replace(/[^0-9]/g, '');
+        if (clean.length !== 6) return;
+
+        pinIcon.classList.add('d-none');
+        pinSpinner.classList.remove('d-none');
+        pinFeedback.style.display = 'block';
+        pinFeedback.innerHTML = '<span class="text-muted small"><i class="bi bi-hourglass-split me-1"></i>Checking Postal API...</span>';
+
+        try {
+            const res = await fetch(`../api/pincode_lookup.php?pincode=${clean}`);
+            const data = await res.json();
+
+            if (data.success) {
+                const officesList = data.offices ? data.offices.slice(0, 3).join(', ') : '';
+                const moreCount = data.offices && data.offices.length > 3 ? ` +${data.offices.length - 3} more` : '';
+                
+                pinFeedback.innerHTML = `
+                    <div class="p-2 bg-success-subtle border border-success-subtle rounded-3 small">
+                        <div class="fw-bold text-success"><i class="bi bi-check-circle-fill me-1"></i>${data.district || 'Verified'}, ${data.state || 'India'}</div>
+                        <div class="text-dark" style="font-size: 0.76rem;">PO: <strong>${officesList}${moreCount}</strong></div>
+                    </div>
+                `;
+
+                // Auto match block if found and not already selected
+                if (data.matched_blocks && data.matched_blocks.length > 0 && blockSelect) {
+                    const matchedId = data.matched_blocks[0].id;
+                    if (blockSelect.value != matchedId) {
+                        blockSelect.value = matchedId;
+                        loadVillages(matchedId, 0);
+                    }
+                }
+            } else {
+                pinFeedback.innerHTML = `<span class="text-danger small"><i class="bi bi-exclamation-circle me-1"></i>${data.message || 'PIN not found'}</span>`;
+            }
+        } catch (e) {
+            pinFeedback.innerHTML = '<span class="text-muted small">Could not connect to PIN API.</span>';
+        } finally {
+            pinIcon.classList.remove('d-none');
+            pinSpinner.classList.add('d-none');
+        }
+    }
+
+    if (btnLookupPin && pinInput) {
+        btnLookupPin.addEventListener('click', () => performPinLookup(pinInput.value));
+        pinInput.addEventListener('keyup', function(e) {
+            if (this.value.replace(/[^0-9]/g, '').length === 6) {
+                performPinLookup(this.value);
+            }
+        });
     }
 });
 

@@ -270,8 +270,18 @@ require_once __DIR__ . '/includes/header.php';
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <label for="pincode" class="form-label small fw-semibold">Pincode</label>
-                            <input type="text" class="form-control" id="pincode" name="pincode" value="<?php echo sanitizeInput($user['pincode']); ?>">
+                            <label for="pincode" class="form-label small fw-semibold d-flex align-items-center justify-content-between">
+                                <span>Pincode</span>
+                                <span id="pinLookupStatus" class="text-muted small" style="font-size: 0.72rem;"></span>
+                            </label>
+                            <div class="input-group">
+                                <input type="text" class="form-control font-monospace fw-bold" id="pincode" name="pincode" value="<?php echo sanitizeInput($user['pincode']); ?>" placeholder="841301" maxlength="6">
+                                <button class="btn btn-outline-secondary border-secondary-subtle" type="button" id="btnLookupPin" title="Lookup PIN Code API">
+                                    <i class="bi bi-geo-alt-fill text-primary" id="pinIcon"></i>
+                                    <span class="spinner-border spinner-border-sm text-primary d-none" id="pinSpinner"></span>
+                                </button>
+                            </div>
+                            <div id="pincodeApiFeedback" class="mt-1.5" style="display: none;"></div>
                         </div>
                     </div>
                 </div>
@@ -442,6 +452,98 @@ function focusProfileField(id) {
         }, 2000);
     }
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const pinInput = document.getElementById('pincode');
+    const btnLookupPin = document.getElementById('btnLookupPin');
+    const pinIcon = document.getElementById('pinIcon');
+    const pinSpinner = document.getElementById('pinSpinner');
+    const pinFeedback = document.getElementById('pincodeApiFeedback');
+    const pinStatus = document.getElementById('pinLookupStatus');
+    const blockSelect = document.getElementById('block_id');
+
+    async function performPinLookup(pincode) {
+        const clean = pincode.replace(/[^0-9]/g, '');
+        if (clean.length !== 6) {
+            if (pinFeedback) pinFeedback.style.display = 'none';
+            if (pinStatus) pinStatus.textContent = '';
+            return;
+        }
+
+        if (pinIcon) pinIcon.classList.add('d-none');
+        if (pinSpinner) pinSpinner.classList.remove('d-none');
+        if (pinStatus) pinStatus.textContent = 'Verifying...';
+
+        try {
+            const res = await fetch(`api/pincode_lookup.php?pincode=${clean}`);
+            const data = await res.json();
+
+            if (data.success) {
+                let district = data.district || '';
+                let state = data.state || '';
+                let offices = (data.offices && data.offices.length) ? data.offices.slice(0, 3).join(', ') : '';
+                if (data.offices && data.offices.length > 3) offices += ` +${data.offices.length - 3} more`;
+
+                let blockSuggestion = '';
+                if (data.matched_blocks && data.matched_blocks.length > 0 && blockSelect) {
+                    const matched = data.matched_blocks[0];
+                    if (!blockSelect.value || blockSelect.value == '') {
+                        blockSelect.value = matched.id;
+                        blockSuggestion = `<div class="mt-1 text-primary fw-bold small"><i class="bi bi-magic me-1"></i> Auto-selected Block: ${matched.block_name}</div>`;
+                    }
+                }
+
+                if (pinFeedback) {
+                    pinFeedback.innerHTML = `
+                        <div class="p-2 rounded-2 bg-success-subtle border border-success-subtle text-success-emphasis small">
+                            <div class="d-flex align-items-center justify-content-between mb-0.5">
+                                <span class="fw-bold"><i class="bi bi-check-circle-fill text-success me-1"></i> ${district}, ${state}</span>
+                                <span class="badge bg-success text-white">Verified PIN</span>
+                            </div>
+                            ${offices ? `<div class="text-muted extra-small" style="font-size: 0.72rem;"><strong>Offices:</strong> ${offices}</div>` : ''}
+                            ${blockSuggestion}
+                        </div>
+                    `;
+                    pinFeedback.style.display = 'block';
+                }
+                if (pinStatus) pinStatus.innerHTML = `<span class="text-success font-monospace">✓ ${district}</span>`;
+            } else {
+                if (pinFeedback) {
+                    pinFeedback.innerHTML = `
+                        <div class="p-2 rounded-2 bg-warning-subtle border border-warning-subtle text-dark small">
+                            <i class="bi bi-info-circle text-warning me-1"></i> ${data.message || 'No postal records found.'}
+                        </div>
+                    `;
+                    pinFeedback.style.display = 'block';
+                }
+                if (pinStatus) pinStatus.textContent = '';
+            }
+        } catch (e) {
+            if (pinFeedback) pinFeedback.style.display = 'none';
+            if (pinStatus) pinStatus.textContent = '';
+        } finally {
+            if (pinIcon) pinIcon.classList.remove('d-none');
+            if (pinSpinner) pinSpinner.classList.add('d-none');
+        }
+    }
+
+    if (pinInput) {
+        let pinTimer = null;
+        pinInput.addEventListener('input', function() {
+            clearTimeout(pinTimer);
+            pinTimer = setTimeout(() => performPinLookup(this.value), 400);
+        });
+        if (pinInput.value && pinInput.value.length === 6) {
+            performPinLookup(pinInput.value);
+        }
+    }
+
+    if (btnLookupPin && pinInput) {
+        btnLookupPin.addEventListener('click', function() {
+            performPinLookup(pinInput.value);
+        });
+    }
+});
 </script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

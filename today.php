@@ -2,9 +2,9 @@
 require_once __DIR__ . '/includes/functions.php';
 
 // SEO Meta Information
-$page_title = "Today in Saran District (आज सारण में क्या है) – Live Weather, Panchang, News, Mandi, Fuel & Office Timings | Saran Index";
-$meta_description = "Complete daily bulletin for Saran District (Chapra, Bihar) today: Live weather forecast, air quality (AQI), Hindu panchang & tithi, sunrise/sunset, official timings, fuel prices, emergency contacts, today in history, and block spotlight across all 20 blocks.";
-$meta_keywords = "Today in Saran, What is today in Saran District, Chapra News Today, Saran Weather Today, Chapra Panchang Today, Saran Fuel Prices, Chapra Mandi Rates, Sadar Hospital Chapra Timings, Saran Emergency Numbers, 20 Blocks of Saran";
+$page_title = "Today in Saran District (आज सारण में क्या है) – Live Weather, Panchang, News, Mandi & Fuel Rates | Saran Index";
+$meta_description = "Complete daily bulletin for Saran District (Chapra, Bihar) today: Live weather forecast, air quality (AQI), Hindu panchang & tithi, sunrise/sunset, fuel prices, emergency contacts, today in history, and block spotlight across all 20 blocks.";
+$meta_keywords = "Today in Saran, What is today in Saran District, Chapra News Today, Saran Weather Today, Chapra Panchang Today, Saran Fuel Prices, Chapra Mandi Rates, Saran Emergency Numbers, 20 Blocks of Saran";
 $canonical_url = BASE_URL . "today";
 
 // Date & Time Variables (Asia/Kolkata)
@@ -65,13 +65,13 @@ $dayOfYear = (int)date('z');
 $blockOfTheDay = $allBlocks[$dayOfYear % count($allBlocks)];
 
 // 2026 Official Holiday Calendar Data (Bihar Govt, Civil Court Saran, Banks)
-// Reference: https://myadv.in/2026.pdf
+// Reference: https://patnahighcourt.gov.in/PDF/CALENDAR/CIVIL_CAL2026.jpg
 $todayHolidayInfo = getTodayHolidayDetails();
 $upcomingHolidays = getUpcomingBiharHolidays(12, 'ALL');
 $upcomingGovtHolidays = getUpcomingBiharHolidays(8, 'GOVT');
 $upcomingCourtHolidays = getUpcomingBiharHolidays(8, 'COURT');
 $upcomingBankHolidays = getUpcomingBiharHolidays(8, 'BANK');
-$calendarPdfUrl = 'https://myadv.in/2026.pdf';
+$calendarPdfUrl = 'https://patnahighcourt.gov.in/PDF/CALENDAR/CIVIL_CAL2026.jpg';
 
 // Query featured / verified listings from DB
 $featuredListings = [];
@@ -287,9 +287,6 @@ require_once __DIR__ . '/includes/header.php';
         <a href="#panchang-section" class="btn btn-light rounded-pill border px-3.5 py-2 small fw-bold text-secondary shadow-2xs hover-shadow">
             <i class="bi bi-calendar3 text-warning me-1"></i> Vedic Panchang
         </a>
-        <a href="#office-timings" class="btn btn-light rounded-pill border px-3.5 py-2 small fw-bold text-secondary shadow-2xs hover-shadow">
-            <i class="bi bi-building text-success me-1"></i> Office Timings
-        </a>
         <a href="#holidays-section" class="btn btn-light rounded-pill border px-3.5 py-2 small fw-bold text-secondary shadow-2xs hover-shadow">
             <i class="bi bi-calendar2-check-fill text-purple me-1"></i> 2026 Holidays & Court Calendar
         </a>
@@ -298,9 +295,6 @@ require_once __DIR__ . '/includes/header.php';
         </a>
         <a href="#epapers-section" class="btn btn-light rounded-pill border px-3.5 py-2 small fw-bold text-secondary shadow-2xs hover-shadow">
             <i class="bi bi-newspaper text-danger me-1"></i> Saran ePapers
-        </a>
-        <a href="#block-spotlight" class="btn btn-light rounded-pill border px-3.5 py-2 small fw-bold text-secondary shadow-2xs hover-shadow">
-            <i class="bi bi-geo-alt-fill text-info me-1"></i> Block Spotlight
         </a>
         <a href="#today-history" class="btn btn-light rounded-pill border px-3.5 py-2 small fw-bold text-secondary shadow-2xs hover-shadow">
             <i class="bi bi-hourglass-split text-purple me-1"></i> Today in History
@@ -446,243 +440,52 @@ require_once __DIR__ . '/includes/header.php';
 
         <div class="row g-3">
             <div class="col-md-3 col-6">
-                <div class="card border-0 shadow-sm rounded-4 p-3.5 text-center h-100 bg-light">
-                    <div class="small text-muted text-uppercase fw-semibold mb-1">वार / Day</div>
+                <div class="card border-0 shadow-2xs rounded-4 p-3.5 h-100 bg-white border-start border-4 border-warning position-relative overflow-hidden hover-shadow transition-all">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-2.5 py-0.5 extra-small fw-bold">वार / Day</span>
+                        <i class="bi bi-sun-fill text-warning fs-5"></i>
+                    </div>
                     <h4 class="fw-bold text-dark font-heading mb-0"><?php echo $currentDayHi; ?></h4>
-                    <span class="text-muted extra-small"><?php echo date('l'); ?></span>
+                    <span class="text-muted extra-small fw-semibold"><?php echo date('l'); ?></span>
                 </div>
             </div>
 
             <div class="col-md-3 col-6">
-                <div class="card border-0 shadow-sm rounded-4 p-3.5 text-center h-100 bg-light">
-                    <div class="small text-muted text-uppercase fw-semibold mb-1">पक्ष / Paksha</div>
+                <div class="card border-0 shadow-2xs rounded-4 p-3.5 h-100 bg-white border-start border-4 border-primary position-relative overflow-hidden hover-shadow transition-all">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-primary-subtle text-primary-emphasis rounded-pill px-2.5 py-0.5 extra-small fw-bold">पक्ष / Paksha</span>
+                        <i class="bi bi-moon-stars-fill text-primary fs-5"></i>
+                    </div>
                     <h4 class="fw-bold text-primary font-heading mb-0">शुक्ल / कृष्ण पक्ष</h4>
-                    <span class="text-muted extra-small">Moon Phase Fortnight</span>
+                    <span class="text-muted extra-small fw-semibold">Lunar Fortnight Phase</span>
                 </div>
             </div>
 
             <div class="col-md-3 col-6">
-                <div class="card border-0 shadow-sm rounded-4 p-3.5 text-center h-100 bg-light">
-                    <div class="small text-muted text-uppercase fw-semibold mb-1">अभिजित मुहूर्त / Auspicious</div>
-                    <h4 class="fw-bold text-success font-heading mb-0">11:45 AM – 12:35 PM</h4>
-                    <span class="text-muted extra-small">Best for New Ventures</span>
+                <div class="card border-0 shadow-2xs rounded-4 p-3.5 h-100 bg-white border-start border-4 border-success position-relative overflow-hidden hover-shadow transition-all">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-success-subtle text-success rounded-pill px-2.5 py-0.5 extra-small fw-bold">शुभ / Auspicious</span>
+                        <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                    </div>
+                    <h5 class="fw-bold text-success font-heading mb-0 fs-6">11:45 AM – 12:35 PM</h5>
+                    <span class="text-muted extra-small fw-semibold">अभिजित मुहूर्त (Best for Start)</span>
                 </div>
             </div>
 
             <div class="col-md-3 col-6">
-                <div class="card border-0 shadow-sm rounded-4 p-3.5 text-center h-100 bg-light">
-                    <div class="small text-muted text-uppercase fw-semibold mb-1">राहुकाल / Inauspicious</div>
-                    <h4 class="fw-bold text-danger font-heading mb-0">12:15 PM – 01:45 PM</h4>
-                    <span class="text-muted extra-small">Avoid Auspicious Registrations</span>
+                <div class="card border-0 shadow-2xs rounded-4 p-3.5 h-100 bg-white border-start border-4 border-danger position-relative overflow-hidden hover-shadow transition-all">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-danger-subtle text-danger rounded-pill px-2.5 py-0.5 extra-small fw-bold">अशुभ / Caution</span>
+                        <i class="bi bi-exclamation-triangle-fill text-danger fs-5"></i>
+                    </div>
+                    <h5 class="fw-bold text-danger font-heading mb-0 fs-6">12:15 PM – 01:45 PM</h5>
+                    <span class="text-muted extra-small fw-semibold">राहुकाल (Avoid Registrations)</span>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Section 3: District Administration, Hospitals & Public Utilities Today's Status -->
-    <section id="office-timings" class="mb-5">
-        <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
-            <div>
-                <span class="badge bg-success-subtle text-success fw-bold px-3 py-1 rounded-pill small mb-1">
-                    <i class="bi bi-clock-history me-1"></i> Public Utilities Status
-                </span>
-                <h2 class="fw-bold font-heading text-dark h3 mb-0">Today's Office Working Hours & Timings in Saran</h2>
-            </div>
-            <div class="small text-muted">
-                <i class="bi bi-info-circle me-1"></i> Live Status calculated based on current IST time
-            </div>
-        </div>
-
-        <div class="row g-4">
-            <!-- Sadar Hospital & Medical -->
-            <div class="col-md-6 col-lg-4">
-                <div class="card border-0 shadow-sm rounded-4 p-4 h-100 today-card">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div class="bg-danger text-white rounded-3 p-2.5">
-                            <i class="bi bi-hospital fs-4"></i>
-                        </div>
-                        <span class="badge status-badge-24x7 rounded-pill px-3 py-1.5 small">
-                            <i class="bi bi-check-circle-fill me-1"></i> EMERGENCY 24x7
-                        </span>
-                    </div>
-                    <h5 class="fw-bold text-dark font-heading mb-1">Sadar Hospital Chapra & SDHs</h5>
-                    <p class="text-muted small mb-3">Sadar Hospital, Sonepur & Marhaura Sub-Divisional Hospitals, 20 PHCs & CHCs.</p>
-                    <div class="stat-pill mb-2">
-                        <div class="d-flex justify-content-between small">
-                            <span class="text-muted">OPD Timings:</span>
-                            <strong class="text-dark">08:00 AM – 02:00 PM</strong>
-                        </div>
-                    </div>
-                    <div class="stat-pill mb-3">
-                        <div class="d-flex justify-content-between small">
-                            <span class="text-muted">Emergency / Trauma:</span>
-                            <strong class="text-danger">Open 24 Hours Non-Stop</strong>
-                        </div>
-                    </div>
-                    <a href="tel:06152245222" class="btn btn-outline-danger btn-sm w-100 rounded-pill fw-bold">
-                        <i class="bi bi-telephone-fill me-1"></i> Call Hospital (06152-245222)
-                    </a>
-                </div>
-            </div>
-
-            <!-- Collectorate & DM Office -->
-            <div class="col-md-6 col-lg-4">
-                <div class="card border-0 shadow-sm rounded-4 p-4 h-100 today-card">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div class="bg-primary text-white rounded-3 p-2.5">
-                            <i class="bi bi-building-gear fs-4"></i>
-                        </div>
-                        <?php 
-                        $isGovtOpen = ($currentTimeDecimal >= 10.0 && $currentTimeDecimal <= 17.0 && date('N') <= 5 && !$todayHolidayInfo['is_govt_holiday']);
-                        $govtBadgeText = $todayHolidayInfo['is_govt_holiday'] ? 'CLOSED (HOLIDAY)' : ($isGovtOpen ? 'OPEN NOW (10 AM - 5 PM)' : 'CLOSED (Opens 10 AM Mon-Fri)');
-                        $govtBadgeClass = $isGovtOpen ? 'status-badge-open' : 'status-badge-closed';
-                        ?>
-                        <span class="badge <?php echo $govtBadgeClass; ?> rounded-pill px-3 py-1.5 small">
-                            <i class="bi <?php echo $isGovtOpen ? 'bi-door-open-fill' : 'bi-door-closed-fill'; ?> me-1"></i>
-                            <?php echo $govtBadgeText; ?>
-                        </span>
-                    </div>
-                    <h5 class="fw-bold text-dark font-heading mb-1">Saran Collectorate & BDO Offices</h5>
-                    <p class="text-muted small mb-3">District Magistrate Office, SDO Chapra/Marhaura/Sonpur, 20 Block & CO Offices.</p>
-                    <div class="stat-pill mb-2">
-                        <div class="d-flex justify-content-between small">
-                            <span class="text-muted">General Public Hours:</span>
-                            <strong class="text-dark">10:00 AM – 05:00 PM</strong>
-                        </div>
-                    </div>
-                    <div class="stat-pill mb-3">
-                        <div class="d-flex justify-content-between small">
-                            <span class="text-muted">Working Days:</span>
-                            <strong class="text-dark">Monday to Friday</strong>
-                        </div>
-                    </div>
-                    <a href="tel:06152245001" class="btn btn-outline-primary btn-sm w-100 rounded-pill fw-bold">
-                        <i class="bi bi-telephone-fill me-1"></i> DM Office Helpline
-                    </a>
-                </div>
-            </div>
-
-            <!-- Civil Court & Legal Services -->
-            <div class="col-md-6 col-lg-4">
-                <div class="card border-0 shadow-sm rounded-4 p-4 h-100 today-card">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div class="bg-dark text-white rounded-3 p-2.5">
-                            <i class="bi bi-bank fs-4"></i>
-                        </div>
-                        <?php 
-                        $isCourtOpen = ($currentTimeDecimal >= 10.5 && $currentTimeDecimal <= 16.5 && date('N') <= 6 && !$todayHolidayInfo['is_court_holiday']);
-                        $courtBadgeText = $todayHolidayInfo['is_court_holiday'] ? 'COURT CLOSED (HOLIDAY / RECESS)' : ($isCourtOpen ? 'COURT IN SESSION' : 'CLOSED / RECESS');
-                        $courtBadgeClass = $isCourtOpen ? 'status-badge-open' : 'status-badge-closed';
-                        ?>
-                        <span class="badge <?php echo $courtBadgeClass; ?> rounded-pill px-3 py-1.5 small">
-                            <i class="bi <?php echo $isCourtOpen ? 'bi-door-open-fill' : 'bi-door-closed-fill'; ?> me-1"></i>
-                            <?php echo $courtBadgeText; ?>
-                        </span>
-                    </div>
-                    <h5 class="fw-bold text-dark font-heading mb-1">Civil Court Chapra & DLSA</h5>
-                    <p class="text-muted small mb-3">District & Sessions Court Saran, District Legal Services Authority (DLSA).</p>
-                    <div class="stat-pill mb-2">
-                        <div class="d-flex justify-content-between small">
-                            <span class="text-muted">Court Functioning:</span>
-                            <strong class="text-dark">10:30 AM – 04:30 PM</strong>
-                        </div>
-                    </div>
-                    <div class="stat-pill mb-3">
-                        <div class="d-flex justify-content-between small">
-                            <span class="text-muted">Free Legal Aid (DLSA):</span>
-                            <strong class="text-success">Available Daily</strong>
-                        </div>
-                    </div>
-                    <a href="categories/advocates-legal-consultants" class="btn btn-outline-dark btn-sm w-100 rounded-pill fw-bold">
-                        <i class="bi bi-briefcase-fill me-1"></i> Find Advocates in Saran
-                    </a>
-                </div>
-            </div>
-
-            <!-- JPU & Colleges -->
-            <div class="col-md-6 col-lg-4">
-                <div class="card border-0 shadow-sm rounded-4 p-4 h-100 today-card">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div class="bg-info text-white rounded-3 p-2.5">
-                            <i class="bi bi-mortarboard fs-4"></i>
-                        </div>
-                        <span class="badge status-badge-open rounded-pill px-3 py-1.5 small">
-                            <i class="bi bi-clock me-1"></i> 10:00 AM – 04:00 PM
-                        </span>
-                    </div>
-                    <h5 class="fw-bold text-dark font-heading mb-1">Jai Prakash University (JPU) & Colleges</h5>
-                    <p class="text-muted small mb-3">Rajendra College, Jagdam College, Ram Jaipal College, Ganga Singh College & affiliated institutions.</p>
-                    <div class="stat-pill mb-3">
-                        <div class="d-flex justify-content-between small">
-                            <span class="text-muted">Admin & Examination:</span>
-                            <strong class="text-dark">10:30 AM – 03:30 PM</strong>
-                        </div>
-                    </div>
-                    <a href="university" class="btn btn-outline-info btn-sm w-100 rounded-pill fw-bold text-info-emphasis">
-                        <i class="bi bi-book me-1"></i> Explore JPU & Saran Colleges
-                    </a>
-                </div>
-            </div>
-
-            <!-- Banks & Financial Institutions -->
-            <div class="col-md-6 col-lg-4">
-                <div class="card border-0 shadow-sm rounded-4 p-4 h-100 today-card">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div class="bg-success text-white rounded-3 p-2.5">
-                            <i class="bi bi-cash-coin fs-4"></i>
-                        </div>
-                        <?php 
-                        $isBankOpen = ($currentTimeDecimal >= 10.0 && $currentTimeDecimal <= 16.0 && date('N') <= 6 && !$todayHolidayInfo['is_bank_holiday']);
-                        $bankBadgeText = $todayHolidayInfo['is_bank_holiday'] ? 'BRANCHES CLOSED (BANK HOLIDAY)' : ($isBankOpen ? 'BRANCHES OPEN' : 'BRANCHES CLOSED');
-                        $bankBadgeClass = $isBankOpen ? 'status-badge-open' : 'status-badge-closed';
-                        ?>
-                        <span class="badge <?php echo $bankBadgeClass; ?> rounded-pill px-3 py-1.5 small">
-                            <i class="bi <?php echo $isBankOpen ? 'bi-wallet2' : 'bi-door-closed-fill'; ?> me-1"></i>
-                            <?php echo $bankBadgeText; ?>
-                        </span>
-                    </div>
-                    <h5 class="fw-bold text-dark font-heading mb-1">Banks & Financial Branches</h5>
-                    <p class="text-muted small mb-3">SBI, PNB, Canara, Bank of Baroda, Bihar Gramin Bank & ATMs across all 20 blocks.</p>
-                    <div class="stat-pill mb-3">
-                        <div class="d-flex justify-content-between small">
-                            <span class="text-muted">Counter Services:</span>
-                            <strong class="text-dark">10:00 AM – 04:00 PM</strong>
-                        </div>
-                    </div>
-                    <a href="categories/banks-atms-financial-services" class="btn btn-outline-success btn-sm w-100 rounded-pill fw-bold">
-                        <i class="bi bi-search me-1"></i> Find Nearest Bank / ATM
-                    </a>
-                </div>
-            </div>
-
-            <!-- Electricity & SBPDCL Control -->
-            <div class="col-md-6 col-lg-4">
-                <div class="card border-0 shadow-sm rounded-4 p-4 h-100 today-card">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div class="bg-warning text-dark rounded-3 p-2.5">
-                            <i class="bi bi-lightning-charge-fill fs-4"></i>
-                        </div>
-                        <span class="badge status-badge-24x7 rounded-pill px-3 py-1.5 small">
-                            <i class="bi bi-telephone-inbound-fill me-1"></i> 1912 (24x7 Helpline)
-                        </span>
-                    </div>
-                    <h5 class="fw-bold text-dark font-heading mb-1">Electricity (SBPDCL Saran)</h5>
-                    <p class="text-muted small mb-3">Urban & Rural Power Supply Divisions: Chapra, Marhaura, Revelganj, Sonpur.</p>
-                    <div class="stat-pill mb-3">
-                        <div class="d-flex justify-content-between small">
-                            <span class="text-muted">Breakdown Reporting:</span>
-                            <strong class="text-primary">Toll-Free 1912 (24x7)</strong>
-                        </div>
-                    </div>
-                    <a href="tel:1912" class="btn btn-outline-warning btn-sm w-100 rounded-pill fw-bold text-dark">
-                        <i class="bi bi-lightning me-1"></i> Report Power Outage (Dial 1912)
-                    </a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Section 4: Today's Fuel Rates & Mandi Highlights in Saran -->
+    <!-- Section: Today's Fuel Rates & Mandi Highlights in Saran -->
     <section id="fuel-mandi" class="mb-5">
         <div class="row g-4">
             <!-- Fuel Prices in Saran -->
@@ -701,25 +504,25 @@ require_once __DIR__ . '/includes/header.php';
                     </div>
 
                     <div class="row g-3 text-center">
-                        <div class="col-6 col-sm-3">
-                            <a href="category/automobile/petrol-pumps" class="text-decoration-none d-block h-100">
+                        <div class="col-sm-4 col-12">
+                            <a href="https://www.ndtv.com/fuel-prices/petrol-price-in-saran-city" target="_blank" rel="noopener noreferrer" class="text-decoration-none d-block h-100">
                                 <div class="p-3 rounded-4 bg-light border border-secondary border-opacity-10 h-100 hover-shadow transition-all">
                                     <div class="text-muted extra-small fw-bold text-uppercase"><i class="bi bi-fuel-pump-fill text-danger me-1"></i>Petrol</div>
-                                    <div class="fuel-rate-badge text-danger my-1">₹106.05</div>
-                                    <div class="text-muted extra-small">/ Litre in Saran</div>
+                                    <div class="fuel-rate-badge text-danger my-1">₹114.34</div>
+                                    <div class="text-muted extra-small">/ Litre (Saran)</div>
                                 </div>
                             </a>
                         </div>
-                        <div class="col-6 col-sm-3">
-                            <a href="category/automobile/petrol-pumps" class="text-decoration-none d-block h-100">
+                        <div class="col-sm-4 col-12">
+                            <a href="https://www.ndtv.com/fuel-prices/diesel-price-in-saran-city" target="_blank" rel="noopener noreferrer" class="text-decoration-none d-block h-100">
                                 <div class="p-3 rounded-4 bg-light border border-secondary border-opacity-10 h-100 hover-shadow transition-all">
                                     <div class="text-muted extra-small fw-bold text-uppercase"><i class="bi bi-fuel-pump text-primary me-1"></i>Diesel</div>
-                                    <div class="fuel-rate-badge text-primary my-1">₹92.86</div>
-                                    <div class="text-muted extra-small">/ Litre in Saran</div>
+                                    <div class="fuel-rate-badge text-primary my-1">₹100.30</div>
+                                    <div class="text-muted extra-small">/ Litre (Saran)</div>
                                 </div>
                             </a>
                         </div>
-                        <div class="col-6 col-sm-3">
+                        <div class="col-sm-4 col-12">
                             <a href="category/automobile/petrol-pumps" class="text-decoration-none d-block h-100">
                                 <div class="p-3 rounded-4 bg-light border border-secondary border-opacity-10 h-100 hover-shadow transition-all">
                                     <div class="text-muted extra-small fw-bold text-uppercase"><i class="bi bi-ev-station text-success me-1"></i>CNG</div>
@@ -728,25 +531,36 @@ require_once __DIR__ . '/includes/header.php';
                                 </div>
                             </a>
                         </div>
-                        <div class="col-6 col-sm-3">
-                            <div class="p-3 rounded-4 bg-light border border-secondary border-opacity-10 h-100">
-                                <div class="text-muted extra-small fw-bold text-uppercase"><i class="bi bi-fire text-warning me-1"></i>LPG (14.2kg)</div>
-                                <div class="fuel-rate-badge text-warning my-1">₹892.50</div>
-                                <div class="text-muted extra-small">/ Domestic Cyl.</div>
-                            </div>
-                        </div>
                     </div>
                     <div class="mt-3 text-center">
                         <a href="category/automobile/petrol-pumps" class="btn btn-danger btn-sm rounded-pill px-4 fw-bold shadow-sm">
                             <i class="bi bi-fuel-pump-fill me-1"></i> Explore All 87+ Verified Petrol Pumps & Fuel Stations in Saran →
                         </a>
                     </div>
+
+                    <div class="mt-3 pt-3 border-top border-secondary border-opacity-10 extra-small text-muted text-start">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                            <span class="fw-bold text-dark"><i class="bi bi-shield-check text-success me-1"></i>Official OMC Reference Portals:</span>
+                            <span class="text-muted">Retail Price & Price Build-Ups</span>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="https://iocl.com/petrol-diesel-price" target="_blank" rel="noopener noreferrer" class="badge bg-light text-primary border rounded-pill text-decoration-none px-2.5 py-1 fw-semibold">
+                                IndianOil (IOCL) <i class="bi bi-box-arrow-up-right extra-small"></i>
+                            </a>
+                            <a href="https://www.hindustanpetroleum.com/PriceBuildup" target="_blank" rel="noopener noreferrer" class="badge bg-light text-primary border rounded-pill text-decoration-none px-2.5 py-1 fw-semibold">
+                                Hindustan Petroleum (HPCL) <i class="bi bi-box-arrow-up-right extra-small"></i>
+                            </a>
+                            <a href="https://www.bharatpetroleum.in/our-businesses/fuels-and-services/petro-prices" target="_blank" rel="noopener noreferrer" class="badge bg-light text-primary border rounded-pill text-decoration-none px-2.5 py-1 fw-semibold">
+                                Bharat Petroleum (BPCL) <i class="bi bi-box-arrow-up-right extra-small"></i>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- Mandi Highlights in Saran -->
             <div class="col-lg-6">
-                <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+                <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <div>
                             <span class="badge bg-success-subtle text-success fw-bold px-3 py-1 rounded-pill small mb-1">
@@ -754,32 +568,62 @@ require_once __DIR__ . '/includes/header.php';
                             </span>
                             <h3 class="fw-bold font-heading text-dark h4 mb-0">Today's Mandi & Agriculture Hubs</h3>
                         </div>
-                        <span class="badge bg-light text-dark border small fw-semibold">Saran Krishi Bazar</span>
+                        <span class="badge bg-success text-white rounded-pill px-2.5 py-1 extra-small fw-bold">
+                            <i class="bi bi-patch-check-fill me-1"></i> Saran Mandi Hub
+                        </span>
                     </div>
 
-                    <p class="text-muted small mb-3">Major wholesale and agricultural market hubs active today in Saran District:</p>
+                    <p class="text-muted small mb-3">Major wholesale APMC & agricultural market hubs active today in Saran District:</p>
 
-                    <div class="list-group list-group-flush small">
-                        <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                    <div class="d-flex flex-column gap-2.5">
+                        <div class="p-3 rounded-3 bg-light border border-secondary border-opacity-10 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 hover-shadow transition-all">
                             <div>
-                                <strong class="text-dark">Gudri Bazar (Chapra Town)</strong>
-                                <div class="text-muted extra-small">Fresh vegetables, fruits, spices & dairy wholesale</div>
+                                <strong class="text-dark d-flex align-items-center gap-1.5 fs-6">
+                                    <i class="bi bi-shop-window text-success fs-5"></i> Bazar Samiti, Chapra (बाजार समिति)
+                                </strong>
+                                <div class="text-muted extra-small mt-0.5">Apex APMC Market • Grains, Foodgrains, Vegetables, Fruits, Seeds & Fertilizer</div>
+                                <div class="text-secondary extra-small fw-semibold mt-0.5"><i class="bi bi-calendar-x text-danger me-1"></i>Monthly Off: Last day of every month</div>
                             </div>
-                            <span class="badge bg-success text-white rounded-pill">Active 04 AM - 09 PM</span>
+                            <div class="text-sm-end shrink-0">
+                                <?php if ((int)date('j') === (int)date('t')): ?>
+                                    <span class="badge bg-danger text-white rounded-pill px-2.5 py-1">Closed (Month-End Off)</span>
+                                <?php else: ?>
+                                    <span class="badge bg-success text-white rounded-pill px-2.5 py-1"><i class="bi bi-clock-fill me-1"></i>05:30 AM - 11:30 PM</span>
+                                <?php endif; ?>
+                            </div>
                         </div>
-                        <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                        <div class="p-3 rounded-3 bg-light border border-secondary border-opacity-10 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 hover-shadow transition-all">
                             <div>
-                                <strong class="text-dark">Revelganj Galla Mandi</strong>
-                                <div class="text-muted extra-small">Paddy, Wheat, Mustard, Maize & Pulses trade</div>
+                                <strong class="text-dark d-flex align-items-center gap-1.5 fs-6">
+                                    <i class="bi bi-basket2 text-primary fs-5"></i> Gudri Bazar (Chapra Town)
+                                </strong>
+                                <div class="text-muted extra-small mt-0.5">Fresh green vegetables, fruits, spices, dairy & local produce wholesale</div>
                             </div>
-                            <span class="badge bg-primary text-white rounded-pill">Active 07 AM - 06 PM</span>
+                            <div class="text-sm-end shrink-0">
+                                <span class="badge bg-success text-white rounded-pill px-2.5 py-1"><i class="bi bi-clock-fill me-1"></i>04 AM - 09 PM</span>
+                            </div>
                         </div>
-                        <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                        <div class="p-3 rounded-3 bg-light border border-secondary border-opacity-10 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 hover-shadow transition-all">
                             <div>
-                                <strong class="text-dark">Marhaura Krishi Bazar</strong>
-                                <div class="text-muted extra-small">Sugarcane, seasonal crops & regional produce</div>
+                                <strong class="text-dark d-flex align-items-center gap-1.5 fs-6">
+                                    <i class="bi bi-boxes text-warning-emphasis fs-5"></i> Revelganj Galla Mandi
+                                </strong>
+                                <div class="text-muted extra-small mt-0.5">Paddy (Dhan), Wheat (Gehun), Mustard, Maize (Makka) & Pulses trade</div>
                             </div>
-                            <span class="badge bg-info text-dark rounded-pill">Active 06 AM - 07 PM</span>
+                            <div class="text-sm-end shrink-0">
+                                <span class="badge bg-primary text-white rounded-pill px-2.5 py-1"><i class="bi bi-clock-fill me-1"></i>07 AM - 06 PM</span>
+                            </div>
+                        </div>
+                        <div class="p-3 rounded-3 bg-light border border-secondary border-opacity-10 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 hover-shadow transition-all">
+                            <div>
+                                <strong class="text-dark d-flex align-items-center gap-1.5 fs-6">
+                                    <i class="bi bi-flower1 text-info fs-5"></i> Marhaura Krishi Bazar
+                                </strong>
+                                <div class="text-muted extra-small mt-0.5">Sugarcane, seasonal agricultural crops, potato & regional farmer produce</div>
+                            </div>
+                            <div class="text-sm-end shrink-0">
+                                <span class="badge bg-info text-dark rounded-pill px-2.5 py-1"><i class="bi bi-clock-fill me-1"></i>06 AM - 07 PM</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -787,8 +631,8 @@ require_once __DIR__ . '/includes/header.php';
         </div>
     </section>
 
-    <!-- Section 4.5: 2026 Official Holiday Calendar & Court Vacations (Saran & Bihar) -->
-    <!-- Reference: https://myadv.in/2026.pdf -->
+    <!-- Section 4.5: 2026 Official Holiday Calendar (Saran & Bihar) -->
+    <!-- Reference: https://patnahighcourt.gov.in/PDF/CALENDAR/CIVIL_CAL2026.jpg -->
     <section id="holidays-section" class="mb-5">
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 1px solid #e2e8f0 !important;">
             <div class="p-4 p-lg-5">
@@ -806,12 +650,12 @@ require_once __DIR__ . '/includes/header.php';
                             Bihar Govt, Civil Court Saran & Bank Holidays 2026
                         </h2>
                         <p class="text-muted small mb-0">
-                            Official holiday calendar & vacations for Saran Collectorate, Subordinate Courts (Chapra / Sonepur / Marhaura) and Commercial Banks.
+                            Official holiday calendar for Saran Collectorate, Subordinate Courts (Chapra / Sonepur / Marhaura) and Commercial Banks.
                         </p>
                     </div>
                     <div>
-                        <a href="https://myadv.in/2026.pdf" target="_blank" rel="noopener noreferrer" class="btn btn-primary rounded-pill px-4 py-2.5 fw-bold shadow-sm">
-                            <i class="bi bi-file-earmark-pdf-fill me-1 text-warning"></i> Download Official 2026 Calendar (PDF) <i class="bi bi-box-arrow-up-right small ms-1"></i>
+                        <a href="https://patnahighcourt.gov.in/PDF/CALENDAR/CIVIL_CAL2026.jpg" target="_blank" rel="noopener noreferrer" class="btn btn-primary rounded-pill px-4 py-2.5 fw-bold shadow-sm">
+                            <i class="bi bi-calendar3 me-1 text-warning"></i> View Official 2026 Calendar (Patna High Court) <i class="bi bi-box-arrow-up-right small ms-1"></i>
                         </a>
                     </div>
                 </div>
@@ -1006,16 +850,6 @@ require_once __DIR__ . '/includes/header.php';
                             </div>
                         </div>
                     </div>
-
-                    <div class="d-flex flex-wrap justify-content-between align-items-center mt-4 pt-3 border-top border-secondary border-opacity-10 extra-small text-muted">
-                        <div>
-                            <i class="bi bi-info-circle-fill text-primary me-1"></i>
-                            Court vacations include Summer Vacation (June), Durga Puja (October), and Winter Break (December) per High Court guidelines.
-                        </div>
-                        <div>
-                            Official Reference: <a href="https://myadv.in/2026.pdf" target="_blank" rel="noopener noreferrer" class="text-primary fw-bold text-decoration-none">myadv.in/2026.pdf <i class="bi bi-box-arrow-up-right extra-small"></i></a>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -1037,8 +871,8 @@ require_once __DIR__ . '/includes/header.php';
 
         <div class="row g-3">
             <!-- Dainik Jagran -->
-            <div class="col-md-6 col-lg-3">
-                <div class="card border-0 shadow-sm rounded-4 p-3.5 h-100 today-card border-top border-4 border-danger">
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 p-3.5 h-100 today-card border-top border-4 border-danger d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <span class="badge bg-danger-subtle text-danger rounded-pill px-2.5 py-1 extra-small fw-bold">Hindi Daily</span>
                         <span class="badge bg-light text-dark border rounded-pill px-2 py-0.5 extra-small fw-semibold">05:00 AM</span>
@@ -1053,8 +887,8 @@ require_once __DIR__ . '/includes/header.php';
             </div>
 
             <!-- Prabhat Khabar -->
-            <div class="col-md-6 col-lg-3">
-                <div class="card border-0 shadow-sm rounded-4 p-3.5 h-100 today-card border-top border-4 border-warning">
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 p-3.5 h-100 today-card border-top border-4 border-warning d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-2.5 py-1 extra-small fw-bold">Bihar Special</span>
                         <span class="badge bg-light text-dark border rounded-pill px-2 py-0.5 extra-small fw-semibold">05:00 AM</span>
@@ -1069,8 +903,8 @@ require_once __DIR__ . '/includes/header.php';
             </div>
 
             <!-- Dainik Bhaskar -->
-            <div class="col-md-6 col-lg-3">
-                <div class="card border-0 shadow-sm rounded-4 p-3.5 h-100 today-card border-top border-4 border-primary">
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 p-3.5 h-100 today-card border-top border-4 border-primary d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <span class="badge bg-primary-subtle text-primary rounded-pill px-2.5 py-1 extra-small fw-bold">Digital First</span>
                         <span class="badge bg-light text-dark border rounded-pill px-2 py-0.5 extra-small fw-semibold">05:15 AM</span>
@@ -1078,15 +912,15 @@ require_once __DIR__ . '/includes/header.php';
                     <h5 class="fw-bold text-dark font-heading mb-1 fs-5">दैनिक भास्कर</h5>
                     <div class="text-muted extra-small mb-2">Dainik Bhaskar (बिहार / छपरा)</div>
                     <p class="text-secondary extra-small mb-3">In-depth investigative journalism, local crime beat, administration updates & youth issues.</p>
-                    <a href="https://epaper.bhaskar.com/" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm w-100 rounded-pill fw-bold mt-auto">
-                        <i class="bi bi-book-half me-1"></i> Read Bhaskar ePaper →
+                    <a href="https://www.bhaskar.com/local/bihar/saran/" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm w-100 rounded-pill fw-bold mt-auto">
+                        <i class="bi bi-book-half me-1"></i> Read Bhaskar News →
                     </a>
                 </div>
             </div>
 
             <!-- Hindustan -->
-            <div class="col-md-6 col-lg-3">
-                <div class="card border-0 shadow-sm rounded-4 p-3.5 h-100 today-card border-top border-4 border-info">
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 p-3.5 h-100 today-card border-top border-4 border-info d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <span class="badge bg-info-subtle text-info-emphasis rounded-pill px-2.5 py-1 extra-small fw-bold">Top Read</span>
                         <span class="badge bg-light text-dark border rounded-pill px-2 py-0.5 extra-small fw-semibold">05:30 AM</span>
@@ -1100,25 +934,9 @@ require_once __DIR__ . '/includes/header.php';
                 </div>
             </div>
 
-            <!-- Rashtriya Sahara -->
-            <div class="col-md-6 col-lg-3">
-                <div class="card border-0 shadow-sm rounded-4 p-3.5 h-100 today-card border-top border-4" style="border-color: #7c3aed !important;">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <span class="badge bg-purple-subtle text-purple rounded-pill px-2.5 py-1 extra-small fw-bold" style="background:#f3e8ff; color:#6b21a8;">Regional Daily</span>
-                        <span class="badge bg-light text-dark border rounded-pill px-2 py-0.5 extra-small fw-semibold">06:00 AM</span>
-                    </div>
-                    <h5 class="fw-bold text-dark font-heading mb-1 fs-5">राष्ट्रीय सहारा</h5>
-                    <div class="text-muted extra-small mb-2">Rashtriya Sahara (बिहार / सारण)</div>
-                    <p class="text-secondary extra-small mb-3">Focuses on cultural stories, regional development schemes, literature and Bihar viewpoints.</p>
-                    <a href="https://epaper.rashtriyasahara.com/" target="_blank" rel="noopener noreferrer" class="btn btn-outline-dark btn-sm w-100 rounded-pill fw-bold mt-auto">
-                        <i class="bi bi-book-half me-1"></i> Read Sahara ePaper →
-                    </a>
-                </div>
-            </div>
-
             <!-- Aaj Newspaper -->
-            <div class="col-md-6 col-lg-3">
-                <div class="card border-0 shadow-sm rounded-4 p-3.5 h-100 today-card border-top border-4 border-dark">
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 p-3.5 h-100 today-card border-top border-4 border-dark d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <span class="badge bg-secondary-subtle text-secondary-emphasis rounded-pill px-2.5 py-1 extra-small fw-bold">Heritage Daily</span>
                         <span class="badge bg-light text-dark border rounded-pill px-2 py-0.5 extra-small fw-semibold">06:00 AM</span>
@@ -1126,31 +944,31 @@ require_once __DIR__ . '/includes/header.php';
                     <h5 class="fw-bold text-dark font-heading mb-1 fs-5">आज</h5>
                     <div class="text-muted extra-small mb-2">Aaj Daily (छपरा संस्करण)</div>
                     <p class="text-secondary extra-small mb-3">Historic Hindi publication known for traditional Bhojpuri region reporting & local public issues.</p>
-                    <a href="https://ajdailyepaper.com/" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary btn-sm w-100 rounded-pill fw-bold mt-auto">
+                    <a href="http://ajhindidaily.com/%E0%A4%88-%E0%A4%AA%E0%A5%87%E0%A4%AA%E0%A4%B0" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary btn-sm w-100 rounded-pill fw-bold mt-auto">
                         <i class="bi bi-book-half me-1"></i> Read Aaj Daily →
                     </a>
                 </div>
             </div>
 
-            <!-- Times of India -->
-            <div class="col-md-6 col-lg-3">
-                <div class="card border-0 shadow-sm rounded-4 p-3.5 h-100 today-card border-top border-4 border-dark">
+            <!-- Aaj Tak -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 p-3.5 h-100 today-card border-top border-4 border-danger d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-start mb-2">
-                        <span class="badge bg-dark text-white rounded-pill px-2.5 py-1 extra-small fw-bold">English Daily</span>
-                        <span class="badge bg-light text-dark border rounded-pill px-2 py-0.5 extra-small fw-semibold">05:00 AM</span>
+                        <span class="badge bg-danger-subtle text-danger rounded-pill px-2.5 py-1 extra-small fw-bold">Live News Hub</span>
+                        <span class="badge bg-light text-dark border rounded-pill px-2 py-0.5 extra-small fw-semibold">24x7 Live</span>
                     </div>
-                    <h5 class="fw-bold text-dark font-heading mb-1 fs-5">The Times of India</h5>
-                    <div class="text-muted extra-small mb-2">TOI (Patna / Saran Coverage)</div>
-                    <p class="text-secondary extra-small mb-3">India's leading national English newspaper with Bihar state pages, university affairs & national headlines.</p>
-                    <a href="https://epaper.timesgroup.com/" target="_blank" rel="noopener noreferrer" class="btn btn-dark btn-sm w-100 rounded-pill fw-bold mt-auto">
-                        <i class="bi bi-book-half me-1"></i> Read TOI ePaper →
+                    <h5 class="fw-bold text-dark font-heading mb-1 fs-5">आज तक</h5>
+                    <div class="text-muted extra-small mb-2">Aaj Tak (सारण विशेष समाचार)</div>
+                    <p class="text-secondary extra-small mb-3">Leading national news channel & digital portal with dedicated Saran news, videos, ground reporting & analysis.</p>
+                    <a href="https://www.aajtak.in/topic/saran" target="_blank" rel="noopener noreferrer" class="btn btn-outline-danger btn-sm w-100 rounded-pill fw-bold mt-auto">
+                        <i class="bi bi-broadcast-pin me-1"></i> Read Aaj Tak Saran News →
                     </a>
                 </div>
             </div>
 
             <!-- Hindustan Times -->
-            <div class="col-md-6 col-lg-3">
-                <div class="card border-0 shadow-sm rounded-4 p-3.5 h-100 today-card border-top border-4 border-primary">
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 p-3.5 h-100 today-card border-top border-4 border-primary d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <span class="badge bg-primary text-white rounded-pill px-2.5 py-1 extra-small fw-bold">English Daily</span>
                         <span class="badge bg-light text-dark border rounded-pill px-2 py-0.5 extra-small fw-semibold">05:00 AM</span>
@@ -1161,47 +979,6 @@ require_once __DIR__ . '/includes/header.php';
                     <a href="https://epaper.hindustantimes.com/" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm w-100 rounded-pill fw-bold mt-auto">
                         <i class="bi bi-book-half me-1"></i> Read HT ePaper →
                     </a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Section 5: Block Spotlight of the Day -->
-    <section id="block-spotlight" class="mb-5">
-        <div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
-            <div class="card-body p-4 p-md-5 text-white">
-                <div class="row align-items-center g-4">
-                    <div class="col-lg-8">
-                        <span class="badge bg-warning text-dark fw-bold px-3 py-1.5 rounded-pill small mb-3">
-                            <i class="bi bi-star-fill me-1"></i> BLOCK OF THE DAY SPOTLIGHT
-                        </span>
-                        <h2 class="fw-bold font-heading text-white display-6 mb-2">
-                            <?php echo htmlspecialchars($blockOfTheDay['block_name']); ?> 
-                            <span class="text-warning fs-3">(<?php echo htmlspecialchars($blockOfTheDay['hindi_name'] ?? ''); ?>)</span>
-                        </h2>
-                        <p class="text-white-50 lead fs-6 mb-4" style="line-height: 1.7;">
-                            Today we celebrate <strong><?php echo htmlspecialchars($blockOfTheDay['block_name']); ?></strong> block of Saran District, home to <strong><?php echo intval($blockOfTheDay['total_panchayats']); ?> Gram Panchayats</strong> with PIN code <strong><?php echo htmlspecialchars($blockOfTheDay['pincode'] ?? '841301'); ?></strong>. Explore local doctors, schools, shops, and panchayat representatives.
-                        </p>
-                        <div class="d-flex flex-wrap gap-2">
-                            <a href="block/<?php echo urlencode($blockOfTheDay['slug']); ?>" class="btn btn-warning rounded-pill px-4 py-2.5 fw-bold text-dark shadow-sm">
-                                <i class="bi bi-compass-fill me-1"></i> Explore <?php echo htmlspecialchars($blockOfTheDay['block_name']); ?> Block →
-                            </a>
-                            <a href="blocks" class="btn btn-outline-light rounded-pill px-4 py-2.5 fw-semibold">
-                                <i class="bi bi-grid-fill me-1"></i> View All 20 Blocks
-                            </a>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 text-center">
-                        <div class="p-4 rounded-4 bg-white bg-opacity-10 border border-white border-opacity-10">
-                            <div class="display-5 fw-bold text-warning font-heading mb-1"><?php echo intval($blockOfTheDay['total_panchayats']); ?></div>
-                            <div class="text-white fw-bold mb-2">Gram Panchayats</div>
-                            <div class="small text-white-50 mb-3">District Saran • Bihar</div>
-                            <div class="p-2.5 rounded-3 bg-black bg-opacity-30 border border-white border-opacity-10 small">
-                                <i class="bi bi-geo-alt-fill text-danger me-1"></i> PIN: <?php echo htmlspecialchars($blockOfTheDay['pincode'] ?? '841301'); ?>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

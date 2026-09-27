@@ -327,13 +327,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                                 <!-- PIN Code -->
                                 <div class="col-md-4">
-                                    <label class="form-label fw-semibold fs-7 text-dark mb-1">
-                                        पिन कोड <span class="text-muted fw-normal">(ऐच्छिक)</span>
+                                    <label class="form-label fw-semibold fs-7 text-dark mb-1 d-flex align-items-center justify-content-between">
+                                        <span>पिन कोड</span>
+                                        <span id="pinLookupStatus" class="text-muted small" style="font-size: 0.72rem;"></span>
                                     </label>
                                     <div class="input-group">
-                                        <span class="input-group-text bg-light border-secondary-subtle text-muted"><i class="bi bi-geo"></i></span>
-                                        <input type="text" name="pincode" class="form-control border-secondary-subtle rounded-end-3 py-2.5" placeholder="उदा. 841301" maxlength="6" value="<?php echo htmlspecialchars($pincode); ?>">
+                                        <input type="text" name="pincode" id="pincode_input" class="form-control border-secondary-subtle font-monospace fw-bold py-2.5" placeholder="841301" maxlength="6" value="<?php echo htmlspecialchars($pincode); ?>">
+                                        <button class="btn btn-outline-secondary border-secondary-subtle" type="button" id="btnPincodeLookup" title="पिन कोड जांचें">
+                                            <i class="bi bi-geo-alt-fill text-primary" id="pinIcon"></i>
+                                            <span class="spinner-border spinner-border-sm text-primary d-none" id="pinSpinner"></span>
+                                        </button>
                                     </div>
+                                    <div id="pincodeFeedback" class="mt-1.5" style="display: none;"></div>
                                 </div>
                             </div>
                         </div>
@@ -518,6 +523,97 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Pincode API Auto-lookup & Saran Block matching
+    const pinInput = document.getElementById('pincode_input');
+    const btnPin = document.getElementById('btnPincodeLookup');
+    const pinFeedback = document.getElementById('pincodeFeedback');
+    const pinStatus = document.getElementById('pinLookupStatus');
+    const pinIcon = document.getElementById('pinIcon');
+    const pinSpinner = document.getElementById('pinSpinner');
+
+    async function checkPincode(pin) {
+        const clean = pin.replace(/[^0-9]/g, '');
+        if (clean.length !== 6) {
+            if (pinFeedback) pinFeedback.style.display = 'none';
+            if (pinStatus) pinStatus.textContent = '';
+            return;
+        }
+
+        if (pinIcon) pinIcon.classList.add('d-none');
+        if (pinSpinner) pinSpinner.classList.remove('d-none');
+        if (pinStatus) pinStatus.textContent = 'सत्यापित हो रहा है...';
+
+        try {
+            const res = await fetch(`${BASE_URL}api/pincode_lookup.php?pincode=${clean}`);
+            const data = await res.json();
+
+            if (data.success) {
+                let district = data.district || '';
+                let state = data.state || '';
+                let offices = (data.offices && data.offices.length) ? data.offices.slice(0, 3).join(', ') : '';
+                if (data.offices && data.offices.length > 3) offices += ` +${data.offices.length - 3} अन्य`;
+
+                let blockSuggestion = '';
+                if (data.matched_blocks && data.matched_blocks.length > 0) {
+                    const matched = data.matched_blocks[0];
+                    if (blockSelect && (!blockSelect.value || blockSelect.value == '')) {
+                        blockSelect.value = matched.id;
+                        blockSelect.dispatchEvent(new Event('change'));
+                        let bTitle = matched.hindi_name ? matched.hindi_name : matched.block_name;
+                        blockSuggestion = `<div class="mt-1 text-primary fw-bold small"><i class="bi bi-magic me-1"></i> ऑटो-चयनित प्रखंड: ${bTitle}</div>`;
+                    }
+                }
+
+                if (pinFeedback) {
+                    pinFeedback.innerHTML = `
+                        <div class="p-2 rounded-2 bg-success-subtle border border-success-subtle text-success-emphasis small">
+                            <div class="d-flex align-items-center justify-content-between mb-0.5">
+                                <span class="fw-bold"><i class="bi bi-check-circle-fill text-success me-1"></i> ${district}, ${state}</span>
+                                <span class="badge bg-success text-white">सत्यापित पिन</span>
+                            </div>
+                            ${offices ? `<div class="text-muted extra-small" style="font-size: 0.72rem;"><strong>डाकघर:</strong> ${offices}</div>` : ''}
+                            ${blockSuggestion}
+                        </div>
+                    `;
+                    pinFeedback.style.display = 'block';
+                }
+                if (pinStatus) pinStatus.innerHTML = `<span class="text-success font-monospace">✓ ${district}</span>`;
+            } else {
+                if (pinFeedback) {
+                    pinFeedback.innerHTML = `
+                        <div class="p-2 rounded-2 bg-warning-subtle border border-warning-subtle text-dark small">
+                            <i class="bi bi-info-circle text-warning me-1"></i> ${data.message || 'डाक रिकॉर्ड नहीं मिला।'}
+                        </div>
+                    `;
+                    pinFeedback.style.display = 'block';
+                }
+                if (pinStatus) pinStatus.textContent = '';
+            }
+        } catch (e) {
+            if (pinFeedback) pinFeedback.style.display = 'none';
+            if (pinStatus) pinStatus.textContent = '';
+        } finally {
+            if (pinIcon) pinIcon.classList.remove('d-none');
+            if (pinSpinner) pinSpinner.classList.add('d-none');
+        }
+    }
+
+    if (pinInput) {
+        let pinTimer = null;
+        pinInput.addEventListener('input', function() {
+            clearTimeout(pinTimer);
+            pinTimer = setTimeout(() => checkPincode(this.value), 400);
+        });
+        if (pinInput.value && pinInput.value.length === 6) {
+            checkPincode(pinInput.value);
+        }
+    }
+
+    if (btnPin && pinInput) {
+        btnPin.addEventListener('click', function() {
+            checkPincode(pinInput.value);
+        });
+    }
 });
 </script>
 

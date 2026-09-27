@@ -126,6 +126,7 @@ $social_wa = defined('SOCIAL_WHATSAPP') ? SOCIAL_WHATSAPP : 'https://whatsapp.co
                     <li><a href="hindi/today" class="footer-link"><i class="bi bi-calendar2-day-fill text-warning"></i> आज सारण में क्या है</a></li>
                     <li><a href="search-names" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> नाम व नागरिक निर्देशिका</a></li>
                     <li><a href="blocks" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> सारण के सभी 20 प्रखंड</a></li>
+                    <li><a href="pincode.php" class="footer-link"><i class="bi bi-mailbox2 text-warning"></i> पिन कोड निर्देशिका (Postal PIN)</a></li>
                     <li><a href="categories" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> सभी श्रेणियां</a></li>
                     <li><a href="blog/" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> ब्लॉग एवं स्थानीय गाइड</a></li>
                     <li><a href="emergency" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> 24x7 आपातकालीन सेवाएं</a></li>

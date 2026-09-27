@@ -2,7 +2,7 @@
 /**
  * 2026 Bihar Official Holiday Calendar Helper
  * Covers Govt of Bihar, Civil Courts (Saran/Chapra), and Banks (NI Act).
- * Reference: https://myadv.in/2026.pdf
+ * Reference: https://patnahighcourt.gov.in/PDF/CALENDAR/CIVIL_CAL2026.jpg
  */
 
 function getBiharHolidays2026() {

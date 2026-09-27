@@ -138,7 +138,7 @@ if (empty($historyEvents)) {
     ];
 }
 
-// 3. Holiday Detection & Office Status Calculations (Ref: https://myadv.in/2026.pdf)
+// 3. Holiday Detection & Office Status Calculations (Ref: https://patnahighcourt.gov.in/PDF/CALENDAR/CIVIL_CAL2026.jpg)
 $todayHolidayInfo = getTodayHolidayDetails($now->format('Y-m-d'));
 $upcomingHolidays = getUpcomingBiharHolidays(8, 'ALL');
 
@@ -196,14 +196,21 @@ $officeStatus = [
 
 // 4. Energy & Fuel Index in Saran (Chapra)
 $fuelRates = [
-    'petrol' => '106.05',
-    'diesel' => '92.86',
+    'petrol' => '114.34',
+    'diesel' => '100.30',
     'cng' => '86.50',
-    'lpg' => '892.50',
     'currency' => 'INR',
     'unit_fuel' => '₹/Litre',
     'unit_cng' => '₹/Kg',
-    'unit_lpg' => '₹/Cylinder (14.2kg)',
+    'sources' => [
+        'petrol' => 'https://www.ndtv.com/fuel-prices/petrol-price-in-saran-city',
+        'diesel' => 'https://www.ndtv.com/fuel-prices/diesel-price-in-saran-city'
+    ],
+    'omc_portals' => [
+        'iocl' => ['name' => 'IndianOil (IOCL)', 'url' => 'https://iocl.com/petrol-diesel-price'],
+        'hpcl' => ['name' => 'Hindustan Petroleum (HPCL)', 'url' => 'https://www.hindustanpetroleum.com/PriceBuildup'],
+        'bpcl' => ['name' => 'Bharat Petroleum (BPCL)', 'url' => 'https://www.bharatpetroleum.in/our-businesses/fuels-and-services/petro-prices']
+    ],
     'last_updated' => $now->format('d M Y, h:i A')
 ];
 
@@ -234,7 +241,7 @@ $epapers = [
         'language' => 'Hindi',
         'tag' => 'Digital First',
         'color' => '#d97706',
-        'url' => 'https://epaper.bhaskar.com/'
+        'url' => 'https://www.bhaskar.com/local/bihar/saran/'
     ],
     [
         'name' => 'Hindustan',
@@ -246,31 +253,22 @@ $epapers = [
         'url' => 'https://epaper.livehindustan.com/edition/chapra?date=' . $now->format('Y-m-d') . '&page=1'
     ],
     [
-        'name' => 'Rashtriya Sahara',
-        'hindi_name' => 'राष्ट्रीय सहारा',
-        'edition' => 'Bihar / Saran Edition (बिहार संस्करण)',
-        'language' => 'Hindi',
-        'tag' => 'Regional',
-        'color' => '#7c3aed',
-        'url' => 'https://epaper.rashtriyasahara.com/'
-    ],
-    [
         'name' => 'Aaj',
         'hindi_name' => 'आज',
         'edition' => 'Chapra Edition (छपरा संस्करण)',
         'language' => 'Hindi',
         'tag' => 'Heritage',
         'color' => '#b91c1c',
-        'url' => 'https://ajdailyepaper.com/'
+        'url' => 'http://ajhindidaily.com/%E0%A4%88-%E0%A4%AA%E0%A5%87%E0%A4%AA%E0%A4%B0'
     ],
     [
-        'name' => 'The Times of India',
-        'hindi_name' => 'टाइम्स ऑफ इंडिया',
-        'edition' => 'Patna & Saran Metro Edition',
-        'language' => 'English',
-        'tag' => 'National English',
-        'color' => '#1e293b',
-        'url' => 'https://epaper.timesgroup.com/'
+        'name' => 'Aaj Tak',
+        'hindi_name' => 'आज तक',
+        'edition' => 'Saran News & Video Coverage (सारण समाचार)',
+        'language' => 'Hindi',
+        'tag' => 'Live News',
+        'color' => '#dc2626',
+        'url' => 'https://www.aajtak.in/topic/saran'
     ],
     [
         'name' => 'Hindustan Times',
@@ -299,10 +297,44 @@ $response = [
     'weather' => $weatherData,
     'holiday_info' => $todayHolidayInfo,
     'upcoming_holidays' => $upcomingHolidays,
-    'calendar_pdf' => 'https://myadv.in/2026.pdf',
+    'calendar_pdf' => 'https://patnahighcourt.gov.in/PDF/CALENDAR/CIVIL_CAL2026.jpg',
     'office_status' => $officeStatus,
     'fuel_rates' => $fuelRates,
     'epapers' => $epapers,
+    'agricultural_markets' => [
+        [
+            'name' => 'Bazar Samiti, Chapra',
+            'hindi_name' => 'बाजार समिति, छपरा',
+            'type' => 'Apex Agricultural Wholesale APMC Market',
+            'produce' => 'Grains, Foodgrains, Vegetables, Fruits, Seeds & Fertilizer',
+            'timings' => '05:30 AM – 11:30 PM (Monthly Off: Last day of month)',
+            'status' => ((int)date('j') === (int)date('t') ? 'CLOSED' : 'ACTIVE')
+        ],
+        [
+            'name' => 'Gudri Bazar (Chapra Town)',
+            'hindi_name' => 'गुदरी बाजार (छपरा शहर)',
+            'type' => 'Fresh Vegetables, Fruits & Spices',
+            'produce' => 'Vegetables, Fruits, Dairy & Local Produce',
+            'timings' => '04:00 AM – 09:00 PM',
+            'status' => 'ACTIVE'
+        ],
+        [
+            'name' => 'Revelganj Galla Mandi',
+            'hindi_name' => 'रिविलगंज गल्ला मंडी',
+            'type' => 'Grains & Pulses Wholesale Trade',
+            'produce' => 'Paddy (Dhan), Wheat, Mustard, Maize & Pulses',
+            'timings' => '07:00 AM – 06:00 PM',
+            'status' => 'ACTIVE'
+        ],
+        [
+            'name' => 'Marhaura Krishi Bazar',
+            'hindi_name' => 'मढ़ौरा कृषि बाजार',
+            'type' => 'Seasonal Crops & Regional Farmer Produce',
+            'produce' => 'Sugarcane, Potato & Seasonal Farmer Crops',
+            'timings' => '06:00 AM – 07:00 PM',
+            'status' => 'ACTIVE'
+        ]
+    ],
     'history_events' => $historyEvents
 ];
 

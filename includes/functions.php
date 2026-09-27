@@ -5796,3 +5796,173 @@ function getBlogUrl($slug = '', $isHindi = false) {
     }
     return $baseUrl . $prefix . 'post.php?slug=' . urlencode($slug);
 }
+
+/**
+ * Look up Indian Postal PIN Code via Olaw API
+ * Returns structured details: district, state, sub_districts, post offices, localities.
+ */
+function lookupPincodeApi($pincode) {
+    $cleanPin = preg_replace('/[^0-9]/', '', (string)$pincode);
+    if (strlen($cleanPin) !== 6) {
+        return ['success' => false, 'message' => 'PIN code must be exactly 6 digits.'];
+    }
+
+    $apiKey = defined('OLAW_API_KEY') ? OLAW_API_KEY : 'OLAW_918271E7416CEB78F1A5';
+    $apiUrl = defined('OLAW_API_URL') ? OLAW_API_URL : 'https://olaw.in/api.php';
+    $endpoint = $apiUrl . '?action=pincode&pincode=' . urlencode($cleanPin) . '&api_key=' . urlencode($apiKey);
+
+    $response = false;
+    if (function_exists('curl_init')) {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $endpoint);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 8);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'SaranIndex-PincodeClient/1.0');
+        $response = curl_exec($ch);
+        curl_close($ch);
+    }
+
+    if (!$response) {
+        $ctx = stream_context_create(['http' => ['timeout' => 8]]);
+        $response = @file_get_contents($endpoint, false, $ctx);
+    }
+
+    if (!$response) {
+        return ['success' => false, 'message' => 'Unable to connect to Postal PIN Code service.'];
+    }
+
+    $json = json_decode($response, true);
+    if (!$json || !isset($json['status'])) {
+        return ['success' => false, 'message' => 'Invalid response from PIN Code service.'];
+    }
+
+    if ($json['status'] !== 'success' || empty($json['data'])) {
+        return ['success' => false, 'message' => $json['message'] ?? ('No records found for PIN code ' . $cleanPin)];
+    }
+
+    $rawList = is_array($json['data']) ? $json['data'] : [];
+    $district = '';
+    $state = '';
+    $subDistricts = [];
+    $offices = [];
+    $localities = [];
+
+    foreach ($rawList as $row) {
+        if (empty($district) && !empty($row['district_name'])) {
+            $district = trim($row['district_name']);
+        }
+        if (empty($state) && !empty($row['state_name'])) {
+            $state = trim($row['state_name']);
+        }
+        if (!empty($row['sub_district_name']) && !in_array(trim($row['sub_district_name']), $subDistricts, true)) {
+            $subDistricts[] = trim($row['sub_district_name']);
+        }
+        if (!empty($row['office_name']) && !in_array(trim($row['office_name']), $offices, true)) {
+            $offices[] = trim($row['office_name']);
+        }
+        if (!empty($row['locality_name']) && !in_array(trim($row['locality_name']), $localities, true)) {
+            $localities[] = trim($row['locality_name']);
+        }
+    }
+
+    return [
+        'success'        => true,
+        'pincode'        => $cleanPin,
+        'district'       => $district,
+        'state'          => $state,
+        'sub_districts'  => $subDistricts,
+        'offices'        => $offices,
+        'localities'     => $localities,
+        'total_records'  => count($rawList),
+        'raw_data'       => $rawList
+    ];
+}
+
+/**
+ * Look up Indian Bank IFSC Code via Olaw API
+ */
+function lookupIfscApi($ifsc) {
+    $cleanIfsc = strtoupper(trim(preg_replace('/[^a-zA-Z0-9]/', '', (string)$ifsc)));
+    if (strlen($cleanIfsc) !== 11) {
+        return ['success' => false, 'message' => 'IFSC code must be exactly 11 alphanumeric characters.'];
+    }
+
+    $apiKey = defined('OLAW_API_KEY') ? OLAW_API_KEY : 'OLAW_918271E7416CEB78F1A5';
+    $apiUrl = defined('OLAW_API_URL') ? OLAW_API_URL : 'https://olaw.in/api.php';
+    $endpoint = $apiUrl . '?action=bank-ifsc&ifsc=' . urlencode($cleanIfsc) . '&api_key=' . urlencode($apiKey);
+
+    $response = false;
+    if (function_exists('curl_init')) {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $endpoint);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 8);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'SaranIndex-IFSCClient/1.0');
+        $response = curl_exec($ch);
+        curl_close($ch);
+    }
+
+    if (!$response) {
+        $ctx = stream_context_create(['http' => ['timeout' => 8]]);
+        $response = @file_get_contents($endpoint, false, $ctx);
+    }
+
+    if (!$response) {
+        return ['success' => false, 'message' => 'Unable to connect to Bank IFSC service.'];
+    }
+
+    $json = json_decode($response, true);
+    if (!$json || !isset($json['status'])) {
+        return ['success' => false, 'message' => 'Invalid response from Bank IFSC service.'];
+    }
+
+    if ($json['status'] !== 'success' || empty($json['data'])) {
+        return ['success' => false, 'message' => $json['message'] ?? ('No records found for IFSC ' . $cleanIfsc)];
+    }
+
+    return [
+        'success' => true,
+        'data'    => $json['data']
+    ];
+}
+
+/**
+ * Get verified listings for a specific postal PIN code
+ */
+function getListingsByPincode($pincode, $limit = 30, $offset = 0) {
+    $db = getDB();
+    if (!$db) return [];
+    $cleanPin = preg_replace('/[^0-9]/', '', (string)$pincode);
+    if (empty($cleanPin)) return [];
+    
+    try {
+        $sql = "SELECT l.*, c.name as category_name, c.hindi_name as category_hindi_name, 
+                       sc.name as subcategory_name, sc.hindi_name as subcategory_hindi_name, 
+                       b.name as block_name, b.hindi_name as block_hindi_name,
+                       u.username_handle as owner_handle, u.full_name as owner_full_name 
+                FROM listings l 
+                LEFT JOIN categories c ON l.category_id = c.id 
+                LEFT JOIN subcategories sc ON l.subcategory_id = sc.id
+                LEFT JOIN blocks b ON l.block_id = b.id 
+                LEFT JOIN users u ON l.user_id = u.id
+                WHERE l.status = 'ACTIVE' 
+                  AND (l.pincode = :pin OR l.address LIKE :pinLike OR l.description LIKE :pinLike2)
+                ORDER BY (CASE WHEN l.pincode = :pin THEN 1 ELSE 2 END), 
+                         (CASE WHEN l.plan_type = 'PLATINUM' THEN 1 WHEN l.plan_type = 'GOLD' THEN 2 ELSE 3 END),
+                         l.id DESC 
+                LIMIT :limit OFFSET :offset";
+        $stmt = $db->prepare($sql);
+        $stmt->bindValue(':pin', $cleanPin, PDO::PARAM_STR);
+        $stmt->bindValue(':pinLike', '%' . $cleanPin . '%', PDO::PARAM_STR);
+        $stmt->bindValue(':pinLike2', '%' . $cleanPin . '%', PDO::PARAM_STR);
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        error_log("getListingsByPincode error: " . $e->getMessage());
+        return [];
+    }
+}
