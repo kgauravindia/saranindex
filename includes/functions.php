@@ -3368,6 +3368,55 @@ function registerPublicUser($fullName, $mobile, $password, $email = '', $blockId
     }
 }
 
+function findUserByIdentifier($identifier) {
+    $db = getDB();
+    if (!$db) return null;
+    ensureUsersTable();
+
+    $input = sanitizeInput($identifier);
+    if (empty($input)) return null;
+
+    $cleanMobile = preg_replace('/[^0-9]/', '', $input);
+    $mobile10 = (strlen($cleanMobile) >= 10) ? substr($cleanMobile, -10) : $cleanMobile;
+    $cleanHandle = ltrim($input, '@');
+
+    try {
+        $where = [];
+        $params = [];
+
+        if (!empty($cleanMobile) && strlen($cleanMobile) >= 10) {
+            $where[] = "mobile = :m_raw";
+            $params['m_raw'] = $cleanMobile;
+
+            $where[] = "mobile = :m_10";
+            $params['m_10'] = $mobile10;
+
+            $where[] = "RIGHT(mobile, 10) = :m_right";
+            $params['m_right'] = $mobile10;
+        }
+
+        $where[] = "email = :email";
+        $params['email'] = $input;
+
+        $where[] = "LOWER(username_handle) = LOWER(:h_raw)";
+        $params['h_raw'] = $input;
+
+        $where[] = "LOWER(username_handle) = LOWER(:h_clean)";
+        $params['h_clean'] = $cleanHandle;
+
+        $where[] = "LOWER(username_handle) = LOWER(:h_at)";
+        $params['h_at'] = '@' . $cleanHandle;
+
+        $sql = "SELECT * FROM users WHERE (" . implode(" OR ", $where) . ") LIMIT 1";
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    } catch (PDOException $e) {
+        error_log("findUserByIdentifier error: " . $e->getMessage());
+        return null;
+    }
+}
+
 function loginPublicUser($mobileOrEmail, $password) {
     $db = getDB();
     if (!$db) {
