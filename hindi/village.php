@@ -68,9 +68,41 @@ if ($village):
     $mainHh = intval($village['main_hh_tot']); // Household Industry
     $mainOt = intval($village['main_ot_tot']); // Other Workers
 
+    // Census 2001 Data & Decadal Growth Calculations
+    $has2001 = isset($village['pop_tot_2001']) && $village['pop_tot_2001'] !== null;
+    $vCode2001 = !empty($village['village_census_2001_code']) ? $village['village_census_2001_code'] : '';
+    $popTotal2001 = intval($village['pop_tot_2001'] ?? 0);
+    $popMale2001 = intval($village['pop_male_2001'] ?? 0);
+    $popFemale2001 = intval($village['pop_female_2001'] ?? 0);
+    $households2001 = intval($village['households_2001'] ?? 0);
+    $p06_2001 = intval($village['p_06_2001'] ?? 0);
+    $m06_2001 = intval($village['m_06_2001'] ?? 0);
+    $f06_2001 = intval($village['f_06_2001'] ?? 0);
+    $litTot2001 = intval($village['lit_tot_2001'] ?? 0);
+    $litMale2001 = intval($village['lit_male_2001'] ?? 0);
+    $litFemale2001 = intval($village['lit_female_2001'] ?? 0);
+    $illTot2001 = intval($village['ill_tot_2001'] ?? 0);
+    $scTot2001 = intval($village['sc_tot_2001'] ?? 0);
+    $stTot2001 = intval($village['st_tot_2001'] ?? 0);
+    $totWork2001 = intval($village['tot_work_tot_2001'] ?? 0);
+    $mainWork2001 = intval($village['main_work_tot_2001'] ?? 0);
+    $margWork2001 = intval($village['marg_work_tot_2001'] ?? 0);
+    $nonWork2001 = intval($village['non_work_tot_2001'] ?? 0);
+    $mainCl2001 = intval($village['main_cl_tot_2001'] ?? 0);
+    $mainAl2001 = intval($village['main_al_tot_2001'] ?? 0);
+    $mainHh2001 = intval($village['main_hh_tot_2001'] ?? 0);
+    $mainOt2001 = intval($village['main_ot_tot_2001'] ?? 0);
+
+    $effectivePop2001 = $popTotal2001 - $p06_2001;
+    $litRate2001 = $effectivePop2001 > 0 ? round(($litTot2001 / $effectivePop2001) * 100, 1) : 0;
+    $sexRatio2001 = $popMale2001 > 0 ? round(($popFemale2001 / $popMale2001) * 1000) : 0;
+    $popGrowthPct = ($popTotal2001 > 0) ? round((($popTotal - $popTotal2001) / $popTotal2001) * 100, 2) : 0;
+    $hhGrowthPct = ($households2001 > 0) ? round((($households - $households2001) / $households2001) * 100, 2) : 0;
+    $litGrowthDiff = round($litRate - $litRate2001, 1);
+
     $displayVName = $vHindi ? $vHindi . " ({$vName})" : $vName;
-    $page_title = "गाँव {$displayVName} जनगणना 2011 डेटा – सारण इंडेक्स";
-    $meta_description = "सारण जिला (बिहार) के प्रखंड {$blockName} में स्थित गाँव {$displayVName} की कुल जनसंख्या, साक्षरता दर एवं परिवार संख्या का जनगणना 2011 विवरण।";
+    $page_title = "गाँव {$displayVName} जनगणना 2001 एवं 2011 डेटा – सारण इंडेक्स";
+    $meta_description = "सारण जिला (बिहार) के प्रखंड {$blockName} में स्थित गाँव {$displayVName} की कुल जनसंख्या, साक्षरता दर, कामकाजी आंकड़े एवं 2001-2011 दशकीय जनगणना विवरण।";
     
     require_once __DIR__ . '/includes/header.php';
 ?>
@@ -98,8 +130,13 @@ if ($village):
                         <i class="bi bi-geo-alt-fill me-1"></i> प्रखंड: <?php echo $blockName; ?>
                     </span>
                     <span class="badge px-3 py-1.5 rounded-pill fs-7 text-white" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.35);">
-                        जनगणना कोड: <?php echo sanitizeInput($village['town_village_code']); ?>
+                        जनगणना 2011: <?php echo sanitizeInput($village['town_village_code']); ?>
                     </span>
+                    <?php if (!empty($vCode2001)): ?>
+                        <span class="badge px-3 py-1.5 rounded-pill fs-7 text-white" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.35);">
+                            जनगणना 2001: <?php echo sanitizeInput($vCode2001); ?>
+                        </span>
+                    <?php endif; ?>
                     <?php if (!empty($village['village_lgd_code'])): ?>
                         <span class="badge px-3 py-1.5 rounded-pill fs-7 text-white" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.35);">
                             LGD कोड: <?php echo sanitizeInput($village['village_lgd_code']); ?>
@@ -356,6 +393,177 @@ if ($village):
                     </div>
                 </div>
             </div>
+
+            <!-- 5. Decadal Growth & 2001 vs 2011 Census Comparison -->
+            <?php if ($has2001): ?>
+                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+                    <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3 flex-wrap gap-2">
+                        <div>
+                            <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-1 rounded-pill small mb-1">
+                                <i class="bi bi-clock-history me-1"></i> दशकीय सांख्यिकी (2001 – 2011)
+                            </span>
+                            <h5 class="fw-bold text-dark mb-0 font-heading">
+                                जनगणना 2001 बनाम 2011: दशकीय विकास एवं जनसांख्यिकीय तुलना
+                            </h5>
+                        </div>
+                        <span class="badge bg-success text-white rounded-pill px-3 py-1.5 fs-7 fw-bold">
+                            <i class="bi bi-graph-up-arrow me-1"></i> जनसँख्या वृद्धि: <?php echo ($popGrowthPct >= 0 ? '+' : '') . $popGrowthPct; ?>%
+                        </span>
+                    </div>
+
+                    <!-- 4 Growth KPI Mini Cards -->
+                    <div class="row g-3 mb-4 text-center">
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 rounded-3 bg-light border">
+                                <div class="text-muted extra-small fw-bold text-uppercase">जनसंख्या में बदलाव</div>
+                                <div class="fs-5 fw-bold text-dark mt-1"><?php echo number_format($popTotal2001); ?> → <?php echo number_format($popTotal); ?></div>
+                                <span class="badge <?php echo $popGrowthPct >= 0 ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'; ?> rounded-pill px-2 py-0.5 extra-small fw-bold">
+                                    <?php echo ($popGrowthPct >= 0 ? '+' : '') . $popGrowthPct; ?>% (10 वर्ष)
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 rounded-3 bg-light border">
+                                <div class="text-muted extra-small fw-bold text-uppercase">परिवारों की संख्या</div>
+                                <div class="fs-5 fw-bold text-dark mt-1"><?php echo number_format($households2001); ?> → <?php echo number_format($households); ?></div>
+                                <span class="badge <?php echo $hhGrowthPct >= 0 ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'; ?> rounded-pill px-2 py-0.5 extra-small fw-bold">
+                                    <?php echo ($hhGrowthPct >= 0 ? '+' : '') . $hhGrowthPct; ?>% परिवार
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 rounded-3 bg-light border">
+                                <div class="text-muted extra-small fw-bold text-uppercase">साक्षरता दर</div>
+                                <div class="fs-5 fw-bold text-dark mt-1"><?php echo $litRate2001; ?>% → <?php echo $litRate; ?>%</div>
+                                <span class="badge <?php echo $litGrowthDiff >= 0 ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'; ?> rounded-pill px-2 py-0.5 extra-small fw-bold">
+                                    <?php echo ($litGrowthDiff >= 0 ? '+' : '') . $litGrowthDiff; ?>% साक्षरता वृद्धि
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 rounded-3 bg-light border">
+                                <div class="text-muted extra-small fw-bold text-uppercase">लिंगानुपात (Sex Ratio)</div>
+                                <div class="fs-5 fw-bold text-dark mt-1"><?php echo $sexRatio2001; ?> → <?php echo $sexRatio; ?></div>
+                                <span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-0.5 extra-small fw-bold">
+                                    <?php echo ($sexRatio >= $sexRatio2001 ? '+' : '') . ($sexRatio - $sexRatio2001); ?> महिलाएँ
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Comprehensive Comparison Table -->
+                    <div class="table-responsive rounded-3 border">
+                        <table class="table table-hover table-striped align-middle mb-0 small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="fw-bold py-2.5 ps-3 text-dark">जनसांख्यिकी संकेतक (Indicator)</th>
+                                    <th class="fw-bold py-2.5 text-center text-secondary">जनगणना 2001</th>
+                                    <th class="fw-bold py-2.5 text-center text-primary">जनगणना 2011</th>
+                                    <th class="fw-bold py-2.5 pe-3 text-end text-success">दशकीय बदलाव (Growth)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="ps-3 fw-semibold"><i class="bi bi-people me-1 text-primary"></i> कुल जनसंख्या (Total Population)</td>
+                                    <td class="text-center"><?php echo number_format($popTotal2001); ?></td>
+                                    <td class="text-center fw-bold text-dark"><?php echo number_format($popTotal); ?></td>
+                                    <td class="pe-3 text-end fw-bold text-success"><?php echo ($popTotal - $popTotal2001 >= 0 ? '+' : '') . number_format($popTotal - $popTotal2001); ?> (<?php echo ($popGrowthPct >= 0 ? '+' : '') . $popGrowthPct; ?>%)</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-3"><i class="bi bi-gender-male me-1 text-primary"></i> पुरुष जनसंख्या (Male)</td>
+                                    <td class="text-center"><?php echo number_format($popMale2001); ?></td>
+                                    <td class="text-center fw-bold text-dark"><?php echo number_format($popMale); ?></td>
+                                    <td class="pe-3 text-end text-muted"><?php echo ($popMale - $popMale2001 >= 0 ? '+' : '') . number_format($popMale - $popMale2001); ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-3"><i class="bi bi-gender-female me-1 text-danger"></i> महिला जनसंख्या (Female)</td>
+                                    <td class="text-center"><?php echo number_format($popFemale2001); ?></td>
+                                    <td class="text-center fw-bold text-dark"><?php echo number_format($popFemale); ?></td>
+                                    <td class="pe-3 text-end text-muted"><?php echo ($popFemale - $popFemale2001 >= 0 ? '+' : '') . number_format($popFemale - $popFemale2001); ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-3"><i class="bi bi-gender-ambiguous me-1 text-warning"></i> लिंगानुपात (प्रति 1000 पुरुष पर महिलाएं)</td>
+                                    <td class="text-center"><?php echo $sexRatio2001; ?></td>
+                                    <td class="text-center fw-bold text-dark"><?php echo $sexRatio; ?></td>
+                                    <td class="pe-3 text-end fw-semibold text-primary"><?php echo ($sexRatio - $sexRatio2001 >= 0 ? '+' : '') . ($sexRatio - $sexRatio2001); ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-3"><i class="bi bi-house-door me-1 text-info"></i> कुल परिवार (Total Households)</td>
+                                    <td class="text-center"><?php echo number_format($households2001); ?></td>
+                                    <td class="text-center fw-bold text-dark"><?php echo number_format($households); ?></td>
+                                    <td class="pe-3 text-end text-success"><?php echo ($households - $households2001 >= 0 ? '+' : '') . number_format($households - $households2001); ?> (<?php echo ($hhGrowthPct >= 0 ? '+' : '') . $hhGrowthPct; ?>%)</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-3"><i class="bi bi-person me-1 text-secondary"></i> बच्चे (0 – 6 आयु वर्ग)</td>
+                                    <td class="text-center"><?php echo number_format($p06_2001); ?></td>
+                                    <td class="text-center fw-bold text-dark"><?php echo number_format($p06); ?></td>
+                                    <td class="pe-3 text-end text-muted"><?php echo ($p06 - $p06_2001 >= 0 ? '+' : '') . number_format($p06 - $p06_2001); ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-3"><i class="bi bi-book me-1 text-success"></i> कुल साक्षर व्यक्ति (Literates)</td>
+                                    <td class="text-center"><?php echo number_format($litTot2001); ?></td>
+                                    <td class="text-center fw-bold text-dark"><?php echo number_format($litTot); ?></td>
+                                    <td class="pe-3 text-end fw-bold text-success">+<?php echo number_format($litTot - $litTot2001); ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-3"><i class="bi bi-mortarboard me-1 text-success"></i> प्रभावी साक्षरता दर (Literacy Rate)</td>
+                                    <td class="text-center"><?php echo $litRate2001; ?>%</td>
+                                    <td class="text-center fw-bold text-dark"><?php echo $litRate; ?>%</td>
+                                    <td class="pe-3 text-end fw-bold text-success"><?php echo ($litGrowthDiff >= 0 ? '+' : '') . $litGrowthDiff; ?>%</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-3"><i class="bi bi-person-badge me-1 text-primary"></i> अनुसूचित जाति (SC)</td>
+                                    <td class="text-center"><?php echo number_format($scTot2001); ?></td>
+                                    <td class="text-center fw-bold text-dark"><?php echo number_format($scTot); ?></td>
+                                    <td class="pe-3 text-end text-muted"><?php echo ($scTot - $scTot2001 >= 0 ? '+' : '') . number_format($scTot - $scTot2001); ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-3"><i class="bi bi-person-badge me-1 text-info"></i> अनुसूचित जनजाति (ST)</td>
+                                    <td class="text-center"><?php echo number_format($stTot2001); ?></td>
+                                    <td class="text-center fw-bold text-dark"><?php echo number_format($stTot); ?></td>
+                                    <td class="pe-3 text-end text-muted"><?php echo ($stTot - $stTot2001 >= 0 ? '+' : '') . number_format($stTot - $stTot2001); ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-3"><i class="bi bi-briefcase me-1 text-warning"></i> कुल कार्यशील जनसंख्या (Total Workers)</td>
+                                    <td class="text-center"><?php echo number_format($totWork2001); ?></td>
+                                    <td class="text-center fw-bold text-dark"><?php echo number_format($totWork); ?></td>
+                                    <td class="pe-3 text-end text-muted"><?php echo ($totWork - $totWork2001 >= 0 ? '+' : '') . number_format($totWork - $totWork2001); ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-3 ps-4 text-muted">↳ मुख्य कृषक / किसान (Cultivators)</td>
+                                    <td class="text-center text-muted"><?php echo number_format($mainCl2001); ?></td>
+                                    <td class="text-center text-muted"><?php echo number_format($mainCl); ?></td>
+                                    <td class="pe-3 text-end text-muted"><?php echo ($mainCl - $mainCl2001 >= 0 ? '+' : '') . number_format($mainCl - $mainCl2001); ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-3 ps-4 text-muted">↳ खेतिहर मजदूर (Agri Labourers)</td>
+                                    <td class="text-center text-muted"><?php echo number_format($mainAl2001); ?></td>
+                                    <td class="text-center text-muted"><?php echo number_format($mainAl); ?></td>
+                                    <td class="pe-3 text-end text-muted"><?php echo ($mainAl - $mainAl2001 >= 0 ? '+' : '') . number_format($mainAl - $mainAl2001); ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-3 ps-4 text-muted">↳ पारिवारिक उद्योग व अन्य गैर-कृषि कर्मी</td>
+                                    <td class="text-center text-muted"><?php echo number_format($mainHh2001 + $mainOt2001); ?></td>
+                                    <td class="text-center text-muted"><?php echo number_format($mainHh + $mainOt); ?></td>
+                                    <td class="pe-3 text-end text-muted"><?php echo (($mainHh + $mainOt) - ($mainHh2001 + $mainOt2001) >= 0 ? '+' : '') . number_format(($mainHh + $mainOt) - ($mainHh2001 + $mainOt2001)); ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-3"><i class="bi bi-clock me-1 text-secondary"></i> सीमांत श्रमिक (Marginal Workers)</td>
+                                    <td class="text-center"><?php echo number_format($margWork2001); ?></td>
+                                    <td class="text-center fw-bold text-dark"><?php echo number_format($margWork); ?></td>
+                                    <td class="pe-3 text-end text-muted"><?php echo ($margWork - $margWork2001 >= 0 ? '+' : '') . number_format($margWork - $margWork2001); ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-3"><i class="bi bi-person-x me-1 text-muted"></i> गैर-श्रमिक / आश्रित (Non-Workers)</td>
+                                    <td class="text-center"><?php echo number_format($nonWork2001); ?></td>
+                                    <td class="text-center fw-bold text-dark"><?php echo number_format($nonWork); ?></td>
+                                    <td class="pe-3 text-end text-muted"><?php echo ($nonWork - $nonWork2001 >= 0 ? '+' : '') . number_format($nonWork - $nonWork2001); ?></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            <?php endif; ?>
         </div>
 
         <!-- Right Column: Sidebar Info & Nearby Villages -->
@@ -394,6 +602,12 @@ if ($village):
                         <span class="text-muted">जनगणना 2011 कोड</span>
                         <strong class="text-dark"><?php echo sanitizeInput($village['town_village_code']); ?></strong>
                     </li>
+                    <?php if (!empty($vCode2001)): ?>
+                        <li class="d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted">जनगणना 2001 कोड</span>
+                            <strong class="text-dark"><?php echo sanitizeInput($vCode2001); ?></strong>
+                        </li>
+                    <?php endif; ?>
                     <?php if (!empty($village['village_lgd_code'])): ?>
                         <li class="d-flex justify-content-between py-2 border-bottom">
                             <span class="text-muted">LGD गाँव कोड</span>

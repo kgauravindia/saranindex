@@ -2662,10 +2662,23 @@ function getCensusVillageByCodeOrId($val) {
             $code = $val;
         }
 
+        $selectFields = "c.*, 
+            l.name_hindi, l.block AS block_name, l.village_lgd_code, l.census_2001_code AS village_census_2001_code, 
+            b.id AS block_id, b.slug AS block_slug, b.pincode,
+            c01.pop_tot AS pop_tot_2001, c01.pop_male AS pop_male_2001, c01.pop_female AS pop_female_2001,
+            c01.households AS households_2001, c01.p_06 AS p_06_2001, c01.m_06 AS m_06_2001, c01.f_06 AS f_06_2001,
+            c01.lit_tot AS lit_tot_2001, c01.lit_male AS lit_male_2001, c01.lit_female AS lit_female_2001,
+            c01.ill_tot AS ill_tot_2001, c01.sc_tot AS sc_tot_2001, c01.st_tot AS st_tot_2001,
+            c01.tot_work_tot AS tot_work_tot_2001, c01.main_work_tot AS main_work_tot_2001,
+            c01.marg_work_tot AS marg_work_tot_2001, c01.non_work_tot AS non_work_tot_2001,
+            c01.main_cl_tot AS main_cl_tot_2001, c01.main_al_tot AS main_al_tot_2001,
+            c01.main_hh_tot AS main_hh_tot_2001, c01.main_ot_tot AS main_ot_tot_2001";
+
         if ($code) {
-            $stmt = $db->prepare("SELECT c.*, l.name_hindi, l.block AS block_name, l.village_lgd_code, b.id AS block_id, b.slug AS block_slug, b.pincode 
+            $stmt = $db->prepare("SELECT $selectFields 
                 FROM census c 
                 LEFT JOIN lgd_village l ON (c.town_village_code = l.census_2011_code OR l.census_2011_code LIKE CONCAT('%', c.town_village_code, '%'))
+                LEFT JOIN census_2001 c01 ON (l.census_2001_code = c01.town_village_code OR (c01.level = 'VILLAGE' AND LOWER(TRIM(c01.name)) = LOWER(TRIM(c.name))))
                 LEFT JOIN blocks b ON (l.block = b.name OR l.block = b.name_english OR l.block LIKE CONCAT(b.name, '%'))
                 WHERE c.level = 'VILLAGE' AND (c.town_village_code = :val1 OR c.id = :val2) 
                 LIMIT 1");
@@ -2679,9 +2692,10 @@ function getCensusVillageByCodeOrId($val) {
             }
         }
 
-        $stmt2 = $db->query("SELECT c.*, l.name_hindi, l.block AS block_name, l.village_lgd_code, b.id AS block_id, b.slug AS block_slug, b.pincode 
+        $stmt2 = $db->query("SELECT $selectFields 
             FROM census c 
             LEFT JOIN lgd_village l ON (c.town_village_code = l.census_2011_code OR l.census_2011_code LIKE CONCAT('%', c.town_village_code, '%'))
+            LEFT JOIN census_2001 c01 ON (l.census_2001_code = c01.town_village_code OR (c01.level = 'VILLAGE' AND LOWER(TRIM(c01.name)) = LOWER(TRIM(c.name))))
             LEFT JOIN blocks b ON (l.block = b.name OR l.block = b.name_english OR l.block LIKE CONCAT(b.name, '%'))
             WHERE c.level = 'VILLAGE'");
         $all = $stmt2->fetchAll();
@@ -5583,6 +5597,37 @@ function getDistrictFullStats() {
             'literacy_rate' => $total_pop > 0 ? round(($lit_pop / $total_pop) * 100, 1) : 53.7,
             'sex_ratio' => $male_pop > 0 ? round(($female_pop / $male_pop) * 1000) : 958
         ];
+
+        // Census 2001 Totals
+        try {
+            $c01_sum = $db->query("SELECT 
+                SUM(households) as total_households,
+                SUM(pop_tot) as total_population,
+                SUM(pop_male) as male_population,
+                SUM(pop_female) as female_population,
+                SUM(lit_tot) as literate_population,
+                SUM(tot_work_tot) as total_workers
+            FROM census_2001 WHERE level = 'CD BLOCK' AND tru_type = 'Total'")->fetch();
+
+            if ($c01_sum) {
+                $c01_pop = intval($c01_sum['total_population'] ?? 3248701) ?: 3248701;
+                $c01_male = intval($c01_sum['male_population'] ?? 1652661) ?: 1652661;
+                $c01_female = intval($c01_sum['female_population'] ?? 1596040) ?: 1596040;
+                $c01_lit = intval($c01_sum['literate_population'] ?? 1347610) ?: 1347610;
+
+                $stats['census_2001'] = [
+                    'total_population' => $c01_pop,
+                    'male_population' => $c01_male,
+                    'female_population' => $c01_female,
+                    'literate_population' => $c01_lit,
+                    'total_households' => intval($c01_sum['total_households'] ?? 471446),
+                    'total_workers' => intval($c01_sum['total_workers'] ?? 860940),
+                    'literacy_rate' => $c01_pop > 0 ? round(($c01_lit / $c01_pop) * 100, 1) : 41.5,
+                    'sex_ratio' => $c01_male > 0 ? round(($c01_female / $c01_male) * 1000) : 966,
+                    'decadal_growth_pct' => $c01_pop > 0 ? round((($total_pop - $c01_pop) / $c01_pop) * 100, 2) : 11.12
+                ];
+            }
+        } catch (Exception $e) {}
     } catch (Exception $e) {
         $stats['census'] = [
             'total_population' => 3610022,
