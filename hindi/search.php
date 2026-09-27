@@ -18,6 +18,11 @@ $categories = getCategories();
 $allSubcategories = getAllSubcategories();
 $listings = getListings($q, $category_slug, $block_slug, 50, 0, $sub_slug);
 $censusVillages = !empty($q) ? getCensusVillages($block_slug, $q, 6, 0) : [];
+
+if (!empty($q)) {
+    $totalResultsFound = count($listings) + count($censusVillages);
+    logSearchQuery($q, $totalResultsFound, 'hindi_web', $block_slug, $category_slug);
+}
 ?>
 
 <div class="bg-dark text-white py-4">

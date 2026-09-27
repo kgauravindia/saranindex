@@ -19,6 +19,11 @@ $allSubcategories = getAllSubcategories();
 $listings = getListings($q, $category_slug, $block_slug, 50, 0, $sub_slug);
 $censusVillages = !empty($q) ? getCensusVillages($block_slug, $q, 6, 0) : [];
 $userResults = !empty($q) ? searchUsersByHandleOrName($q, 6) : [];
+
+if (!empty($q)) {
+    $totalResultsFound = count($listings) + count($censusVillages) + count($userResults);
+    logSearchQuery($q, $totalResultsFound, 'web', $block_slug, $category_slug);
+}
 ?>
 
 <div class="bg-dark text-white py-4">

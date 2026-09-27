@@ -18,6 +18,10 @@ if (!empty($query)) {
             'url' => getListingUrl($item['slug'])
         ];
     }
+    
+    if (mb_strlen($query, 'UTF-8') >= 2) {
+        logSearchQuery($query, count($results), 'suggest_api');
+    }
 }
 
 echo json_encode($results, JSON_UNESCAPED_UNICODE);

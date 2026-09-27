@@ -21,10 +21,10 @@ ErrorDocument 500 /404.php
     RewriteRule ^hindi/index\.php$ /hindi/ [R=301,L]
 
     # 3. Canonical Clean URLs for Core Pages (/about.php -> /about)
-    RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /(about|contact|terms|privacy-policy|refund-policy|pricing|sources|emergency|health|history|river|nahar|university|categories|add-contact|login|register|forgot-password|dashboard|my-listings|pay|search|search-names|names)\.php[?\s] [NC]
+    RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /(about|contact|terms|privacy-policy|refund-policy|pricing|sources|emergency|health|history|river|nahar|university|today|categories|add-contact|login|register|forgot-password|dashboard|my-listings|pay|search|search-names|names)\.php[?\s] [NC]
     RewriteRule ^([a-zA-Z0-9_-]+)\.php$ $1 [R=301,L]
 
-    RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /hindi/(about|contact|terms|privacy-policy|refund-policy|pricing|sources|emergency|health|history|river|nahar|university|categories|add-contact|login|register|dashboard|search|search-names|names)\.php[?\s] [NC]
+    RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /hindi/(about|contact|terms|privacy-policy|refund-policy|pricing|sources|emergency|health|history|river|nahar|university|today|categories|add-contact|login|register|dashboard|search|search-names|names)\.php[?\s] [NC]
     RewriteRule ^hindi/([a-zA-Z0-9_-]+)\.php$ hindi/$1 [R=301,L]
 
     # Do not rewrite existing files or directories (assets, uploads, images, admin, etc.)
@@ -68,6 +68,8 @@ ErrorDocument 500 /404.php
     RewriteRule ^jpu-chapra/?$ university.php [L,QSA]
     RewriteRule ^sources/?$ sources.php [L,QSA]
     RewriteRule ^data-sources/?$ sources.php [L,QSA]
+    RewriteRule ^today/?$ today.php [L,QSA]
+    RewriteRule ^hindi/today/?$ hindi/today.php [L,QSA]
     RewriteRule ^emergency/?$ emergency.php [L,QSA]
     RewriteRule ^history/?$ history.php [L,QSA]
     RewriteRule ^rivers/?$ river.php [L,QSA]

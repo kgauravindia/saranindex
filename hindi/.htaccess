@@ -46,6 +46,7 @@
     RewriteRule ^university/?$ university.php [L,QSA]
     RewriteRule ^jpu/?$ university.php [L,QSA]
     RewriteRule ^jpu-chapra/?$ university.php [L,QSA]
+    RewriteRule ^today/?$ today.php [L,QSA]
     RewriteRule ^sources/?$ sources.php [L,QSA]
     RewriteRule ^data-sources/?$ sources.php [L,QSA]
     RewriteRule ^emergency/?$ emergency.php [L,QSA]

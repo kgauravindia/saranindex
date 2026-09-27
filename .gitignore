@@ -45,3 +45,7 @@ uploads/**
 # Sync & Remote Bridge
 sync_bridge.php
 api/sync_bridge.php
+
+# Scratch / Temporary Dev Files
+scratch/
+

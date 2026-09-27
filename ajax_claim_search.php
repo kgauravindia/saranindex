@@ -86,6 +86,10 @@ try {
         ];
     }
 
+    if (mb_strlen($q, 'UTF-8') >= 2) {
+        logSearchQuery($q, count($results), 'claim_search');
+    }
+
     echo json_encode($results);
 } catch (Exception $e) {
     echo json_encode([]);

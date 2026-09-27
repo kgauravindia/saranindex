@@ -22,35 +22,40 @@ class Database {
         }
 
         // Attempt 2: Local development fallbacks (Laragon / XAMPP / WAMP defaults)
+        $fallback_hosts = [DB_HOST, '127.0.0.1', 'localhost'];
+        $fallback_hosts = array_unique($fallback_hosts);
+
         $fallback_credentials = [
             ['user' => 'root', 'pass' => ''],
             ['user' => 'root', 'pass' => 'root']
         ];
 
-        foreach ($fallback_credentials as $fb) {
-            try {
-                $dsn_server = "mysql:host=" . DB_HOST . ";charset=" . DB_CHARSET;
-                $pdo_server = new PDO($dsn_server, $fb['user'], $fb['pass'], $options);
+        foreach ($fallback_hosts as $h) {
+            foreach ($fallback_credentials as $fb) {
+                try {
+                    $dsn_server = "mysql:host=" . $h . ";charset=" . DB_CHARSET;
+                    $pdo_server = new PDO($dsn_server, $fb['user'], $fb['pass'], $options);
 
-                // Auto-create database if missing
-                $dbname = DB_NAME;
-                $pdo_server->exec("CREATE DATABASE IF NOT EXISTS `$dbname` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-                $pdo_server->exec("USE `$dbname`");
+                    // Auto-create database if missing
+                    $dbname = DB_NAME;
+                    $pdo_server->exec("CREATE DATABASE IF NOT EXISTS `$dbname` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+                    $pdo_server->exec("USE `$dbname`");
 
-                $this->pdo = $pdo_server;
+                    $this->pdo = $pdo_server;
 
-                // Auto-import schema if tables are not initialized
-                $stmt = $this->pdo->query("SHOW TABLES LIKE 'listings'");
-                if ($stmt->rowCount() === 0) {
-                    $schema_file = __DIR__ . '/../database/schema.sql';
-                    if (file_exists($schema_file)) {
-                        $sql = file_get_contents($schema_file);
-                        $this->pdo->exec($sql);
+                    // Auto-import schema if tables are not initialized
+                    $stmt = $this->pdo->query("SHOW TABLES LIKE 'listings'");
+                    if ($stmt->rowCount() === 0) {
+                        $schema_file = __DIR__ . '/../database/schema.sql';
+                        if (file_exists($schema_file)) {
+                            $sql = file_get_contents($schema_file);
+                            $this->pdo->exec($sql);
+                        }
                     }
+                    return;
+                } catch (PDOException $e) {
+                    error_log("Fallback DB Connection ($h) failed: " . $e->getMessage());
                 }
-                return;
-            } catch (PDOException $e) {
-                error_log("Fallback DB Connection failed: " . $e->getMessage());
             }
         }
     }
