@@ -7,6 +7,15 @@ $meta_description = $meta_description ?? 'सारण इंडेक्स स
 <!DOCTYPE html>
 <html lang="hi">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JXF2R5T3F0"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-JXF2R5T3F0');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <base href="<?php echo HINDI_BASE_URL; ?>">
