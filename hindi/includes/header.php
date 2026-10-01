@@ -161,14 +161,16 @@ $meta_description = $meta_description ?? 'सारण इंडेक्स स
                     </a>
                 <?php endif; ?>
                 <?php
-                $currentScript = basename($_SERVER['PHP_SELF'] ?? 'index.php');
-                $queryString = !empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '';
-                $targetEnglishFile = __DIR__ . '/../../' . $currentScript;
+                if (!isset($langSwitchUrl)) {
+                    $currentScript = basename($_SERVER['PHP_SELF'] ?? 'index.php');
+                    $queryString = !empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '';
+                    $targetEnglishFile = __DIR__ . '/../../' . $currentScript;
 
-                if (file_exists($targetEnglishFile) && is_file($targetEnglishFile)) {
-                    $langSwitchUrl = '../' . $currentScript . $queryString;
-                } else {
-                    $langSwitchUrl = '../';
+                    if (file_exists($targetEnglishFile) && is_file($targetEnglishFile)) {
+                        $langSwitchUrl = '../' . $currentScript . $queryString;
+                    } else {
+                        $langSwitchUrl = '../';
+                    }
                 }
                 ?>
                 <a href="<?php echo htmlspecialchars($langSwitchUrl); ?>" class="btn btn-outline-primary rounded-pill px-3 py-1.5 btn-sm fw-bold" title="Switch to English Website">

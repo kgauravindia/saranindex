@@ -128,6 +128,7 @@ $social_wa = defined('SOCIAL_WHATSAPP') ? SOCIAL_WHATSAPP : 'https://whatsapp.co
                     <li><a href="blocks" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> All 20 Saran Blocks</a></li>
                     <li><a href="pincode.php" class="footer-link"><i class="bi bi-mailbox2 text-warning"></i> Postal PIN Code Directory</a></li>
                     <li><a href="categories" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> All Categories</a></li>
+                    <li><a href="business/" class="footer-link"><i class="bi bi-lightbulb-fill text-warning"></i> 90 Business Tips (Grow in Saran)</a></li>
                     <li><a href="blog/" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> Blog & Local Guides</a></li>
                     <li><a href="emergency" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> 24x7 Emergency Services</a></li>
                     <li><a href="about" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> About OfferPlant & Saran Index</a></li>
