@@ -24,6 +24,11 @@
     RewriteRule ^pincodes/?$ pincode.php [L,QSA]
     RewriteRule ^pincode/([0-9]+)/?$ pincode.php?code=$1 [L,QSA]
     
+    # Bus Directory & Timetable Rewrites for Hindi Section
+    RewriteRule ^bus/([a-zA-Z0-9_\-]+)/?$ bus.php?reg=$1 [L,QSA]
+    RewriteRule ^bus/?$ bus.php [L,QSA]
+    RewriteRule ^buses/?$ bus.php [L,QSA]
+
     # Category & Subcategory Friendly URLs
     RewriteRule ^category/([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/?$ category.php?slug=$1&sub=$2 [L,QSA]
     RewriteRule ^category/([a-zA-Z0-9_-]+)/?$ category.php?slug=$1 [L,QSA]

@@ -1,0 +1,21 @@
+{
+  "name": "saranindex",
+  "version": "1.0.0",
+  "description": "[![OfferPlant Incorporation](https://img.shields.io/badge/Initiative-OfferPlant%20Technologies-yellow.svg)](http://offerplant.com) [![Launch Date](https://img.shields.io/badge/Launch-26%20July%202026-blue.svg)](#) [![PHP](https://img.shields.io/badge/PHP-8.3-777BB4.svg?logo=php)](https://php.net) [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1.svg?logo=mysql)](https://mysql.com) [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-7952B3.svg?logo=bootstrap)](https://getbootstrap.com)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kgauravindia/saranindex.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/kgauravindia/saranindex/issues"
+  },
+  "homepage": "https://github.com/kgauravindia/saranindex#readme"
+}
