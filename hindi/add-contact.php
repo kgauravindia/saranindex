@@ -339,12 +339,21 @@ require_once __DIR__ . '/includes/header.php';
 
                                 <!-- Mauja / Village -->
                                 <div class="col-md-6">
-                                    <label class="form-label fw-semibold fs-7 text-dark mb-1">
-                                        मौजा / ग्राम (Mauja Code) <span class="text-muted fw-normal">(खोजने योग्य)</span>
+                                    <label class="form-label fw-semibold fs-7 text-dark mb-1 d-flex justify-content-between align-items-center">
+                                        <span>मौजा / ग्राम (Mauja Code) <span class="text-muted fw-normal">(खोजने योग्य)</span></span>
+                                        <span id="villageCountBadge" class="badge bg-secondary-subtle text-secondary fw-normal" style="display:none; font-size:0.72rem;"></span>
                                     </label>
+                                    <div class="input-group mb-1" id="village_filter_wrap" style="display:none;">
+                                        <span class="input-group-text bg-light border-secondary-subtle text-muted py-1 px-2.5"><i class="bi bi-search" style="font-size:0.8rem;"></i></span>
+                                        <input type="text" id="village_search_filter" class="form-control form-control-sm border-secondary-subtle" placeholder="ग्राम का नाम या मौजा कोड खोजें..." autocomplete="off">
+                                        <button class="btn btn-outline-secondary btn-sm border-secondary-subtle px-2" type="button" id="clearVillageFilter" style="display:none;" title="हटाएं">
+                                            <i class="bi bi-x-lg" style="font-size:0.75rem;"></i>
+                                        </button>
+                                    </div>
                                     <select name="mauja_code" id="village_select" class="form-select border-secondary-subtle rounded-3 py-2.5">
                                         <option value="">पहले प्रखंड चुनें</option>
                                     </select>
+                                    <div id="village_selected_info" class="mt-1 small text-success" style="display:none; font-size: 0.78rem;"></div>
                                 </div>
 
                                 <!-- Address -->
@@ -543,7 +552,7 @@ require_once __DIR__ . '/includes/header.php';
 
 <script>
 const ALL_SUBCATEGORIES = <?php echo json_encode($all_subcategories ?: [], JSON_UNESCAPED_UNICODE); ?>;
-const BASE_URL = '<?php echo BASE_URL; ?>';
+var APP_BASE_URL = (typeof window.BASE_URL !== 'undefined') ? window.BASE_URL : '<?php echo BASE_URL; ?>';
 
 document.addEventListener('DOMContentLoaded', function() {
     const catSelect = document.getElementById('category_select');
@@ -599,7 +608,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             // Fallback via API
             subSelect.innerHTML = '<option value="">उप-श्रेणियां लोड हो रही हैं...</option>';
-            fetch(BASE_URL + 'api/subcategories_api.php?category_id=' + encodeURIComponent(catId))
+            fetch(APP_BASE_URL + 'api/subcategories_api.php?category_id=' + encodeURIComponent(catId))
                 .then(res => res.json())
                 .then(data => {
                     const fetchedSubs = Array.isArray(data) ? data : (data.subcategories || []);
@@ -814,35 +823,127 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Location: CD Block -> Mauja / Village loader
+    // Location: CD Block -> Mauja / Village loader & live searchable filter
+    let loadedVillages = [];
+    const villageFilterWrap = document.getElementById('village_filter_wrap');
+    const villageSearchFilter = document.getElementById('village_search_filter');
+    const clearVillageFilter = document.getElementById('clearVillageFilter');
+    const villageCountBadge = document.getElementById('villageCountBadge');
+    const villageSelectedInfo = document.getElementById('village_selected_info');
+
+    function renderVillageOptions(list, selectedCode = '') {
+        if (!villageSelect) return;
+        if (list.length === 0) {
+            villageSelect.innerHTML = '<option value="">कोई ग्राम नहीं मिला</option>';
+            return;
+        }
+        let html = '<option value="">-- मौजा / ग्राम चुनें (' + list.length + ' उपलब्ध) --</option>';
+        list.forEach(v => {
+            let code = v.mauja_code || v.code || '';
+            let isSel = (selectedCode && String(selectedCode) === String(code)) ? 'selected' : '';
+            let displayName = v.name_hindi || v.display_name || v.name || ('ग्राम ' + code);
+            if (v.mauja_name && v.mauja_english && v.mauja_english !== v.mauja_name) {
+                displayName = `${v.mauja_name} / ${v.mauja_english}` + (code ? ` (कोड: ${code})` : '');
+            }
+            html += `<option value="${code}" ${isSel}>${displayName}</option>`;
+        });
+        villageSelect.innerHTML = html;
+        if (selectedCode) villageSelect.value = selectedCode;
+    }
+
+    function updateVillageSelectedInfo(code) {
+        if (!villageSelectedInfo) return;
+        if (!code) {
+            villageSelectedInfo.style.display = 'none';
+            villageSelectedInfo.innerHTML = '';
+            return;
+        }
+        const v = loadedVillages.find(item => String(item.mauja_code || item.code) === String(code));
+        if (v) {
+            let details = [];
+            if (v.mauja_name) details.push(`<strong>${v.mauja_name}</strong>` + (v.mauja_english ? ` (${v.mauja_english})` : ''));
+            if (v.halka_name) details.push(`हल्का: ${v.halka_name}`);
+            if (v.mauja_code) details.push(`मौजा कोड: ${v.mauja_code}`);
+            villageSelectedInfo.innerHTML = `<i class="bi bi-geo-alt-fill me-1"></i>` + details.join(' &bull; ');
+            villageSelectedInfo.style.display = 'block';
+        } else {
+            villageSelectedInfo.style.display = 'none';
+        }
+    }
+
     if (blockSelect && villageSelect) {
         blockSelect.addEventListener('change', function() {
             const blockId = this.value;
-            villageSelect.innerHTML = '<option value="">मौजा / ग्राम लोड हो रहे हैं...</option>';
+            loadedVillages = [];
+            if (villageFilterWrap) villageFilterWrap.style.display = 'none';
+            if (villageSearchFilter) villageSearchFilter.value = '';
+            if (clearVillageFilter) clearVillageFilter.style.display = 'none';
+            if (villageCountBadge) villageCountBadge.style.display = 'none';
+            if (villageSelectedInfo) villageSelectedInfo.style.display = 'none';
+
             if (!blockId) {
                 villageSelect.innerHTML = '<option value="">पहले प्रखंड चुनें</option>';
                 return;
             }
 
-            fetch(BASE_URL + 'api/villages_api.php?block_id=' + encodeURIComponent(blockId))
+            villageSelect.innerHTML = '<option value="">मौजा / ग्राम लोड हो रहे हैं...</option>';
+
+            fetch(APP_BASE_URL + 'api/villages_api.php?block_id=' + encodeURIComponent(blockId))
                 .then(res => res.json())
                 .then(data => {
                     const villageList = Array.isArray(data) ? data : (data.villages || []);
+                    loadedVillages = villageList;
                     if (villageList.length > 0) {
-                        let html = '<option value="">-- मौजा / ग्राम चुनें --</option>';
-                        villageList.forEach(v => {
-                            let code = v.mauja_code || v.code || '';
-                            let displayName = v.name_hindi || v.display_name || v.name || 'मौजा ' + code;
-                            html += `<option value="${code}">${displayName}</option>`;
-                        });
-                        villageSelect.innerHTML = html;
+                        renderVillageOptions(villageList);
+                        if (villageFilterWrap) villageFilterWrap.style.display = 'flex';
+                        if (villageCountBadge) {
+                            villageCountBadge.textContent = villageList.length + ' ग्राम';
+                            villageCountBadge.style.display = 'inline-block';
+                        }
                     } else {
-                        villageSelect.innerHTML = '<option value="">कोई ग्राम नहीं मिला</option>';
+                        villageSelect.innerHTML = '<option value="">इस प्रखंड में कोई ग्राम नहीं मिला</option>';
                     }
                 })
                 .catch(() => {
                     villageSelect.innerHTML = '<option value="">त्रुटि: ग्राम लोड नहीं हो सके</option>';
                 });
+        });
+
+        // Filter village options live as user types
+        if (villageSearchFilter) {
+            villageSearchFilter.addEventListener('input', function() {
+                const query = this.value.trim().toLowerCase();
+                if (clearVillageFilter) {
+                    clearVillageFilter.style.display = query.length > 0 ? 'inline-block' : 'none';
+                }
+                if (!query) {
+                    renderVillageOptions(loadedVillages, villageSelect.value);
+                    return;
+                }
+                const filtered = loadedVillages.filter(v => {
+                    const name = (v.name || '').toLowerCase();
+                    const hname = (v.name_hindi || v.mauja_name || '').toLowerCase();
+                    const eng = (v.mauja_english || '').toLowerCase();
+                    const code = String(v.mauja_code || v.code || '').toLowerCase();
+                    const halka = (v.halka_name || v.halka_english || '').toLowerCase();
+                    return name.includes(query) || hname.includes(query) || eng.includes(query) || code.includes(query) || halka.includes(query);
+                });
+                renderVillageOptions(filtered, villageSelect.value);
+            });
+        }
+
+        if (clearVillageFilter) {
+            clearVillageFilter.addEventListener('click', function() {
+                if (villageSearchFilter) {
+                    villageSearchFilter.value = '';
+                    villageSearchFilter.dispatchEvent(new Event('input'));
+                    villageSearchFilter.focus();
+                }
+            });
+        }
+
+        villageSelect.addEventListener('change', function() {
+            updateVillageSelectedInfo(this.value);
         });
     }
 
@@ -867,7 +968,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (pinStatus) pinStatus.textContent = 'सत्यापित हो रहा है...';
 
         try {
-            const res = await fetch(`${BASE_URL}api/pincode_lookup.php?pincode=${clean}`);
+            const res = await fetch(`${APP_BASE_URL}api/pincode_lookup.php?pincode=${clean}`);
             const data = await res.json();
 
             if (data.success) {
