@@ -339,21 +339,12 @@ require_once __DIR__ . '/includes/header.php';
 
                                 <!-- Mauja / Census Village -->
                                 <div class="col-md-6">
-                                    <label class="form-label fw-semibold fs-7 text-dark mb-1 d-flex justify-content-between align-items-center">
-                                        <span>Mauja / Census Village <span class="text-muted fw-normal">(Searchable)</span></span>
-                                        <span id="villageCountBadge" class="badge bg-secondary-subtle text-secondary fw-normal" style="display:none; font-size:0.72rem;"></span>
+                                    <label class="form-label fw-semibold fs-7 text-dark mb-1">
+                                        Mauja / Census Village <span class="text-muted fw-normal">(Optional)</span>
                                     </label>
-                                    <div class="input-group mb-1" id="village_filter_wrap" style="display:none;">
-                                        <span class="input-group-text bg-light border-secondary-subtle text-muted py-1 px-2.5"><i class="bi bi-search" style="font-size:0.8rem;"></i></span>
-                                        <input type="text" id="village_search_filter" class="form-control form-control-sm border-secondary-subtle" placeholder="Filter village by name or mauja code..." autocomplete="off">
-                                        <button class="btn btn-outline-secondary btn-sm border-secondary-subtle px-2" type="button" id="clearVillageFilter" style="display:none;" title="Clear filter">
-                                            <i class="bi bi-x-lg" style="font-size:0.75rem;"></i>
-                                        </button>
-                                    </div>
                                     <select name="mauja_code" id="village_select" class="form-select border-secondary-subtle rounded-3 py-2.5">
                                         <option value="">Select Block First</option>
                                     </select>
-                                    <div id="village_selected_info" class="mt-1 small text-success" style="display:none; font-size: 0.78rem;"></div>
                                 </div>
 
                                 <!-- Full Address -->
@@ -820,63 +811,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Location: CD Block -> Mauja / Village loader & live searchable filter
-    let loadedVillages = [];
-    const villageFilterWrap = document.getElementById('village_filter_wrap');
-    const villageSearchFilter = document.getElementById('village_search_filter');
-    const clearVillageFilter = document.getElementById('clearVillageFilter');
-    const villageCountBadge = document.getElementById('villageCountBadge');
-    const villageSelectedInfo = document.getElementById('village_selected_info');
-
-    function renderVillageOptions(list, selectedCode = '') {
-        if (!villageSelect) return;
-        if (list.length === 0) {
-            villageSelect.innerHTML = '<option value="">No matching Mauja / Village found</option>';
-            return;
-        }
-        let html = '<option value="">-- Choose Mauja / Village (' + list.length + ' available) --</option>';
-        list.forEach(v => {
-            let code = v.mauja_code || v.code || '';
-            let isSel = (selectedCode && String(selectedCode) === String(code)) ? 'selected' : '';
-            let displayName = v.display_name || v.name || ('Village ' + code);
-            if (v.mauja_name && v.mauja_english && v.mauja_english !== v.mauja_name) {
-                displayName = `${v.mauja_english} / ${v.mauja_name}` + (code ? ` (Code: ${code})` : '');
-            }
-            html += `<option value="${code}" ${isSel}>${displayName}</option>`;
-        });
-        villageSelect.innerHTML = html;
-        if (selectedCode) villageSelect.value = selectedCode;
-    }
-
-    function updateVillageSelectedInfo(code) {
-        if (!villageSelectedInfo) return;
-        if (!code) {
-            villageSelectedInfo.style.display = 'none';
-            villageSelectedInfo.innerHTML = '';
-            return;
-        }
-        const v = loadedVillages.find(item => String(item.mauja_code || item.code) === String(code));
-        if (v) {
-            let details = [];
-            if (v.mauja_name && v.mauja_english && v.mauja_name !== v.mauja_english) details.push(`<strong>${v.mauja_english}</strong> (${v.mauja_name})`);
-            if (v.halka_name || v.halka_english) details.push(`Halka: ${v.halka_english || v.halka_name}`);
-            if (v.mauja_code) details.push(`Census Code: ${v.mauja_code}`);
-            villageSelectedInfo.innerHTML = `<i class="bi bi-geo-alt-fill me-1"></i>` + details.join(' &bull; ');
-            villageSelectedInfo.style.display = 'block';
-        } else {
-            villageSelectedInfo.style.display = 'none';
-        }
-    }
-
+    // Location: CD Block -> Mauja / Village loader
     if (blockSelect && villageSelect) {
         blockSelect.addEventListener('change', function() {
             const blockId = this.value;
-            loadedVillages = [];
-            if (villageFilterWrap) villageFilterWrap.style.display = 'none';
-            if (villageSearchFilter) villageSearchFilter.value = '';
-            if (clearVillageFilter) clearVillageFilter.style.display = 'none';
-            if (villageCountBadge) villageCountBadge.style.display = 'none';
-            if (villageSelectedInfo) villageSelectedInfo.style.display = 'none';
-
             if (!blockId) {
                 villageSelect.innerHTML = '<option value="">Select Block First</option>';
                 return;
@@ -888,58 +826,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(res => res.json())
                 .then(data => {
                     const villageList = Array.isArray(data) ? data : (data.villages || []);
-                    loadedVillages = villageList;
                     if (villageList.length > 0) {
-                        renderVillageOptions(villageList);
-                        if (villageFilterWrap) villageFilterWrap.style.display = 'flex';
-                        if (villageCountBadge) {
-                            villageCountBadge.textContent = villageList.length + ' villages';
-                            villageCountBadge.style.display = 'inline-block';
-                        }
+                        let html = '<option value="">-- Choose Mauja / Village --</option>';
+                        villageList.forEach(v => {
+                            let code = v.mauja_code || v.code || '';
+                            let displayName = v.display_name || v.name || ('Village ' + code);
+                            if (v.mauja_name && v.mauja_english && v.mauja_english !== v.mauja_name) {
+                                displayName = `${v.mauja_english} / ${v.mauja_name}` + (code ? ` (Code: ${code})` : '');
+                            }
+                            html += `<option value="${code}">${displayName}</option>`;
+                        });
+                        villageSelect.innerHTML = html;
                     } else {
-                        villageSelect.innerHTML = '<option value="">No Villages Found for this Block</option>';
+                        villageSelect.innerHTML = '<option value="">No Villages Found</option>';
                     }
                 })
                 .catch(() => {
                     villageSelect.innerHTML = '<option value="">Error Loading Villages</option>';
                 });
-        });
-
-        // Filter village options live as user types
-        if (villageSearchFilter) {
-            villageSearchFilter.addEventListener('input', function() {
-                const query = this.value.trim().toLowerCase();
-                if (clearVillageFilter) {
-                    clearVillageFilter.style.display = query.length > 0 ? 'inline-block' : 'none';
-                }
-                if (!query) {
-                    renderVillageOptions(loadedVillages, villageSelect.value);
-                    return;
-                }
-                const filtered = loadedVillages.filter(v => {
-                    const name = (v.name || '').toLowerCase();
-                    const hname = (v.name_hindi || v.mauja_name || '').toLowerCase();
-                    const eng = (v.mauja_english || '').toLowerCase();
-                    const code = String(v.mauja_code || v.code || '').toLowerCase();
-                    const halka = (v.halka_name || v.halka_english || '').toLowerCase();
-                    return name.includes(query) || hname.includes(query) || eng.includes(query) || code.includes(query) || halka.includes(query);
-                });
-                renderVillageOptions(filtered, villageSelect.value);
-            });
-        }
-
-        if (clearVillageFilter) {
-            clearVillageFilter.addEventListener('click', function() {
-                if (villageSearchFilter) {
-                    villageSearchFilter.value = '';
-                    villageSearchFilter.dispatchEvent(new Event('input'));
-                    villageSearchFilter.focus();
-                }
-            });
-        }
-
-        villageSelect.addEventListener('change', function() {
-            updateVillageSelectedInfo(this.value);
         });
     }
 
