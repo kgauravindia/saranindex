@@ -214,11 +214,13 @@ require_once __DIR__ . '/includes/header.php';
                 </p>
 
                 <?php if (!empty($listing['services'])): ?>
-                    <div class="mt-4 pt-3 border-top">
+                    <div class="mt-4 pt-3 border-top d-none d-md-block">
                         <h6 class="fw-bold text-dark mb-3">मुख्य सेवाएं एवं सुविधाएं</h6>
                         <div class="d-flex flex-wrap gap-2">
-                            <?php foreach (explode(',', $listing['services']) as $srv): ?>
-                                <span class="badge bg-light text-dark border px-3 py-2 rounded-pill fw-normal fs-7">
+                            <?php foreach (preg_split('/[,|]/', $listing['services']) as $srv): 
+                                if (empty(trim($srv))) continue;
+                            ?>
+                                <span class="badge bg-light text-dark border px-3 py-2 rounded-pill fw-normal fs-7 text-wrap" style="max-width: 100%; white-space: normal; text-align: left;">
                                     <i class="bi bi-check-circle-fill text-success me-1"></i><?php echo sanitizeInput(trim($srv)); ?>
                                 </span>
                             <?php endforeach; ?>

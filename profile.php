@@ -214,37 +214,39 @@ require_once __DIR__ . '/includes/header.php';
                     </p>
 
                     <?php if (!empty($listing['services']) || !empty($listing['products'])): ?>
-                        <h5 class="fw-bold font-heading text-dark mt-4 mb-3">
-                            <i class="bi bi-box-seam-fill text-primary me-2"></i>Products, Services & Key Features
-                        </h5>
-                        <div class="d-flex flex-wrap gap-2">
-                            <?php 
-                            if (!empty($listing['products'])):
-                                $productsList = explode(',', $listing['products']);
-                                foreach ($productsList as $prod): 
-                                    if (empty(trim($prod))) continue;
-                            ?>
-                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill font-body fw-medium" style="font-size: 0.9rem;">
-                                    <i class="bi bi-box-seam me-1"></i><?php echo sanitizeInput(trim($prod)); ?>
-                                </span>
-                            <?php 
-                                endforeach; 
-                            endif; 
-                            ?>
+                        <div class="d-none d-md-block">
+                            <h5 class="fw-bold font-heading text-dark mt-4 mb-3">
+                                <i class="bi bi-box-seam-fill text-primary me-2"></i>Products, Services & Key Features
+                            </h5>
+                            <div class="d-flex flex-wrap gap-2">
+                                <?php 
+                                if (!empty($listing['products'])):
+                                    $productsList = preg_split('/[,|]/', $listing['products']);
+                                    foreach ($productsList as $prod): 
+                                        if (empty(trim($prod))) continue;
+                                ?>
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill font-body fw-medium text-wrap" style="font-size: 0.9rem; max-width: 100%; white-space: normal; text-align: left;">
+                                        <i class="bi bi-box-seam me-1"></i><?php echo sanitizeInput(trim($prod)); ?>
+                                    </span>
+                                <?php 
+                                    endforeach; 
+                                endif; 
+                                ?>
 
-                            <?php 
-                            if (!empty($listing['services'])):
-                                $servicesList = explode(',', $listing['services']);
-                                foreach ($servicesList as $srv): 
-                                    if (empty(trim($srv))) continue;
-                            ?>
-                                <span class="badge bg-light text-dark border px-3 py-2 rounded-pill font-body fw-medium" style="font-size: 0.9rem;">
-                                    <i class="bi bi-check-circle-fill text-success me-1"></i><?php echo sanitizeInput(trim($srv)); ?>
-                                </span>
-                            <?php 
-                                endforeach; 
-                            endif; 
-                            ?>
+                                <?php 
+                                if (!empty($listing['services'])):
+                                    $servicesList = preg_split('/[,|]/', $listing['services']);
+                                    foreach ($servicesList as $srv): 
+                                        if (empty(trim($srv))) continue;
+                                ?>
+                                    <span class="badge bg-light text-dark border px-3 py-2 rounded-pill font-body fw-medium text-wrap" style="font-size: 0.9rem; max-width: 100%; white-space: normal; text-align: left;">
+                                        <i class="bi bi-check-circle-fill text-success me-1"></i><?php echo sanitizeInput(trim($srv)); ?>
+                                    </span>
+                                <?php 
+                                    endforeach; 
+                                endif; 
+                                ?>
+                            </div>
                         </div>
                     <?php endif; ?>
 
