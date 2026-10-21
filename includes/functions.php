@@ -2202,6 +2202,7 @@ function saveListing($data, $id = null) {
     $slug = !empty($data['slug']) ? slugify($data['slug']) : slugify($data['title']);
 
     $params = [
+        'user_id' => !empty($data['user_id']) ? intval($data['user_id']) : null,
         'category_id' => intval($data['category_id'] ?? 1),
         'subcategory_id' => !empty($data['subcategory_id']) ? intval($data['subcategory_id']) : null,
         'block_id' => !empty($data['block_id']) ? intval($data['block_id']) : null,
@@ -2212,9 +2213,10 @@ function saveListing($data, $id = null) {
         'slug' => $slug,
         'contact_person' => $data['contact_person'] ?? '',
         'mobile' => $data['mobile'] ?? '',
-        'mobile_visibility' => in_array(strtoupper($data['mobile_visibility'] ?? ''), ['HIDDEN', 'PRIVATE', 'HIDE', 'NO']) ? 'HIDDEN' : 'PUBLIC',
+        'mobile_visibility' => in_array(strtoupper($data['mobile_visibility'] ?? ''), ['HIDDEN', 'PRIVATE', 'REGISTERED', 'PUBLIC']) ? strtoupper($data['mobile_visibility']) : 'PUBLIC',
         'whatsapp' => $data['whatsapp'] ?? '',
         'email' => $data['email'] ?? '',
+        'email_visibility' => in_array(strtoupper($data['email_visibility'] ?? ''), ['HIDDEN', 'PRIVATE', 'REGISTERED', 'PUBLIC']) ? strtoupper($data['email_visibility']) : 'PUBLIC',
         'website' => $data['website'] ?? '',
         'address' => $data['address'] ?? '',
         'pincode' => $data['pincode'] ?? '841301',
@@ -2228,21 +2230,25 @@ function saveListing($data, $id = null) {
         'local_reg_no' => $data['local_reg_no'] ?? '',
         'description' => $data['description'] ?? '',
         'cover_image' => $data['cover_image'] ?? '',
-        'is_verified' => $data['is_verified'] ?? 'NO',
-        'is_featured' => $data['is_featured'] ?? 'NO',
-        'status' => $data['status'] ?? 'ACTIVE',
-        'plan_type' => $data['plan_type'] ?? 'FREE',
-        'plan_expires_at' => !empty($data['plan_expires_at']) ? $data['plan_expires_at'] : null
+        'is_verified' => in_array(strtoupper($data['is_verified'] ?? ''), ['YES', '1']) ? 'YES' : 'NO',
+        'is_featured' => in_array(strtoupper($data['is_featured'] ?? ''), ['YES', '1']) ? 'YES' : 'NO',
+        'status' => in_array(strtoupper($data['status'] ?? ''), ['ACTIVE', 'PENDING', 'REJECTED']) ? strtoupper($data['status']) : 'ACTIVE',
+        'plan_type' => in_array(strtoupper($data['plan_type'] ?? ''), ['FREE', 'GOLD', 'PLATINUM']) ? strtoupper($data['plan_type']) : 'FREE',
+        'plan_expires_at' => !empty($data['plan_expires_at']) ? $data['plan_expires_at'] : null,
+        'view_count' => isset($data['view_count']) ? max(0, intval($data['view_count'])) : 0,
+        'star_rating' => isset($data['star_rating']) ? max(1.0, min(5.0, floatval($data['star_rating']))) : 5.00,
+        'source' => !empty($data['source']) ? sanitizeInput($data['source']) : 'manual',
+        'source_id' => !empty($data['source_id']) ? sanitizeInput($data['source_id']) : null
     ];
 
-    if (isset($data['view_count'])) {
-        $params['view_count'] = max(0, intval($data['view_count']));
+    if (!empty($data['created_at'])) {
+        $params['created_at'] = $data['created_at'];
     }
 
     if (strtoupper($params['status']) === 'ACTIVE') {
         $checkData = [
             'id' => $id,
-            'user_id' => $data['user_id'] ?? null,
+            'user_id' => $params['user_id'] ?? null,
             'mobile' => $data['mobile'] ?? ''
         ];
         $mobReason = '';
@@ -2253,7 +2259,9 @@ function saveListing($data, $id = null) {
 
     try {
         if ($id) {
+            $createdClause = !empty($params['created_at']) ? ", created_at = :created_at" : "";
             $sql = "UPDATE listings SET 
+                user_id = :user_id,
                 category_id = :category_id,
                 subcategory_id = :subcategory_id,
                 block_id = :block_id,
@@ -2267,6 +2275,7 @@ function saveListing($data, $id = null) {
                 mobile_visibility = :mobile_visibility,
                 whatsapp = :whatsapp,
                 email = :email,
+                email_visibility = :email_visibility,
                 website = :website,
                 address = :address,
                 pincode = :pincode,
@@ -2284,7 +2293,11 @@ function saveListing($data, $id = null) {
                 is_featured = :is_featured,
                 status = :status,
                 plan_type = :plan_type,
-                plan_expires_at = :plan_expires_at" . (isset($data['view_count']) ? ", view_count = :view_count" : "") . "
+                plan_expires_at = :plan_expires_at,
+                view_count = :view_count,
+                star_rating = :star_rating,
+                source = :source,
+                source_id = :source_id" . $createdClause . "
                 WHERE id = :id";
             $params['id'] = intval($id);
             $stmt = $db->prepare($sql);
@@ -2294,16 +2307,18 @@ function saveListing($data, $id = null) {
             }
             return $result;
         } else {
+            $createdCol = !empty($params['created_at']) ? ", created_at" : "";
+            $createdVal = !empty($params['created_at']) ? ", :created_at" : "";
             $sql = "INSERT INTO listings (
-                category_id, subcategory_id, block_id, panchayat_id, village_id,
-                title, hindi_title, slug, contact_person, mobile, mobile_visibility, whatsapp, email, website,
+                user_id, category_id, subcategory_id, block_id, panchayat_id, village_id,
+                title, hindi_title, slug, contact_person, mobile, mobile_visibility, whatsapp, email, email_visibility, website,
                 address, pincode, map_link, business_hours, services, products, gst_no, udyam_no, cin_no, local_reg_no, description, cover_image,
-                is_verified, is_featured, status, plan_type, plan_expires_at
+                is_verified, is_featured, status, plan_type, plan_expires_at, view_count, star_rating, source, source_id" . $createdCol . "
             ) VALUES (
-                :category_id, :subcategory_id, :block_id, :panchayat_id, :village_id,
-                :title, :hindi_title, :slug, :contact_person, :mobile, :mobile_visibility, :whatsapp, :email, :website,
+                :user_id, :category_id, :subcategory_id, :block_id, :panchayat_id, :village_id,
+                :title, :hindi_title, :slug, :contact_person, :mobile, :mobile_visibility, :whatsapp, :email, :email_visibility, :website,
                 :address, :pincode, :map_link, :business_hours, :services, :products, :gst_no, :udyam_no, :cin_no, :local_reg_no, :description, :cover_image,
-                :is_verified, :is_featured, :status, :plan_type, :plan_expires_at
+                :is_verified, :is_featured, :status, :plan_type, :plan_expires_at, :view_count, :star_rating, :source, :source_id" . $createdVal . "
             )";
             $stmt = $db->prepare($sql);
             return $stmt->execute($params);
