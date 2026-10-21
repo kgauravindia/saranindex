@@ -187,7 +187,7 @@ require_once __DIR__ . '/includes/header.php';
                                     <a href="register.php" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold"><i class="bi bi-person-plus me-1"></i> नया अकाउंट बनाएं</a>
                                     <a href="login.php" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold"><i class="bi bi-box-arrow-in-right me-1"></i> लॉगिन करें</a>
                                 <?php endif; ?>
-                                <a href="add-contact.php" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold"><i class="bi bi-plus-lg me-1"></i> दूसरी लिस्टिंग जोड़ें</a>
+                                <a href="add-listing" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold"><i class="bi bi-plus-lg me-1"></i> दूसरी लिस्टिंग जोड़ें</a>
                             </div>
                         </div>
                     </div>
@@ -217,7 +217,7 @@ require_once __DIR__ . '/includes/header.php';
                 </div>
 
                 <div class="card-body p-4 p-md-4.5 bg-white">
-                    <form action="add-contact.php" method="POST" id="addListingForm">
+                    <form action="" method="POST" id="addListingForm">
 
                         <!-- SECTION 1: बुनियादी जानकारी -->
                         <div class="mb-4 pb-2">
@@ -543,6 +543,7 @@ require_once __DIR__ . '/includes/header.php';
 
 <script>
 const ALL_SUBCATEGORIES = <?php echo json_encode($all_subcategories ?: [], JSON_UNESCAPED_UNICODE); ?>;
+const BASE_URL = '<?php echo BASE_URL; ?>';
 
 document.addEventListener('DOMContentLoaded', function() {
     const catSelect = document.getElementById('category_select');
@@ -598,7 +599,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             // Fallback via API
             subSelect.innerHTML = '<option value="">उप-श्रेणियां लोड हो रही हैं...</option>';
-            fetch('../api/subcategories_api.php?category_id=' + encodeURIComponent(catId))
+            fetch(BASE_URL + 'api/subcategories_api.php?category_id=' + encodeURIComponent(catId))
                 .then(res => res.json())
                 .then(data => {
                     const fetchedSubs = Array.isArray(data) ? data : (data.subcategories || []);
@@ -823,7 +824,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            fetch('../api/villages_api.php?block_id=' + encodeURIComponent(blockId))
+            fetch(BASE_URL + 'api/villages_api.php?block_id=' + encodeURIComponent(blockId))
                 .then(res => res.json())
                 .then(data => {
                     const villageList = Array.isArray(data) ? data : (data.villages || []);
@@ -866,7 +867,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (pinStatus) pinStatus.textContent = 'सत्यापित हो रहा है...';
 
         try {
-            const res = await fetch(`../api/pincode_lookup.php?pincode=${clean}`);
+            const res = await fetch(`${BASE_URL}api/pincode_lookup.php?pincode=${clean}`);
             const data = await res.json();
 
             if (data.success) {

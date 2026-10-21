@@ -383,7 +383,7 @@ $search30 = $searchAnalytics['30'];
                                             </span>
                                         </td>
                                         <td class="pe-3 text-end">
-                                            <a href="edit-listing.php?prefill_title=<?php echo urlencode($zTerm['query']); ?>" class="btn btn-sm btn-primary py-1 px-2.5 rounded-pill fw-semibold" title="Add listing for this missing term">
+                                            <a href="listing_edit.php?prefill_title=<?php echo urlencode($zTerm['query']); ?>" class="btn btn-sm btn-primary py-1 px-2.5 rounded-pill fw-semibold" title="Add listing for this missing term">
                                                 <i class="bi bi-plus-lg me-1"></i>Add Listing
                                             </a>
                                         </td>

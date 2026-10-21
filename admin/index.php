@@ -68,6 +68,9 @@ $recentListings = array_slice($recentListings, 0, 8);
             <a href="listing_edit.php" class="btn btn-outline-light text-white fw-bold btn-sm px-3 shadow-sm">
                 <i class="bi bi-plus-circle me-1"></i> Add Listing
             </a>
+            <a href="git.php" class="btn btn-outline-light text-white fw-bold btn-sm px-3 shadow-sm">
+                <i class="bi bi-cloud-arrow-up-fill text-danger me-1"></i> Git Push
+            </a>
             <a href="categories.php" class="btn btn-outline-light btn-sm px-3 fw-medium">
                 <i class="bi bi-folder-plus me-1"></i> Add Category
             </a>
