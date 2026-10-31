@@ -1055,15 +1055,15 @@ require_once __DIR__ . '/includes/header.php';
                                                             <div class="form-check border p-3 rounded-3 mb-2 bg-white">
                                                                 <input class="form-check-input ms-0 me-2" type="radio" name="plan_type" id="planGold<?php echo $l['id']; ?>" value="GOLD" checked>
                                                                 <label class="form-check-label w-100" for="planGold<?php echo $l['id']; ?>">
-                                                                    <strong class="text-primary">गोल्ड बिजनेस मेंबरशिप</strong> – ₹499.00 / वर्ष
-                                                                    <small class="d-block text-muted">शीर्ष श्रेणी रैंकिंग, सत्यापित बैज एवं सीधा व्हाट्सएप इन्क्वायरी बटन</small>
+                                                                    <strong class="text-primary">🔵 गोल्ड बिजनेस मेंबरशिप</strong> – ₹499.00 / वर्ष
+                                                                    <small class="d-block text-muted">शीर्ष श्रेणी रैंकिंग, सत्यापित बैज, व्हाट्सएप बटन एवं <strong>3 फ़ोटो तक अपलोड</strong> (1200×800 अनुशंसित, अधिकतम 2MB)</small>
                                                                 </label>
                                                             </div>
                                                             <div class="form-check border p-3 rounded-3 mb-2 bg-white">
                                                                 <input class="form-check-input ms-0 me-2" type="radio" name="plan_type" id="planPlat<?php echo $l['id']; ?>" value="PLATINUM">
                                                                 <label class="form-check-label w-100" for="planPlat<?php echo $l['id']; ?>">
-                                                                    <strong class="text-warning-emphasis"><i class="bi bi-crown-fill text-danger me-1"></i>वीआईपी प्लैटिनम मेंबरशिप</strong> – ₹1,499.00 / वर्ष
-                                                                    <small class="d-block text-muted">होमपेज विशेष स्थान, वीआईपी क्राउन बैज एवं प्राथमिकता हेल्पलाइन</small>
+                                                                    <strong class="text-warning-emphasis"><i class="bi bi-crown-fill text-danger me-1"></i>👑 वीआईपी प्लैटिनम मेंबरशिप</strong> – ₹1,499.00 / वर्ष
+                                                                    <small class="d-block text-muted">होमपेज विशेष स्थान, वीआईपी क्राउन बैज, प्राथमिकता सहायता एवं <strong>6 फ़ोटो तक अपलोड</strong> (1200×800 अनुशंसित, अधिकतम 5MB)</small>
                                                                 </label>
                                                             </div>
                                                         </div>

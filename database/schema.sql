@@ -90,6 +90,7 @@ CREATE TABLE IF NOT EXISTS `listings` (
     `local_reg_no` VARCHAR(100),
     `description` TEXT,
     `cover_image` VARCHAR(255),
+    `gallery_images` TEXT DEFAULT NULL,
     `is_verified` ENUM('YES','NO') DEFAULT 'NO',
     `is_featured` ENUM('YES','NO') DEFAULT 'NO',
     `status` ENUM('ACTIVE','PENDING','REJECTED') DEFAULT 'ACTIVE',

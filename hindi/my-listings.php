@@ -217,6 +217,10 @@ require_once __DIR__ . '/includes/header.php';
                                         <span class="badge bg-light text-secondary border rounded-pill extra-small">मुफ़्त बेसिक</span>
                                     <?php endif; ?>
 
+                                    <?php if (!empty($l['cover_image'])): ?>
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill extra-small"><i class="bi bi-image me-1"></i>फ़ोटो मौजूद</span>
+                                    <?php endif; ?>
+
                                     <!-- Claim Status Badge -->
                                     <?php if ($cStatus === 'APPROVED'): ?>
                                         <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill extra-small"><i class="bi bi-shield-check me-1"></i>क्लेम सत्यापित</span>

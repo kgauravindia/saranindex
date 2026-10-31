@@ -74,7 +74,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // सभी नई लिस्टिंग्स को एडमिन समीक्षा एवं स्वीकृति के बाद ही लाइव प्रकाशित किया जाएगा
                 $initial_status = 'PENDING';
 
-                $stmt = $db->prepare("INSERT INTO listings (user_id, category_id, subcategory_id, block_id, village_id, title, hindi_title, slug, contact_person, mobile, whatsapp, email, address, pincode, services, description, plan_type, plan_expires_at, is_featured, is_verified, status) VALUES (:uid, :cat, :sub, :blk, :vid, :title, :htitle, :slug, :cp, :mob, :wa, :email, :addr, :pin, :srv, :desc, :plan, :plan_exp, :feat, :ver, :status)");
+                $cover_image_val = null;
+                $gallery_images_val = null;
+
+                // Handle Cover Image Upload
+                if (isset($_FILES['cover_image_file']) && $_FILES['cover_image_file']['error'] === UPLOAD_ERR_OK) {
+                    $uploaded = uploadListingImage($_FILES['cover_image_file'], 0);
+                    if ($uploaded) {
+                        $cover_image_val = $uploaded;
+                    }
+                }
+
+                // Handle Gallery Files (For Gold and Platinum plans)
+                $gallery_list = [];
+                if (isset($_FILES['gallery_files']) && is_array($_FILES['gallery_files']['name'])) {
+                    $maxG = ($plan_type === 'PLATINUM') ? 5 : (($plan_type === 'GOLD') ? 2 : 0);
+                    $fileCount = count($_FILES['gallery_files']['name']);
+                    for ($i = 0; $i < $fileCount && count($gallery_list) < $maxG; $i++) {
+                        if ($_FILES['gallery_files']['error'][$i] === UPLOAD_ERR_OK) {
+                            $singleFile = [
+                                'name' => $_FILES['gallery_files']['name'][$i],
+                                'type' => $_FILES['gallery_files']['type'][$i],
+                                'tmp_name' => $_FILES['gallery_files']['tmp_name'][$i],
+                                'error' => $_FILES['gallery_files']['error'][$i],
+                                'size' => $_FILES['gallery_files']['size'][$i],
+                            ];
+                            $upG = uploadListingImage($singleFile, 0);
+                            if ($upG) $gallery_list[] = $upG;
+                        }
+                    }
+                }
+                if (!empty($gallery_list)) {
+                    $gallery_images_val = json_encode(array_values($gallery_list));
+                }
+
+                $stmt = $db->prepare("INSERT INTO listings (user_id, category_id, subcategory_id, block_id, village_id, title, hindi_title, slug, contact_person, mobile, whatsapp, email, address, pincode, services, description, cover_image, gallery_images, plan_type, plan_expires_at, is_featured, is_verified, status) VALUES (:uid, :cat, :sub, :blk, :vid, :title, :htitle, :slug, :cp, :mob, :wa, :email, :addr, :pin, :srv, :desc, :cover, :gallery, :plan, :plan_exp, :feat, :ver, :status)");
                 $stmt->execute([
                     'uid' => $currentUser['id'] ?? null,
                     'cat' => $category_id,
@@ -92,6 +126,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'pin' => $pincode,
                     'srv' => $services,
                     'desc' => $description,
+                    'cover' => $cover_image_val,
+                    'gallery' => $gallery_images_val,
                     'plan' => $plan_type,
                     'plan_exp' => $plan_expires_val,
                     'feat' => $is_featured_val,
@@ -217,7 +253,7 @@ require_once __DIR__ . '/includes/header.php';
                 </div>
 
                 <div class="card-body p-4 p-md-4.5 bg-white">
-                    <form action="" method="POST" id="addListingForm">
+                    <form action="" method="POST" id="addListingForm" enctype="multipart/form-data">
 
                         <!-- SECTION 1: बुनियादी जानकारी -->
                         <div class="mb-4 pb-2">
@@ -463,22 +499,23 @@ require_once __DIR__ . '/includes/header.php';
                             <div class="row g-3">
                                 <!-- FREE PLAN -->
                                 <div class="col-md-4">
-                                    <label class="card h-100 border rounded-4 p-3 cursor-pointer shadow-xs position-relative hover-border-primary">
-                                        <input type="radio" name="plan_type" value="FREE" class="form-check-input position-absolute top-0 end-0 m-3" checked>
-                                        <div class="fw-bold text-dark fs-6 mb-1">🟢 बुनियादी मुफ्त</div>
-                                        <div class="display-7 fw-bolder text-primary mb-2">₹0 <small class="fs-7 text-muted fw-normal">/ हमेशा</small></div>
+                                    <label class="card h-100 border rounded-4 p-3 cursor-pointer shadow-xs position-relative hover-border-primary" onclick="onPlanChanged('FREE')">
+                                        <input type="radio" name="plan_type" value="FREE" class="form-check-input position-absolute top-0 end-0 m-3" checked onchange="onPlanChanged('FREE')">
+                                        <div class="fw-bold text-dark fs-6 mb-1">🟢 बेसिक फ्री</div>
+                                        <div class="display-7 fw-bolder text-primary mb-2">₹0 <small class="fs-7 text-muted fw-normal">/ हमेशा के लिए</small></div>
                                         <ul class="list-unstyled small text-secondary mb-0" style="line-height: 1.6;">
                                             <li><i class="bi bi-check2 text-success me-1"></i> सामान्य खोज रैंक</li>
                                             <li><i class="bi bi-check2 text-success me-1"></i> फ़ोन कॉल बटन</li>
-                                            <li><i class="bi bi-check2 text-success me-1"></i> बुनियादी पता</li>
+                                            <li><i class="bi bi-check2 text-success me-1"></i> बुनियादी पता विवरण</li>
+                                            <li class="text-muted"><i class="bi bi-x-circle me-1"></i> 0 फ़ोटो (केवल टेक्स्ट)</li>
                                         </ul>
                                     </label>
                                 </div>
 
                                 <!-- GOLD BUSINESS PLAN -->
                                 <div class="col-md-4">
-                                    <label class="card h-100 border border-primary rounded-4 p-3 cursor-pointer shadow-sm position-relative bg-primary-subtle border-2">
-                                        <input type="radio" name="plan_type" value="GOLD" class="form-check-input position-absolute top-0 end-0 m-3">
+                                    <label class="card h-100 border border-primary rounded-4 p-3 cursor-pointer shadow-sm position-relative bg-primary-subtle border-2" onclick="onPlanChanged('GOLD')">
+                                        <input type="radio" name="plan_type" value="GOLD" class="form-check-input position-absolute top-0 end-0 m-3" onchange="onPlanChanged('GOLD')">
                                         <div class="badge bg-primary text-white fw-bold w-auto me-auto mb-1">अनुशंसित</div>
                                         <div class="fw-bold text-primary fs-6 mb-1">🔵 गोल्ड बिजनेस</div>
                                         <div class="display-7 fw-bolder text-primary mb-2">₹499 <small class="fs-7 text-muted fw-normal">/ वर्ष</small></div>
@@ -486,15 +523,15 @@ require_once __DIR__ . '/includes/header.php';
                                             <li><i class="bi bi-check-circle-fill text-primary me-1"></i> <strong>शीर्ष खोज प्राथमिकता</strong></li>
                                             <li><i class="bi bi-check-circle-fill text-primary me-1"></i> <strong>हरा वेरीफाइड बैज</strong></li>
                                             <li><i class="bi bi-check-circle-fill text-primary me-1"></i> डायरेक्ट व्हाट्सएप बटन</li>
-                                            <li><i class="bi bi-check-circle-fill text-primary me-1"></i> 3 फ़ोटो तक अपलोड</li>
+                                            <li><i class="bi bi-camera-fill text-primary me-1"></i> <strong>3 फ़ोटो तक अपलोड</strong></li>
                                         </ul>
                                     </label>
                                 </div>
 
                                 <!-- PLATINUM VIP PLAN -->
                                 <div class="col-md-4">
-                                    <label class="card h-100 border border-warning rounded-4 p-3 cursor-pointer shadow-sm position-relative bg-warning-subtle border-2">
-                                        <input type="radio" name="plan_type" value="PLATINUM" class="form-check-input position-absolute top-0 end-0 m-3">
+                                    <label class="card h-100 border border-warning rounded-4 p-3 cursor-pointer shadow-sm position-relative bg-warning-subtle border-2" onclick="onPlanChanged('PLATINUM')">
+                                        <input type="radio" name="plan_type" value="PLATINUM" class="form-check-input position-absolute top-0 end-0 m-3" onchange="onPlanChanged('PLATINUM')">
                                         <div class="badge bg-warning text-dark fw-bold w-auto me-auto mb-1">सर्वोत्तम दृश्यता</div>
                                         <div class="fw-bold text-dark fs-6 mb-1">👑 वीआईपी प्लैटिनम</div>
                                         <div class="display-7 fw-bolder text-dark mb-2">₹1,499 <small class="fs-7 text-muted fw-normal">/ वर्ष</small></div>
@@ -502,12 +539,106 @@ require_once __DIR__ . '/includes/header.php';
                                             <li><i class="bi bi-crown-fill text-warning me-1"></i> <strong>शीर्ष फीचर्ड स्थान</strong></li>
                                             <li><i class="bi bi-crown-fill text-warning me-1"></i> <strong>गोल्ड वीआईपी वेरीफाइड बैज</strong></li>
                                             <li><i class="bi bi-crown-fill text-warning me-1"></i> कॉल + व्हाट्सएप + बुकिंग</li>
-                                            <li><i class="bi bi-crown-fill text-warning me-1"></i> 6 फ़ोटो तक अपलोड</li>
+                                            <li><i class="bi bi-camera-fill text-warning me-1"></i> <strong>6 फ़ोटो तक अपलोड (शोकेस)</strong></li>
                                         </ul>
                                     </label>
                                 </div>
 
                             </div>
+                        </div>
+
+                        <!-- SECTION 6: व्यवसाय की फ़ोटो एवं गैलरी -->
+                        <div class="mb-4 pb-2" id="photoUploadSection">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-primary text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">6</span>
+                                    <h5 class="fw-bold font-heading text-dark mb-0">व्यवसाय की फ़ोटो एवं मीडिया</h5>
+                                </div>
+                                <span class="badge bg-secondary rounded-pill" id="photoPlanBadge">फ्री प्लान: 0 फ़ोटो</span>
+                            </div>
+
+                            <!-- Free Plan Helper / Upgrade Prompt -->
+                            <div id="freePlanPhotoNotice" class="card border border-secondary-subtle bg-light rounded-4 p-3.5 mb-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle p-2.5 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
+                                        <i class="bi bi-camera fs-4"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="fw-bold text-dark mb-1">फ़ोटो सुविधा गोल्ड बिजनेस एवं वीआईपी प्लैटिनम हेतु उपलब्ध है</h6>
+                                        <p class="text-muted small mb-0">
+                                            <strong>बेसिक फ्री प्लान</strong> में केवल संपर्क एवं पता जानकारी प्रदर्शित होती है। अपनी दुकान, क्लिनिक, अस्पताल या संस्थान की फ़ोटो जोड़ने हेतु ऊपर <strong>गोल्ड बिजनेस</strong> (3 फ़ोटो) या <strong>वीआईपी प्लैटिनम</strong> (6 फ़ोटो) चुनें।
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Paid Plan Photo Upload Box (Hidden when Free) -->
+                            <div id="paidPlanPhotoInputs" class="d-none">
+                                <div class="alert alert-info border border-info-subtle rounded-3 p-3 mb-3 small">
+                                    <div class="fw-bold text-dark mb-1"><i class="bi bi-info-circle-fill text-info me-1"></i>अनुशंसित फ़ोटो विनिर्देश (Guidelines):</div>
+                                    <ul class="mb-0 ps-3 text-secondary" style="line-height: 1.5;">
+                                        <li><strong>अनुशंसित आकार (Size):</strong> 1200 × 800 px (3:2) या 800 × 600 px (4:3)। न्यूनतम 600 × 400 px।</li>
+                                        <li><strong>फ़ाइल आकार:</strong> 2 MB से कम (अधिकतम 5 MB)। फ़ोटो स्वतः कंप्रेस होगी।</li>
+                                        <li><strong>फ़ॉर्मेट:</strong> JPG, JPEG, PNG, WEBP</li>
+                                        <li id="photoCountNotice"><strong>अनुमति संख्या:</strong> गोल्ड बिजनेस हेतु 3 फ़ोटो तक।</li>
+                                    </ul>
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-dark"><i class="bi bi-card-image me-1 text-primary"></i>मुख्य कवर फ़ोटो (Cover Photo)</label>
+                                        <input type="file" name="cover_image_file" class="form-control rounded-3" accept="image/jpeg,image/png,image/webp">
+                                        <small class="text-muted" style="font-size: 0.72rem;">आपकी लिस्टिंग प्रोफ़ाइल के शीर्ष पर मुख्य छवि।</small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-dark"><i class="bi bi-images me-1 text-primary"></i>अतिरिक्त गैलरी फ़ोटो</label>
+                                        <input type="file" name="gallery_files[]" class="form-control rounded-3" multiple accept="image/jpeg,image/png,image/webp">
+                                        <small class="text-muted" id="galleryCountHelp" style="font-size: 0.72rem;">गोल्ड प्लान हेतु 2 अतिरिक्त फ़ोटो तक चुनें।</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <script>
+                        function onPlanChanged(plan) {
+                            const freeNotice = document.getElementById('freePlanPhotoNotice');
+                            const paidInputs = document.getElementById('paidPlanPhotoInputs');
+                            const badge = document.getElementById('photoPlanBadge');
+                            const countNotice = document.getElementById('photoCountNotice');
+                            const galleryHelp = document.getElementById('galleryCountHelp');
+
+                            if (plan === 'FREE') {
+                                if (freeNotice) freeNotice.classList.remove('d-none');
+                                if (paidInputs) paidInputs.classList.add('d-none');
+                                if (badge) {
+                                    badge.className = 'badge bg-secondary rounded-pill';
+                                    badge.innerText = 'फ्री प्लान: 0 फ़ोटो';
+                                }
+                            } else if (plan === 'GOLD') {
+                                if (freeNotice) freeNotice.classList.add('d-none');
+                                if (paidInputs) paidInputs.classList.remove('d-none');
+                                if (badge) {
+                                    badge.className = 'badge bg-primary text-white rounded-pill';
+                                    badge.innerText = 'गोल्ड प्लान: 3 फ़ोटो तक';
+                                }
+                                if (countNotice) countNotice.innerHTML = '<strong>अनुमति संख्या:</strong> 3 फ़ोटो तक (1 कवर + 2 गैलरी)।';
+                                if (galleryHelp) galleryHelp.innerText = 'गोल्ड प्लान हेतु 2 अतिरिक्त फ़ोटो तक चुनें (1200x800 अनुशंसित)।';
+                            } else if (plan === 'PLATINUM') {
+                                if (freeNotice) freeNotice.classList.add('d-none');
+                                if (paidInputs) paidInputs.classList.remove('d-none');
+                                if (badge) {
+                                    badge.className = 'badge bg-warning text-dark rounded-pill';
+                                    badge.innerText = 'वीआईपी प्लैटिनम: 6 फ़ोटो तक';
+                                }
+                                if (countNotice) countNotice.innerHTML = '<strong>अनुमति संख्या:</strong> 6 फ़ोटो तक (1 कवर + 5 शोकेस गैलरी)।';
+                                if (galleryHelp) galleryHelp.innerText = 'वीआईपी प्लैटिनम हेतु 5 अतिरिक्त उच्च-गुणवत्ता फ़ोटो तक चुनें।';
+                            }
+                        }
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const checkedPlan = document.querySelector('input[name="plan_type"]:checked');
+                            if (checkedPlan) onPlanChanged(checkedPlan.value);
+                        });
+                        </script>
                         </div>
 
                         <!-- Info Banner & Submit Button -->

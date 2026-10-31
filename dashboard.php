@@ -1056,15 +1056,15 @@ require_once __DIR__ . '/includes/header.php';
                                                             <div class="form-check border p-3 rounded-3 mb-2 bg-white">
                                                                 <input class="form-check-input ms-0 me-2" type="radio" name="plan_type" id="planGold<?php echo $l['id']; ?>" value="GOLD" checked>
                                                                 <label class="form-check-label w-100" for="planGold<?php echo $l['id']; ?>">
-                                                                    <strong class="text-primary">Gold Business Membership</strong> – ₹499.00 / year
-                                                                    <small class="d-block text-muted">Top category ranking, verified badge & direct customer enquiry access</small>
+                                                                    <strong class="text-primary">🔵 Gold Business Membership</strong> – ₹499.00 / year
+                                                                    <small class="d-block text-muted">Top category ranking, verified trust badge, WhatsApp chat &amp; <strong>up to 3 photos</strong> (1200×800 recommended, max 2MB)</small>
                                                                 </label>
                                                             </div>
                                                             <div class="form-check border p-3 rounded-3 mb-2 bg-white">
                                                                 <input class="form-check-input ms-0 me-2" type="radio" name="plan_type" id="planPlat<?php echo $l['id']; ?>" value="PLATINUM">
                                                                 <label class="form-check-label w-100" for="planPlat<?php echo $l['id']; ?>">
-                                                                    <strong class="text-warning-emphasis"><i class="bi bi-crown-fill text-danger me-1"></i>VIP Platinum Membership</strong> – ₹1,499.00 / year
-                                                                    <small class="d-block text-muted">Homepage featured banner placement, VIP crown badge & priority support</small>
+                                                                    <strong class="text-warning-emphasis"><i class="bi bi-crown-fill text-danger me-1"></i>👑 VIP Platinum Membership</strong> – ₹1,499.00 / year
+                                                                    <small class="d-block text-muted">Homepage featured placement, VIP crown badge, priority support &amp; <strong>up to 6 high-res photos</strong> (1200×800 recommended, max 5MB)</small>
                                                                 </label>
                                                             </div>
                                                         </div>

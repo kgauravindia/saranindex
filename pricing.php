@@ -54,6 +54,7 @@ require_once __DIR__ . '/includes/header.php';
                         <li><i class="bi bi-check-circle-fill text-success me-2"></i> Standard Search Ranking</li>
                         <li><i class="bi bi-check-circle-fill text-success me-2"></i> Phone Call Button (`tel:`)</li>
                         <li><i class="bi bi-check-circle-fill text-success me-2"></i> Address & Block Info</li>
+                        <li class="text-muted"><i class="bi bi-x-circle me-2"></i> 0 Photos (Text listing only)</li>
                         <li class="text-muted"><i class="bi bi-x-circle me-2"></i> No Priority Rank</li>
                         <li class="text-muted"><i class="bi bi-x-circle me-2"></i> No Verified Trust Badge</li>
                         <li class="text-muted"><i class="bi bi-x-circle me-2"></i> No Direct WhatsApp Chat</li>
@@ -92,7 +93,7 @@ require_once __DIR__ . '/includes/header.php';
                         <li><i class="bi bi-check-circle-fill text-primary me-2"></i> <strong>Green Verified Trust Badge</strong></li>
                         <li><i class="bi bi-check-circle-fill text-primary me-2"></i> <strong>Direct WhatsApp Chat Button</strong></li>
                         <li><i class="bi bi-check-circle-fill text-primary me-2"></i> Key Services & Facilities List</li>
-                        <li><i class="bi bi-check-circle-fill text-primary me-2"></i> Up to 3 Business Photos</li>
+                        <li><i class="bi bi-camera-fill text-primary me-2"></i> <strong>Up to 3 Photos</strong> (1200×800, max 2MB)</li>
                         <li><i class="bi bi-check-circle-fill text-primary me-2"></i> Full 1 Year Validity (365 Days)</li>
                     </ul>
                 </div>
@@ -127,7 +128,7 @@ require_once __DIR__ . '/includes/header.php';
                         <li><i class="bi bi-crown-fill text-warning me-2"></i> <strong>Top Featured Position</strong></li>
                         <li><i class="bi bi-crown-fill text-warning me-2"></i> <strong>Gold VIP Crown Verified Badge</strong></li>
                         <li><i class="bi bi-crown-fill text-warning me-2"></i> Call + WhatsApp + Direct Booking</li>
-                        <li><i class="bi bi-crown-fill text-warning me-2"></i> Up to 6 Business Photos</li>
+                        <li><i class="bi bi-camera-fill text-warning me-2"></i> <strong>Up to 6 Photos</strong> (VIP Showcase, max 5MB)</li>
                         <li><i class="bi bi-crown-fill text-warning me-2"></i> Full Business Catalog & Bio</li>
                         <li><i class="bi bi-crown-fill text-warning me-2"></i> Dedicated 24x7 Priority Support</li>
                     </ul>
@@ -190,10 +191,10 @@ require_once __DIR__ . '/includes/header.php';
                         <td class="text-center"><i class="bi bi-check-lg text-success fs-5"></i></td>
                     </tr>
                     <tr>
-                        <td class="fw-semibold text-dark">Photo Gallery Uploads</td>
-                        <td class="text-center text-muted">None</td>
-                        <td class="text-center fw-medium">Up to 3 Photos</td>
-                        <td class="text-center fw-bold text-dark">Up to 6 Photos</td>
+                        <td class="fw-semibold text-dark">Photo Gallery & Showcase</td>
+                        <td class="text-center text-muted">0 (No Public Photos)</td>
+                        <td class="text-center fw-medium">Up to 3 Photos<br><small class="text-muted" style="font-size: 0.72rem;">1200×800 px, max 2MB</small></td>
+                        <td class="text-center fw-bold text-dark">Up to 6 Photos<br><small class="text-muted" style="font-size: 0.72rem;">High-Res Showcase, max 5MB</small></td>
                     </tr>
 
                     <tr>

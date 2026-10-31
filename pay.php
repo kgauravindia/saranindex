@@ -77,6 +77,7 @@ require_once __DIR__ . '/includes/header.php';
                                 <ul class="list-unstyled extra-small text-secondary mb-0 d-flex flex-column gap-1.5">
                                     <li><i class="bi bi-check-circle-fill text-success me-1.5"></i>Verified Business Badge</li>
                                     <li><i class="bi bi-check-circle-fill text-success me-1.5"></i>Direct WhatsApp Lead Button</li>
+                                    <li><i class="bi bi-camera-fill text-primary me-1.5"></i><strong>Up to 3 Business Photos</strong> (1200×800)</li>
                                     <li><i class="bi bi-check-circle-fill text-success me-1.5"></i>Category Search Boost</li>
                                     <li><i class="bi bi-check-circle-fill text-success me-1.5"></i>Official GST Tax Invoice</li>
                                 </ul>
@@ -99,6 +100,7 @@ require_once __DIR__ . '/includes/header.php';
                                 <ul class="list-unstyled extra-small text-secondary mb-0 d-flex flex-column gap-1.5">
                                     <li><i class="bi bi-check-circle-fill text-success me-1.5"></i><strong>#1 Homepage & Top Placement</strong></li>
                                     <li><i class="bi bi-check-circle-fill text-success me-1.5"></i>VIP Platinum Crown & Badge</li>
+                                    <li><i class="bi bi-camera-fill text-danger me-1.5"></i><strong>Up to 6 High-Res Photos (VIP Showcase)</strong></li>
                                     <li><i class="bi bi-check-circle-fill text-success me-1.5"></i>Zero Competitor Ads on Profile</li>
                                     <li><i class="bi bi-check-circle-fill text-success me-1.5"></i>Dedicated Priority Support</li>
                                 </ul>

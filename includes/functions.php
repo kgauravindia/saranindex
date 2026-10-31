@@ -2231,6 +2231,7 @@ function saveListing($data, $id = null) {
         'local_reg_no' => $data['local_reg_no'] ?? '',
         'description' => $data['description'] ?? '',
         'cover_image' => $data['cover_image'] ?? '',
+        'gallery_images' => !empty($data['gallery_images']) ? (is_array($data['gallery_images']) ? json_encode(array_values($data['gallery_images'])) : $data['gallery_images']) : null,
         'is_verified' => in_array(strtoupper($data['is_verified'] ?? ''), ['YES', '1']) ? 'YES' : 'NO',
         'is_featured' => in_array(strtoupper($data['is_featured'] ?? ''), ['YES', '1']) ? 'YES' : 'NO',
         'status' => in_array(strtoupper($data['status'] ?? ''), ['ACTIVE', 'PENDING', 'REJECTED']) ? strtoupper($data['status']) : 'ACTIVE',
@@ -2290,6 +2291,7 @@ function saveListing($data, $id = null) {
                 local_reg_no = :local_reg_no,
                 description = :description,
                 cover_image = :cover_image,
+                gallery_images = :gallery_images,
                 is_verified = :is_verified,
                 is_featured = :is_featured,
                 status = :status,
@@ -2313,12 +2315,12 @@ function saveListing($data, $id = null) {
             $sql = "INSERT INTO listings (
                 user_id, category_id, subcategory_id, block_id, panchayat_id, village_id,
                 title, hindi_title, slug, contact_person, mobile, mobile_visibility, whatsapp, email, email_visibility, website,
-                address, pincode, map_link, business_hours, services, products, gst_no, udyam_no, cin_no, local_reg_no, description, cover_image,
+                address, pincode, map_link, business_hours, services, products, gst_no, udyam_no, cin_no, local_reg_no, description, cover_image, gallery_images,
                 is_verified, is_featured, status, plan_type, plan_expires_at, view_count, star_rating, source, source_id" . $createdCol . "
             ) VALUES (
                 :user_id, :category_id, :subcategory_id, :block_id, :panchayat_id, :village_id,
                 :title, :hindi_title, :slug, :contact_person, :mobile, :mobile_visibility, :whatsapp, :email, :email_visibility, :website,
-                :address, :pincode, :map_link, :business_hours, :services, :products, :gst_no, :udyam_no, :cin_no, :local_reg_no, :description, :cover_image,
+                :address, :pincode, :map_link, :business_hours, :services, :products, :gst_no, :udyam_no, :cin_no, :local_reg_no, :description, :cover_image, :gallery_images,
                 :is_verified, :is_featured, :status, :plan_type, :plan_expires_at, :view_count, :star_rating, :source, :source_id" . $createdVal . "
             )";
             $stmt = $db->prepare($sql);
@@ -5109,6 +5111,247 @@ function uploadUserProfilePhoto($file, $userId) {
 
     if (move_uploaded_file($tmpFile, $targetPath)) {
         return 'uploads/users/' . $filename;
+    }
+
+    return null;
+}
+
+/**
+ * Plan configuration and specifications for SaranIndex listings
+ */
+function getPlanDetails($plan_type = 'FREE') {
+    $plan = strtoupper(trim($plan_type ?: 'FREE'));
+    $plans = [
+        'FREE' => [
+            'key' => 'FREE',
+            'name' => 'Basic Free',
+            'hindi_name' => 'बेसिक फ्री',
+            'price' => 0,
+            'price_formatted' => '₹0 / forever',
+            'badge_class' => 'bg-secondary text-white',
+            'badge_html' => '<span class="badge bg-secondary"><i class="bi bi-circle me-1"></i>Basic Free</span>',
+            'max_photos' => 0,
+            'photos_allowed' => false,
+            'photo_note' => '0 Photos (Text listing only). Photos are not displayed on Free plan.',
+            'search_rank' => 'Standard Search Ranking',
+            'verified_badge' => false,
+            'whatsapp_button' => false,
+            'validity' => 'Forever',
+            'recommended_dimensions' => 'None (Photos not displayed on Free plan)',
+            'recommended_size_desc' => 'Upgrade to Gold or Platinum to display photos',
+            'max_file_size_mb' => 0
+        ],
+        'GOLD' => [
+            'key' => 'GOLD',
+            'name' => 'Gold Business',
+            'hindi_name' => 'गोल्ड बिजनेस',
+            'price' => 499,
+            'price_formatted' => '₹499 / year',
+            'badge_class' => 'bg-primary text-white',
+            'badge_html' => '<span class="gold-business-badge"><i class="bi bi-patch-check-fill me-1"></i>Gold Business</span>',
+            'max_photos' => 3,
+            'photos_allowed' => true,
+            'photo_note' => 'Up to 3 Photos (1 Cover Photo + 2 Gallery Photos)',
+            'search_rank' => 'Top Priority Search Rank',
+            'verified_badge' => true,
+            'whatsapp_button' => true,
+            'validity' => '1 Year (365 Days)',
+            'recommended_dimensions' => '1200 × 800 px (3:2) or 800 × 600 px (4:3), Min: 600 × 400 px',
+            'recommended_size_desc' => 'Recommended: 1200x800 px, Under 2 MB per photo (JPG, PNG, WEBP)',
+            'max_file_size_mb' => 2
+        ],
+        'PLATINUM' => [
+            'key' => 'PLATINUM',
+            'name' => 'VIP Platinum',
+            'hindi_name' => 'वीआईपी प्लेटिनम',
+            'price' => 1499,
+            'price_formatted' => '₹1,499 / year',
+            'badge_class' => 'bg-warning text-dark',
+            'badge_html' => '<span class="vip-platinum-badge"><i class="bi bi-crown-fill me-1"></i>VIP Platinum</span>',
+            'max_photos' => 6,
+            'photos_allowed' => true,
+            'photo_note' => 'Up to 6 Photos (High-Resolution VIP Featured Gallery)',
+            'search_rank' => 'Top Featured Spot across Saran',
+            'verified_badge' => true,
+            'whatsapp_button' => true,
+            'validity' => '1 Year (365 Days)',
+            'recommended_dimensions' => '1200 × 800 px (3:2) or 1920 × 1080 px (16:9), Min: 800 × 600 px',
+            'recommended_size_desc' => 'Recommended: High-Res 1200x800 px, Under 5 MB per photo (JPG, PNG, WEBP)',
+            'max_file_size_mb' => 5
+        ]
+    ];
+    return $plans[$plan] ?? $plans['FREE'];
+}
+
+/**
+ * Returns public display photos for a listing based on its plan tier.
+ * Basic Free listings do not publicly display photos.
+ */
+function getListingPhotos($listing) {
+    if (empty($listing)) return [];
+    $plan = strtoupper($listing['plan_type'] ?? 'FREE');
+    $planInfo = getPlanDetails($plan);
+
+    // Free plan does not show photos publicly
+    if (!$planInfo['photos_allowed']) {
+        return [];
+    }
+
+    $max = $planInfo['max_photos'];
+    $photos = [];
+
+    if (!empty($listing['cover_image'])) {
+        $cover = trim($listing['cover_image']);
+        if (!empty($cover)) {
+            $photos[] = $cover;
+        }
+    }
+
+    if (!empty($listing['gallery_images'])) {
+        $gallery = is_array($listing['gallery_images']) 
+            ? $listing['gallery_images'] 
+            : json_decode($listing['gallery_images'], true);
+
+        if (!is_array($gallery)) {
+            $gallery = array_filter(array_map('trim', explode(',', $listing['gallery_images'])));
+        }
+
+        if (is_array($gallery)) {
+            foreach ($gallery as $g) {
+                $g = trim($g);
+                if (!empty($g) && !in_array($g, $photos) && count($photos) < $max) {
+                    $photos[] = $g;
+                }
+            }
+        }
+    }
+
+    return array_slice($photos, 0, $max);
+}
+
+/**
+ * Returns all uploaded photos for a listing (for Admin & Owner Dashboard management).
+ */
+function getAllListingPhotos($listing) {
+    if (empty($listing)) return [];
+    $photos = [];
+
+    if (!empty($listing['cover_image'])) {
+        $cover = trim($listing['cover_image']);
+        if (!empty($cover)) {
+            $photos[] = $cover;
+        }
+    }
+
+    if (!empty($listing['gallery_images'])) {
+        $gallery = is_array($listing['gallery_images']) 
+            ? $listing['gallery_images'] 
+            : json_decode($listing['gallery_images'], true);
+
+        if (!is_array($gallery)) {
+            $gallery = array_filter(array_map('trim', explode(',', $listing['gallery_images'])));
+        }
+
+        if (is_array($gallery)) {
+            foreach ($gallery as $g) {
+                $g = trim($g);
+                if (!empty($g) && !in_array($g, $photos)) {
+                    $photos[] = $g;
+                }
+            }
+        }
+    }
+
+    return $photos;
+}
+
+/**
+ * Upload a listing image with resizing and compression.
+ */
+function uploadListingImage($file, $listingId = 0) {
+    if (empty($file['tmp_name']) || $file['error'] !== UPLOAD_ERR_OK) {
+        return null;
+    }
+
+    $allowedExts = ['jpg', 'jpeg', 'png', 'webp'];
+    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+
+    if (!in_array($ext, $allowedExts)) {
+        return null;
+    }
+
+    $uploadDir = __DIR__ . '/../uploads/listings/';
+    if (!file_exists($uploadDir)) {
+        @mkdir($uploadDir, 0777, true);
+    }
+
+    $targetExt = ($ext === 'png' || $ext === 'webp') ? $ext : 'jpg';
+    $filename = 'listing_' . intval($listingId) . '_' . time() . '_' . rand(100, 999) . '.' . $targetExt;
+    $targetPath = $uploadDir . $filename;
+    $tmpFile = $file['tmp_name'];
+
+    // Resize if oversized (Max width 1600, max height 1200)
+    if (extension_loaded('gd')) {
+        list($origWidth, $origHeight, $imageType) = @getimagesize($tmpFile);
+        if ($origWidth > 0 && $origHeight > 0) {
+            $srcImg = null;
+            switch ($imageType) {
+                case IMAGETYPE_JPEG:
+                    $srcImg = @imagecreatefromjpeg($tmpFile);
+                    break;
+                case IMAGETYPE_PNG:
+                    $srcImg = @imagecreatefrompng($tmpFile);
+                    break;
+                case IMAGETYPE_WEBP:
+                    $srcImg = @imagecreatefromwebp($tmpFile);
+                    break;
+            }
+
+            if ($srcImg) {
+                $maxW = 1600;
+                $maxH = 1200;
+                $newW = $origWidth;
+                $newH = $origHeight;
+
+                if ($origWidth > $maxW || $origHeight > $maxH) {
+                    $scale = min($maxW / $origWidth, $maxH / $origHeight);
+                    $newW = intval($origWidth * $scale);
+                    $newH = intval($origHeight * $scale);
+                }
+
+                $dstImg = imagecreatetruecolor($newW, $newH);
+
+                if ($imageType === IMAGETYPE_PNG || $imageType === IMAGETYPE_WEBP) {
+                    imagealphablending($dstImg, false);
+                    imagesavealpha($dstImg, true);
+                }
+
+                imagecopyresampled($dstImg, $srcImg, 0, 0, 0, 0, $newW, $newH, $origWidth, $origHeight);
+
+                $quality = 85;
+                if ($targetExt === 'png') {
+                    imagepng($dstImg, $targetPath, 6);
+                } elseif ($targetExt === 'webp') {
+                    imagewebp($dstImg, $targetPath, $quality);
+                } else {
+                    imagejpeg($dstImg, $targetPath, $quality);
+                }
+
+                if (PHP_VERSION_ID < 80000 && function_exists('imagedestroy')) {
+                    @imagedestroy($srcImg);
+                    @imagedestroy($dstImg);
+                }
+                unset($srcImg, $dstImg);
+
+                if (file_exists($targetPath)) {
+                    return 'uploads/listings/' . $filename;
+                }
+            }
+        }
+    }
+
+    if (move_uploaded_file($tmpFile, $targetPath)) {
+        return 'uploads/listings/' . $filename;
     }
 
     return null;

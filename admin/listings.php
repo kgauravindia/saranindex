@@ -323,6 +323,20 @@ $to_record = min($offset + $per_page, $total_listings);
                                         } else {
                                             echo '<span class="badge badge-status-rejected"><i class="bi bi-x-circle me-1"></i>Rejected</span>';
                                         }
+
+                                        // Subscription Plan & Photo indicator
+                                        $itemPlan = strtoupper($item['plan_type'] ?? 'FREE');
+                                        if ($itemPlan === 'PLATINUM') {
+                                            echo '<div class="mt-1"><span class="badge bg-warning text-dark"><i class="bi bi-crown-fill me-1"></i>VIP Platinum</span></div>';
+                                        } elseif ($itemPlan === 'GOLD') {
+                                            echo '<div class="mt-1"><span class="badge bg-primary text-white"><i class="bi bi-patch-check-fill me-1"></i>Gold Business</span></div>';
+                                        } else {
+                                            echo '<div class="mt-1"><span class="badge bg-light text-secondary border">Basic Free</span></div>';
+                                        }
+
+                                        if (!empty($item['cover_image'])) {
+                                            echo '<div class="mt-1"><span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size:0.68rem;"><i class="bi bi-image me-1"></i>Photo Set</span></div>';
+                                        }
                                     ?>
                                 </td>
                                 <td>

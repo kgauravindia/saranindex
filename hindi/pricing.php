@@ -54,6 +54,7 @@ require_once __DIR__ . '/includes/header.php';
                         <li><i class="bi bi-check-circle-fill text-success me-2"></i> सामान्य खोज रैंकिंग</li>
                         <li><i class="bi bi-check-circle-fill text-success me-2"></i> फ़ोन कॉल बटन (`tel:`)</li>
                         <li><i class="bi bi-check-circle-fill text-success me-2"></i> पता एवं प्रखंड जानकारी</li>
+                        <li class="text-muted"><i class="bi bi-x-circle me-2"></i> 0 फ़ोटो (केवल टेक्स्ट लिस्टिंग)</li>
                         <li class="text-muted"><i class="bi bi-x-circle me-2"></i> कोई प्राथमिकता रैंक नहीं</li>
                         <li class="text-muted"><i class="bi bi-x-circle me-2"></i> कोई वेरीफाइड ट्रस्ट बैज नहीं</li>
                         <li class="text-muted"><i class="bi bi-x-circle me-2"></i> कोई डायरेक्ट व्हाट्सएप नहीं</li>
@@ -92,7 +93,7 @@ require_once __DIR__ . '/includes/header.php';
                         <li><i class="bi bi-check-circle-fill text-primary me-2"></i> <strong>हरा वेरीफाइड ट्रस्ट बैज</strong></li>
                         <li><i class="bi bi-check-circle-fill text-primary me-2"></i> <strong>डायरेक्ट व्हाट्सएप चैट बटन</strong></li>
                         <li><i class="bi bi-check-circle-fill text-primary me-2"></i> प्रमुख सेवाओं की सूची</li>
-                        <li><i class="bi bi-check-circle-fill text-primary me-2"></i> 3 फ़ोटो तक अपलोड</li>
+                        <li><i class="bi bi-camera-fill text-primary me-2"></i> <strong>3 फ़ोटो तक अपलोड</strong> (1200×800, max 2MB)</li>
                         <li><i class="bi bi-check-circle-fill text-primary me-2"></i> पूरे 1 वर्ष की वैधता (365 दिन)</li>
                     </ul>
                 </div>
@@ -127,7 +128,7 @@ require_once __DIR__ . '/includes/header.php';
                         <li><i class="bi bi-crown-fill text-warning me-2"></i> <strong>शीर्ष फीचर्ड स्थान</strong></li>
                         <li><i class="bi bi-crown-fill text-warning me-2"></i> <strong>गोल्ड वीआईपी क्राउन वेरीफाइड बैज</strong></li>
                         <li><i class="bi bi-crown-fill text-warning me-2"></i> कॉल + व्हाट्सएप + सीधी बुकिंग</li>
-                        <li><i class="bi bi-crown-fill text-warning me-2"></i> 6 फ़ोटो तक अपलोड</li>
+                        <li><i class="bi bi-camera-fill text-warning me-2"></i> <strong>6 फ़ोटो तक अपलोड</strong> (शोकेस, max 5MB)</li>
                         <li><i class="bi bi-crown-fill text-warning me-2"></i> पूरा बिजनेस कैटलॉग एवं बायो</li>
                         <li><i class="bi bi-crown-fill text-warning me-2"></i> 24x7 प्राथमिकता सहायता</li>
                     </ul>
@@ -190,10 +191,10 @@ require_once __DIR__ . '/includes/header.php';
                         <td class="text-center"><i class="bi bi-check-lg text-success fs-5"></i></td>
                     </tr>
                     <tr>
-                        <td class="fw-semibold text-dark">फ़ोटो गैलरी अपलोड</td>
-                        <td class="text-center text-muted">कोई नहीं</td>
-                        <td class="text-center fw-medium">3 फ़ोटो तक</td>
-                        <td class="text-center fw-bold text-dark">6 फ़ोटो तक</td>
+                        <td class="fw-semibold text-dark">फ़ोटो गैलरी एवं शोकेस</td>
+                        <td class="text-center text-muted">0 (कोई सार्वजनिक फ़ोटो नहीं)</td>
+                        <td class="text-center fw-medium">3 फ़ोटो तक<br><small class="text-muted" style="font-size: 0.72rem;">1200×800 px, अधिकतम 2MB</small></td>
+                        <td class="text-center fw-bold text-dark">6 फ़ोटो तक<br><small class="text-muted" style="font-size: 0.72rem;">हाई-रेजोल्यूशन शोकेस, अधिकतम 5MB</small></td>
                     </tr>
 
                     <tr>

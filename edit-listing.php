@@ -122,7 +122,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
                     }
 
-                    $stmt = $db->prepare("UPDATE listings SET category_id = :cat, subcategory_id = :sub, block_id = :blk, village_id = :vid, title = :title, hindi_title = :htitle, contact_person = :cp, mobile = :mob, mobile_visibility = :mvis, whatsapp = :wa, email = :email, address = :addr, pincode = :pin, services = :srv, products = :prod, gst_no = :gst, udyam_no = :udyam, cin_no = :cin, local_reg_no = :lreg, description = :desc WHERE id = :id AND user_id = :uid");
+                    $currentPlan = strtoupper($listing['plan_type'] ?? 'FREE');
+                    $planInfo = getPlanDetails($currentPlan);
+                    $cover_image_url = $listing['cover_image'] ?? '';
+
+                    // Remove cover photo if requested
+                    if (!empty($_POST['remove_cover_image'])) {
+                        $cover_image_url = '';
+                    }
+
+                    // Handle Cover Photo Upload (For Gold and Platinum plans)
+                    if (isset($_FILES['cover_image_file']) && $_FILES['cover_image_file']['error'] === UPLOAD_ERR_OK) {
+                        $uploaded = uploadListingImage($_FILES['cover_image_file'], $listing_id);
+                        if ($uploaded) {
+                            $cover_image_url = $uploaded;
+                        }
+                    }
+
+                    // Handle Gallery Photos
+                    $existing_gallery = [];
+                    if (!empty($_POST['existing_gallery']) && is_array($_POST['existing_gallery'])) {
+                        $remove_indices = isset($_POST['remove_gallery']) && is_array($_POST['remove_gallery']) ? $_POST['remove_gallery'] : [];
+                        foreach ($_POST['existing_gallery'] as $idx => $gUrl) {
+                            $gUrl = sanitizeInput($gUrl);
+                            if (!empty($gUrl) && !in_array($idx, $remove_indices)) {
+                                $existing_gallery[] = $gUrl;
+                            }
+                        }
+                    }
+
+                    if (isset($_FILES['gallery_files']) && is_array($_FILES['gallery_files']['name'])) {
+                        $maxG = ($currentPlan === 'PLATINUM') ? 5 : (($currentPlan === 'GOLD') ? 2 : 0);
+                        $fileCount = count($_FILES['gallery_files']['name']);
+                        for ($i = 0; $i < $fileCount && count($existing_gallery) < $maxG; $i++) {
+                            if ($_FILES['gallery_files']['error'][$i] === UPLOAD_ERR_OK) {
+                                $singleFile = [
+                                    'name' => $_FILES['gallery_files']['name'][$i],
+                                    'type' => $_FILES['gallery_files']['type'][$i],
+                                    'tmp_name' => $_FILES['gallery_files']['tmp_name'][$i],
+                                    'error' => $_FILES['gallery_files']['error'][$i],
+                                    'size' => $_FILES['gallery_files']['size'][$i],
+                                ];
+                                $uploadedG = uploadListingImage($singleFile, $listing_id);
+                                if ($uploadedG && !in_array($uploadedG, $existing_gallery)) {
+                                    $existing_gallery[] = $uploadedG;
+                                }
+                            }
+                        }
+                    }
+                    $gallery_json = !empty($existing_gallery) ? json_encode(array_values($existing_gallery)) : null;
+
+                    $stmt = $db->prepare("UPDATE listings SET category_id = :cat, subcategory_id = :sub, block_id = :blk, village_id = :vid, title = :title, hindi_title = :htitle, contact_person = :cp, mobile = :mob, mobile_visibility = :mvis, whatsapp = :wa, email = :email, address = :addr, pincode = :pin, services = :srv, products = :prod, gst_no = :gst, udyam_no = :udyam, cin_no = :cin, local_reg_no = :lreg, description = :desc, cover_image = :cover, gallery_images = :gallery WHERE id = :id AND user_id = :uid");
                     $stmt->execute([
                         'cat' => $category_id,
                         'sub' => $subcategory_id,
@@ -144,10 +194,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'cin' => $cin_no,
                         'lreg' => $local_reg_no,
                         'desc' => $description,
+                        'cover' => $cover_image_url,
+                        'gallery' => $gallery_json,
                         'id' => $listing_id,
                         'uid' => $currentUser['id']
                     ]);
                     $success_msg = true;
+                    // Refresh listing data
+                    $stmtR = $db->prepare("SELECT * FROM listings WHERE id = :id");
+                    $stmtR->execute(['id' => $listing_id]);
+                    $listing = $stmtR->fetch(PDO::FETCH_ASSOC);
                 } catch (PDOException $e) {
                     error_log("Listing update failed: " . $e->getMessage());
                     $error_msg = "Database error while updating listing: " . $e->getMessage();
@@ -241,7 +297,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <div class="card-body p-4 p-md-5 bg-white">
-                    <form action="" method="POST" id="addListingForm">
+                    <form action="" method="POST" id="addListingForm" enctype="multipart/form-data">
                         
                         <!-- SECTION 1: ENTITY & CATEGORY -->
                         <div class="mb-4 pb-2">
@@ -478,6 +534,127 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <textarea name="description" class="form-control border-secondary-subtle rounded-3" rows="3" placeholder="Enter brief overview, specialization, business timings, or key highlights..."><?php echo htmlspecialchars($description); ?></textarea>
                                 </div>
                             </div>
+                        </div>
+
+                        <hr class="my-4 text-secondary-subtle opacity-25">
+
+                        <!-- SECTION 5: PHOTOS & MEDIA MANAGEMENT -->
+                        <?php
+                        $listingPlan = strtoupper($listing['plan_type'] ?? 'FREE');
+                        $listingPlanInfo = getPlanDetails($listingPlan);
+                        $currentCover = $listing['cover_image'] ?? '';
+                        $currentGallery = [];
+                        if (!empty($listing['gallery_images'])) {
+                            $currentGallery = is_array($listing['gallery_images']) ? $listing['gallery_images'] : json_decode($listing['gallery_images'], true);
+                            if (!is_array($currentGallery)) {
+                                $currentGallery = array_filter(array_map('trim', explode(',', $listing['gallery_images'])));
+                            }
+                        }
+                        ?>
+                        <div class="mb-4 pb-2">
+                            <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-warning text-dark rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">5</span>
+                                    <h5 class="fw-bold font-heading text-dark mb-0">Business Photos & Media</h5>
+                                </div>
+                                <div>
+                                    <span class="badge <?php echo $listingPlanInfo['badge_class']; ?> px-3 py-1.5 rounded-pill fw-semibold">
+                                        <?php echo $listingPlanInfo['name']; ?> (Limit: <?php echo $listingPlanInfo['max_photos']; ?> Photos)
+                                    </span>
+                                </div>
+                            </div>
+
+                            <?php if ($listingPlan === 'FREE'): ?>
+                                <!-- Free Plan Upgrade Box -->
+                                <div class="card border border-warning-subtle bg-warning-subtle rounded-4 p-4 mb-3">
+                                    <div class="d-flex align-items-start gap-3">
+                                        <div class="bg-warning text-dark rounded-circle p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
+                                            <i class="bi bi-camera-fill fs-4"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="fw-bold text-dark mb-1">Photo Showcase is exclusive to Gold & Platinum Members</h6>
+                                            <p class="text-dark small mb-3">
+                                                Your listing is currently on the <strong>Basic Free Plan</strong> (0 Photos allowed). Upgrade to <strong>Gold Business</strong> (Up to 3 Photos, Verified Badge) or <strong>VIP Platinum</strong> (Up to 6 Photos, Top Featured) to upload and showcase your facility photos to visitors across Saran.
+                                            </p>
+                                            <div class="d-flex gap-2 flex-wrap">
+                                                <a href="pay.php?listing_id=<?php echo $listing['id']; ?>&plan=GOLD" class="btn btn-primary btn-sm rounded-pill px-4 fw-bold shadow-xs">
+                                                    <i class="bi bi-rocket-takeoff-fill me-1"></i>Upgrade to Gold (₹499/yr)
+                                                </a>
+                                                <a href="pay.php?listing_id=<?php echo $listing['id']; ?>&plan=PLATINUM" class="btn btn-warning text-dark btn-sm rounded-pill px-4 fw-bold shadow-xs">
+                                                    <i class="bi bi-crown-fill me-1"></i>Upgrade to VIP Platinum (₹1,499/yr)
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php else: ?>
+                                <!-- Gold & Platinum Plan Photo Management -->
+                                <div class="alert alert-info border border-info-subtle rounded-3 p-3 mb-3 small">
+                                    <div class="fw-bold text-dark mb-1"><i class="bi bi-info-circle-fill text-info me-1"></i>Recommended Photo Guidelines:</div>
+                                    <ul class="mb-0 ps-3 text-secondary" style="line-height: 1.5;">
+                                        <li><strong>Dimensions:</strong> 1200 × 800 px (3:2 Landscape) or 800 × 600 px (4:3). Minimum 600 × 400 px.</li>
+                                        <li><strong>File Size:</strong> Under 2 MB per image (Max 5 MB). High resolution photos are auto-optimized.</li>
+                                        <li><strong>Supported Formats:</strong> JPG, JPEG, PNG, WEBP.</li>
+                                        <li><strong>Allowed Photos:</strong> <?php echo $listingPlanInfo['max_photos']; ?> Photos (1 Cover + <?php echo $listingPlanInfo['max_photos'] - 1; ?> Gallery Photos).</li>
+                                    </ul>
+                                </div>
+
+                                <div class="row g-3">
+                                    <!-- Main Cover Photo -->
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-light rounded-4 border h-100">
+                                            <label class="form-label small fw-bold text-dark mb-1 d-block">
+                                                <i class="bi bi-card-image me-1 text-primary"></i>Main Cover Photo
+                                            </label>
+                                            <?php if (!empty($currentCover)): ?>
+                                                <div class="mb-2 text-center position-relative">
+                                                    <img src="<?php echo sanitizeInput($currentCover); ?>" alt="Cover Photo" class="rounded-3 border shadow-xs object-fit-cover w-100" style="max-height: 130px;" onerror="this.src='assets/img/logo.png';">
+                                                    <div class="form-check mt-1 text-start">
+                                                        <input class="form-check-input" type="checkbox" id="remove_cover_image" name="remove_cover_image" value="1">
+                                                        <label class="form-check-label text-danger small fw-semibold" for="remove_cover_image">
+                                                            <i class="bi bi-trash3 me-1"></i>Remove current cover photo
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            <?php endif; ?>
+                                            <input type="file" name="cover_image_file" class="form-control rounded-3 form-control-sm mb-1" accept="image/jpeg,image/png,image/webp">
+                                            <small class="text-muted d-block" style="font-size: 0.72rem;">Shown as the primary hero image on your public listing profile.</small>
+                                        </div>
+                                    </div>
+
+                                    <!-- Gallery Photos -->
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-light rounded-4 border h-100">
+                                            <label class="form-label small fw-bold text-dark mb-1 d-block">
+                                                <i class="bi bi-images me-1 text-primary"></i>Additional Gallery Photos
+                                            </label>
+
+                                            <?php if (!empty($currentGallery)): ?>
+                                                <div class="mb-2">
+                                                    <small class="text-muted d-block mb-1" style="font-size: 0.72rem;">Current Gallery Photos (<?php echo count($currentGallery); ?>):</small>
+                                                    <div class="row g-2 mb-2">
+                                                        <?php foreach ($currentGallery as $gIdx => $gPath): ?>
+                                                            <div class="col-6">
+                                                                <div class="border rounded-2 p-1 bg-white text-center shadow-xs">
+                                                                    <input type="hidden" name="existing_gallery[<?php echo $gIdx; ?>]" value="<?php echo sanitizeInput($gPath); ?>">
+                                                                    <img src="<?php echo sanitizeInput($gPath); ?>" class="rounded object-fit-cover w-100 mb-1" style="height: 60px;" onerror="this.src='assets/img/logo.png';">
+                                                                    <div class="form-check text-start ps-4">
+                                                                        <input class="form-check-input" type="checkbox" name="remove_gallery[]" value="<?php echo $gIdx; ?>" id="user_rm_g_<?php echo $gIdx; ?>">
+                                                                        <label class="form-check-label text-danger" for="user_rm_g_<?php echo $gIdx; ?>" style="font-size: 0.68rem;">Remove</label>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        <?php endforeach; ?>
+                                                    </div>
+                                                </div>
+                                            <?php endif; ?>
+
+                                            <input type="file" name="gallery_files[]" class="form-control rounded-3 form-control-sm mb-1" multiple accept="image/jpeg,image/png,image/webp">
+                                            <small class="text-muted d-block" style="font-size: 0.72rem;">Upload up to <?php echo $listingPlanInfo['max_photos'] - 1; ?> additional photos.</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
                         </div>
 
                         <!-- Info Banner & Submit Button -->

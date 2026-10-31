@@ -106,10 +106,18 @@ $listingSubTitle = !empty($listing['hindi_title']) ? $listing['title'] : '';
 $page_title = $listingTitle . " – सारण इंडेक्स निर्देशिका";
 $meta_description = $listingTitle . " (" . ($listing['block_name'] ?? 'सारण') . ", सारण जिला) के संपर्क विवरण, फोन नंबर, पता और सेवाएं।";
 
+$displayPhotos = getListingPhotos($listing);
+$allPhotos = getAllListingPhotos($listing);
+$currentPlan = strtoupper($listing['plan_type'] ?? 'FREE');
+$planInfo = getPlanDetails($currentPlan);
+
 $rawBase = defined('BASE_URL') ? BASE_URL : 'https://saranindex.com/';
 $baseUrl = preg_replace('~/\./~', '/', rtrim($rawBase, '/') . '/');
 $canonical_url = $baseUrl . 'hindi/' . rawurlencode($listing['slug']);
 $og_type = 'place';
+if (!empty($displayPhotos)) {
+    $meta_image = $baseUrl . $displayPhotos[0];
+}
 
 require_once __DIR__ . '/includes/header.php';
 ?>
@@ -124,6 +132,9 @@ require_once __DIR__ . '/includes/header.php';
       "name": <?php echo json_encode($listingTitle); ?>,
       "description": <?php echo json_encode($meta_description); ?>,
       "url": <?php echo json_encode($canonical_url); ?>,
+      <?php if (!empty($displayPhotos)): ?>
+      "image": <?php echo json_encode(array_values(array_map(function($p) use ($baseUrl) { return $baseUrl . $p; }, $displayPhotos))); ?>,
+      <?php endif; ?>
       <?php if (isMobileNumberVisibleToVisitor($listing) && !empty($listing['mobile'])): ?>
       "telephone": <?php echo json_encode('+91' . preg_replace('/[^0-9]/', '', $listing['mobile'])); ?>,
       <?php endif; ?>
@@ -243,6 +254,90 @@ require_once __DIR__ . '/includes/header.php';
 <div class="container py-5">
     <div class="row g-4">
         <div class="col-lg-8">
+
+            <?php 
+            $currentUser = isUserLoggedIn() ? getLoggedInUser() : null;
+            $isOwnerOrAdmin = (!empty($currentUser['id']) && $currentUser['id'] == ($listing['user_id'] ?? 0)) || isAdminLoggedIn();
+            ?>
+
+            <?php if (!empty($displayPhotos)): ?>
+                <!-- Business Photo Showcase & Gallery (Gold & Platinum Plans) -->
+                <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden bg-white">
+                    <div class="position-relative">
+                        <!-- Main Featured Photo -->
+                        <div class="ratio ratio-16x9 bg-dark text-center overflow-hidden">
+                            <img src="<?php echo BASE_URL . sanitizeInput($displayPhotos[0]); ?>" 
+                                 id="mainFeaturedPhoto"
+                                 alt="<?php echo sanitizeInput($listingTitle); ?>" 
+                                 class="object-fit-cover w-100 h-100 transition-all cursor-pointer" 
+                                 onclick="openListingPhotoModal(this.src, '<?php echo addslashes(sanitizeInput($listingTitle)); ?>')"
+                                 onerror="this.src='<?php echo BASE_URL; ?>assets/img/logo.png';">
+                        </div>
+
+                        <!-- Top Floating Badges -->
+                        <div class="position-absolute top-0 start-0 m-3 d-flex gap-2 align-items-center flex-wrap">
+                            <?php if ($currentPlan === 'PLATINUM'): ?>
+                                <span class="badge bg-warning text-dark fw-bold px-3 py-1.5 rounded-pill shadow-sm">
+                                    <i class="bi bi-crown-fill me-1"></i>वीआईपी शोकेस गैलरी
+                                </span>
+                            <?php elseif ($currentPlan === 'GOLD'): ?>
+                                <span class="badge bg-primary text-white fw-bold px-3 py-1.5 rounded-pill shadow-sm">
+                                    <i class="bi bi-patch-check-fill me-1"></i>सत्यापित व्यवसाय फोटो
+                                </span>
+                            <?php endif; ?>
+                            <span class="badge bg-dark bg-opacity-75 text-white fw-medium px-2.5 py-1.5 rounded-pill">
+                                <i class="bi bi-camera-fill me-1"></i><?php echo count($displayPhotos); ?> फोटो
+                            </span>
+                        </div>
+
+                        <!-- Fullscreen Zoom Button -->
+                        <button type="button" 
+                                class="btn btn-dark bg-opacity-75 text-white btn-sm rounded-circle position-absolute bottom-0 end-0 m-3 shadow"
+                                style="width: 38px; height: 38px;"
+                                onclick="openListingPhotoModal(document.getElementById('mainFeaturedPhoto').src, '<?php echo addslashes(sanitizeInput($listingTitle)); ?>')"
+                                title="पूर्ण स्क्रीन में देखें">
+                            <i class="bi bi-arrows-fullscreen"></i>
+                        </button>
+                    </div>
+
+                    <!-- Gallery Thumbnails Strip (if multiple photos) -->
+                    <?php if (count($displayPhotos) > 1): ?>
+                        <div class="p-3 bg-light border-top">
+                            <div class="d-flex gap-2 overflow-auto pb-1" style="scrollbar-width: thin;">
+                                <?php foreach ($displayPhotos as $pIdx => $photoPath): ?>
+                                    <div class="flex-shrink-0 cursor-pointer" onclick="setMainPhoto('<?php echo BASE_URL . sanitizeInput($photoPath); ?>', this)">
+                                        <img src="<?php echo BASE_URL . sanitizeInput($photoPath); ?>" 
+                                             class="rounded-3 border border-2 <?php echo $pIdx === 0 ? 'border-primary' : 'border-white'; ?> shadow-xs object-fit-cover gallery-thumb" 
+                                             style="width: 85px; height: 60px;" 
+                                             alt="गैलरी फोटो #<?php echo $pIdx + 1; ?>">
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            <?php elseif (!empty($allPhotos) && $isOwnerOrAdmin && !$planInfo['photos_allowed']): ?>
+                <!-- Notice for Listing Owner / Admin on FREE Plan -->
+                <div class="card border border-warning-subtle bg-warning-subtle rounded-4 mb-4 p-3.5 shadow-xs">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="bg-warning text-dark rounded-circle p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
+                            <i class="bi bi-lock-fill fs-5"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="fw-bold text-dark mb-1">
+                                फोटो अपलोड है — गोल्ड बिजनेस या वीआईपी प्लेटिनम में सक्रिय करें
+                            </h6>
+                            <p class="text-dark-emphasis small mb-2">
+                                आपके पास इस लिस्टिंग के लिए <strong><?php echo count($allPhotos); ?> फोटो</strong> सुरक्षित हैं। <strong>बेसिक फ्री प्लान</strong> के तहत फोटो केवल खाते में सुरक्षित रहती है परंतु सार्वजनिक रूप से प्रदर्शित नहीं होती है। फोटो दिखाने के लिए अपना प्लान अपग्रेड करें!
+                            </p>
+                            <a href="<?php echo BASE_URL; ?>pay.php?listing_id=<?php echo $listing['id']; ?>&plan=GOLD" class="btn btn-warning btn-sm text-dark fw-bold rounded-pill px-3 shadow-xs">
+                                <i class="bi bi-rocket-takeoff-fill me-1"></i>गोल्ड बिजनेस (₹499) में अपग्रेड करें
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+
             <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
                 <h4 class="fw-bold font-heading text-dark mb-3">विवरण एवं सेवाएं</h4>
                 <p class="text-secondary" style="line-height: 1.8;">
@@ -630,6 +725,51 @@ require_once __DIR__ . '/includes/header.php';
                     <a href="add-contact.php" class="btn btn-outline-primary rounded-pill btn-sm fw-bold">लिस्टिंग पर दावा करें और जानकारी अपडेट करें</a>
                 </div>
             <?php endif; ?>
+        </div>
+    </div>
+</div>
+
+<script>
+function setMainPhoto(src, thumbEl) {
+    const mainImg = document.getElementById('mainFeaturedPhoto');
+    if (mainImg) {
+        mainImg.src = src;
+    }
+    document.querySelectorAll('.gallery-thumb').forEach(el => {
+        el.classList.remove('border-primary');
+        el.classList.add('border-white');
+    });
+    const imgInside = thumbEl.querySelector('img');
+    if (imgInside) {
+        imgInside.classList.remove('border-white');
+        imgInside.classList.add('border-primary');
+    }
+}
+
+function openListingPhotoModal(src, title) {
+    const modalImg = document.getElementById('listingModalImg');
+    const modalTitle = document.getElementById('listingModalTitle');
+    if (modalImg) modalImg.src = src;
+    if (modalTitle) modalTitle.textContent = title;
+    const modalEl = document.getElementById('listingPhotoModal');
+    if (modalEl && typeof bootstrap !== 'undefined') {
+        const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        bsModal.show();
+    }
+}
+</script>
+
+<!-- Listing Photo Lightbox Modal -->
+<div class="modal fade" id="listingPhotoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark border-0 rounded-4 overflow-hidden shadow-lg">
+            <div class="modal-header border-0 bg-dark text-white py-2 px-3">
+                <h6 class="modal-title fw-bold text-truncate" id="listingModalTitle"><?php echo sanitizeInput($listingTitle); ?></h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0 text-center bg-black">
+                <img src="" id="listingModalImg" class="img-fluid object-fit-contain w-100" style="max-height: 80vh;" alt="Listing Photo">
+            </div>
         </div>
     </div>
 </div>

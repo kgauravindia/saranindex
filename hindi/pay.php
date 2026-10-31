@@ -77,6 +77,7 @@ require_once __DIR__ . '/includes/header.php';
                                 <ul class="list-unstyled extra-small text-secondary mb-0 d-flex flex-column gap-1.5">
                                     <li><i class="bi bi-check-circle-fill text-success me-1.5"></i>सत्यापित व्यवसाय बैज</li>
                                     <li><i class="bi bi-check-circle-fill text-success me-1.5"></i>सीधा व्हाट्सएप लीड बटन</li>
+                                    <li><i class="bi bi-camera-fill text-primary me-1.5"></i><strong>3 फ़ोटो तक अपलोड</strong> (1200×800)</li>
                                     <li><i class="bi bi-check-circle-fill text-success me-1.5"></i>कैटेगरी खोज में प्राथमिकता</li>
                                     <li><i class="bi bi-check-circle-fill text-success me-1.5"></i>आधिकारिक जीएसटी टैक्स रसीद</li>
                                 </ul>
@@ -99,6 +100,7 @@ require_once __DIR__ . '/includes/header.php';
                                 <ul class="list-unstyled extra-small text-secondary mb-0 d-flex flex-column gap-1.5">
                                     <li><i class="bi bi-check-circle-fill text-success me-1.5"></i><strong>होमपेज एवं टॉप रैंकिंग प्लेसमेंट</strong></li>
                                     <li><i class="bi bi-check-circle-fill text-success me-1.5"></i>वीआईपी प्लैटिनम क्राउन बैज</li>
+                                    <li><i class="bi bi-camera-fill text-danger me-1.5"></i><strong>6 फ़ोटो तक अपलोड (शोकेस गैलरी)</strong></li>
                                     <li><i class="bi bi-check-circle-fill text-success me-1.5"></i>प्रोफ़ाइल पर कोई विज्ञापन नहीं</li>
                                     <li><i class="bi bi-check-circle-fill text-success me-1.5"></i>समर्पित प्राथमिकता सहायता</li>
                                 </ul>
