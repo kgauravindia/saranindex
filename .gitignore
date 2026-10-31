@@ -51,4 +51,10 @@ scratch/
 *.traineddata
 node_modules/
 
+# Raw Data & Spreadsheet Files
+*.xlsx
+*.xls
+*.csv
+
+
 
