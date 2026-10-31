@@ -124,7 +124,9 @@ require_once __DIR__ . '/includes/header.php';
       "name": <?php echo json_encode($listingTitle); ?>,
       "description": <?php echo json_encode($meta_description); ?>,
       "url": <?php echo json_encode($canonical_url); ?>,
+      <?php if (isMobileNumberVisibleToVisitor($listing) && !empty($listing['mobile'])): ?>
       "telephone": <?php echo json_encode('+91' . preg_replace('/[^0-9]/', '', $listing['mobile'])); ?>,
+      <?php endif; ?>
       "address": {
         "@type": "PostalAddress",
         "streetAddress": <?php echo json_encode($listing['address'] ?: $listing['block_name']); ?>,
@@ -600,7 +602,14 @@ require_once __DIR__ . '/includes/header.php';
                         <i class="bi bi-envelope-fill text-muted fs-5 me-3"></i>
                         <div>
                             <strong class="d-block text-dark small">ईमेल</strong>
-                            <span class="text-muted small"><?php echo sanitizeInput($listing['email']); ?></span>
+                            <?php if (isEmailVisibleToVisitor($listing)): ?>
+                                <span class="text-muted small"><a href="mailto:<?php echo sanitizeInput($listing['email']); ?>" class="text-muted text-decoration-none"><?php echo sanitizeInput($listing['email']); ?></a></span>
+                            <?php else: ?>
+                                <span class="text-muted small fw-bold"><i class="bi bi-lock-fill me-1 text-warning"></i><?php echo sanitizeInput(maskEmailAddress($listing['email'])); ?></span>
+                                <?php if (!isUserLoggedIn()): ?>
+                                    <div class="mt-1"><a href="../login.php?redirect=<?php echo urlencode(getListingUrl($listing['slug'])); ?>" class="text-primary small text-decoration-underline">देखने के लिए लॉगिन करें</a></div>
+                                <?php endif; ?>
+                            <?php endif; ?>
                         </div>
                     </div>
                 <?php endif; ?>
