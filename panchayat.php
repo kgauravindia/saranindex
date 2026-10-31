@@ -7,6 +7,8 @@ $db = getDB();
 $panchayat = null;
 $samitiMembers = [];
 $jilaParishadMembers = [];
+$wardMembers = [];
+$panchMembers = [];
 
 if (!empty($slug) && $db) {
     try {
@@ -24,6 +26,16 @@ if (!empty($slug) && $db) {
             $stmtUpSarpanch = $db->prepare("SELECT * FROM listings WHERE subcategory_id = 270 AND panchayat_id = :pid AND status = 'ACTIVE' LIMIT 1");
             $stmtUpSarpanch->execute(['pid' => $panchayat['id']]);
             $upSarpanch = $stmtUpSarpanch->fetch();
+
+            // Fetch Ward Members (ग्राम पंचायत सदस्य) for this panchayat
+            $stmtWard = $db->prepare("SELECT * FROM listings WHERE subcategory_id = 244 AND panchayat_id = :pid AND status = 'ACTIVE' ORDER BY CAST(SUBSTRING_INDEX(slug, '-', -1) AS UNSIGNED) ASC, id ASC");
+            $stmtWard->execute(['pid' => $panchayat['id']]);
+            $wardMembers = $stmtWard->fetchAll();
+
+            // Fetch Panch (ग्राम कचहरी पंच) for this panchayat
+            $stmtPanch = $db->prepare("SELECT * FROM listings WHERE subcategory_id = 245 AND panchayat_id = :pid AND status = 'ACTIVE' ORDER BY CAST(SUBSTRING_INDEX(slug, '-', -1) AS UNSIGNED) ASC, id ASC");
+            $stmtPanch->execute(['pid' => $panchayat['id']]);
+            $panchMembers = $stmtPanch->fetchAll();
 
             // Fetch Panchayat Samiti Members for this panchayat
             $stmtSamiti = $db->prepare("SELECT * FROM listings WHERE subcategory_id = 248 AND panchayat_id = :pid ORDER BY id ASC");
@@ -395,7 +407,7 @@ $blocks = getBlocks();
 
             <!-- Elected Representatives: 3-Tier Democratic Governance -->
             <?php 
-            $hasGovernanceData = !empty($panchayat['mukhiya_name']) || !empty($panchayat['sarpanch_name']) || !empty($upMukhiya) || !empty($upSarpanch) || !empty($samitiMembers) || !empty($jilaParishadMembers);
+            $hasGovernanceData = !empty($panchayat['mukhiya_name']) || !empty($panchayat['sarpanch_name']) || !empty($upMukhiya) || !empty($upSarpanch) || !empty($wardMembers) || !empty($panchMembers) || !empty($samitiMembers) || !empty($jilaParishadMembers);
             if ($hasGovernanceData): 
                 $isLoggedIn = function_exists('isUserLoggedIn') && isUserLoggedIn();
                 $loginRedirectUrl = 'login?redirect=' . urlencode('panchayat/' . ($panchayat['slug'] ?? ''));
@@ -758,7 +770,169 @@ $blocks = getBlocks();
                         </div>
                     <?php endif; ?>
 
-                    <!-- 2. Panchayat Samiti Members (BDC Tier) -->
+                    <!-- 2. Gram Panchayat Ward Members (वार्ड सदस्य) -->
+                    <?php if (!empty($wardMembers)): ?>
+                        <div class="mb-5">
+                            <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-primary text-white rounded-pill px-3 py-1.5 small fw-semibold">Ward Tier</span>
+                                    <h4 class="fw-bold font-heading text-dark mb-0 fs-5">Gram Panchayat Ward Members (वार्ड सदस्य / ग्राम पंचायत सदस्य)</h4>
+                                </div>
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1.5 fw-semibold small">
+                                    <i class="bi bi-people-fill me-1"></i><?php echo count($wardMembers); ?> Elected Wards
+                                </span>
+                            </div>
+
+                            <div class="row g-3">
+                                <?php foreach ($wardMembers as $wm): 
+                                    $wDetails = function_exists('parseRepresentativeDetails') ? parseRepresentativeDetails($wm['description']) : [];
+                                    $wmMob = preg_replace('/[^0-9]/', '', $wm['mobile'] ?? '');
+                                    $wmName = !empty($wm['contact_person']) ? $wm['contact_person'] : (!empty($wm['hindi_title']) ? preg_replace('/\s*-\s*वार्ड.*$/u', '', $wm['hindi_title']) : $wm['title']);
+                                    $wardNo = !empty($wDetails['constituency']) ? $wDetails['constituency'] : (preg_match('/-(\d+)$/', $wm['slug'], $wMatch) ? $wMatch[1] : '');
+                                ?>
+                                    <div class="col-md-6 col-lg-4">
+                                        <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-white hover-lift transition-all">
+                                            <div class="p-3 border-bottom bg-light bg-opacity-50 d-flex align-items-center justify-content-between gap-2">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="badge bg-primary text-white rounded-pill px-2.5 py-1 fw-bold fs-7">
+                                                        वार्ड <?php echo sanitizeInput($wardNo); ?>
+                                                    </span>
+                                                    <h5 class="fw-bold font-heading text-dark mb-0 fs-6"><?php echo sanitizeInput($wmName); ?></h5>
+                                                </div>
+                                                <?php if (!empty($wDetails['reservation'])): ?>
+                                                    <span class="badge bg-light text-secondary border rounded-pill px-2 py-0.5 small" style="font-size: 0.7rem;">
+                                                        <?php echo sanitizeInput($wDetails['reservation']); ?>
+                                                    </span>
+                                                <?php endif; ?>
+                                            </div>
+                                            <div class="card-body p-3">
+                                                <ul class="list-unstyled mb-3 small text-secondary">
+                                                    <?php if (!empty($wDetails['father_husband'])): ?>
+                                                        <li class="mb-1 text-truncate">
+                                                            <i class="bi bi-person text-muted me-1.5"></i>
+                                                            <span class="text-muted">पिता/पति:</span> <strong><?php echo sanitizeInput($wDetails['father_husband']); ?></strong>
+                                                        </li>
+                                                    <?php endif; ?>
+                                                    <?php if (!empty($wDetails['category']) || !empty($wDetails['gender'])): ?>
+                                                        <li class="mb-1 text-truncate">
+                                                            <i class="bi bi-tag text-muted me-1.5"></i>
+                                                            <span><?php echo sanitizeInput($wDetails['category'] ?? ''); ?><?php echo (!empty($wDetails['category']) && !empty($wDetails['gender'])) ? ' • ' : ''; ?><?php echo sanitizeInput($wDetails['gender'] ?? ''); ?></span>
+                                                        </li>
+                                                    <?php endif; ?>
+                                                    <?php if (!empty($wDetails['address']) || !empty($wm['address'])): ?>
+                                                        <li class="mb-1 text-truncate">
+                                                            <i class="bi bi-geo-alt text-muted me-1.5"></i>
+                                                            <span><?php echo sanitizeInput(!empty($wDetails['address']) ? $wDetails['address'] : $wm['address']); ?></span>
+                                                        </li>
+                                                    <?php endif; ?>
+                                                </ul>
+
+                                                <?php if (!empty($wmMob)): ?>
+                                                    <?php if ($isLoggedIn): ?>
+                                                        <div class="d-flex gap-2">
+                                                            <a href="tel:<?php echo $wmMob; ?>" class="btn btn-outline-primary rounded-pill px-2.5 py-1 flex-grow-1 fw-semibold btn-sm">
+                                                                <i class="bi bi-telephone-fill me-1"></i> Call <?php echo $wmMob; ?>
+                                                            </a>
+                                                            <a href="https://wa.me/91<?php echo $wmMob; ?>" target="_blank" rel="noopener" class="btn btn-outline-success rounded-pill px-2.5 py-1 fw-semibold btn-sm">
+                                                                <i class="bi bi-whatsapp"></i>
+                                                            </a>
+                                                        </div>
+                                                    <?php else: ?>
+                                                        <a href="<?php echo $loginRedirectUrl; ?>" class="btn btn-outline-secondary rounded-pill px-2.5 py-1 w-100 small text-decoration-none">
+                                                            <i class="bi bi-shield-lock me-1"></i> Log In to View Mobile
+                                                        </a>
+                                                    <?php endif; ?>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
+                    <!-- 3. Gram Kacheri Panch (ग्राम कचहरी पंच) -->
+                    <?php if (!empty($panchMembers)): ?>
+                        <div class="mb-5">
+                            <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-warning text-dark rounded-pill px-3 py-1.5 small fw-semibold">Kacheri Ward Tier</span>
+                                    <h4 class="fw-bold font-heading text-dark mb-0 fs-5">Gram Kacheri Panch (ग्राम कचहरी पंच)</h4>
+                                </div>
+                                <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-3 py-1.5 fw-semibold small">
+                                    <i class="bi bi-bank2 me-1"></i><?php echo count($panchMembers); ?> Elected Panchs
+                                </span>
+                            </div>
+
+                            <div class="row g-3">
+                                <?php foreach ($panchMembers as $pm): 
+                                    $pDetails = function_exists('parseRepresentativeDetails') ? parseRepresentativeDetails($pm['description']) : [];
+                                    $pmMob = preg_replace('/[^0-9]/', '', $pm['mobile'] ?? '');
+                                    $pmName = !empty($pm['contact_person']) ? $pm['contact_person'] : (!empty($pm['hindi_title']) ? preg_replace('/\s*-\s*पंच.*$/u', '', $pm['hindi_title']) : $pm['title']);
+                                    $wardNo = !empty($pDetails['constituency']) ? $pDetails['constituency'] : (preg_match('/-(\d+)$/', $pm['slug'], $pMatch) ? $pMatch[1] : '');
+                                ?>
+                                    <div class="col-md-6 col-lg-4">
+                                        <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-white hover-lift transition-all">
+                                            <div class="p-3 border-bottom bg-warning-subtle bg-opacity-25 d-flex align-items-center justify-content-between gap-2">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="badge bg-warning text-dark rounded-pill px-2.5 py-1 fw-bold fs-7">
+                                                        वार्ड <?php echo sanitizeInput($wardNo); ?>
+                                                    </span>
+                                                    <h5 class="fw-bold font-heading text-dark mb-0 fs-6"><?php echo sanitizeInput($pmName); ?></h5>
+                                                </div>
+                                                <?php if (!empty($pDetails['reservation'])): ?>
+                                                    <span class="badge bg-light text-secondary border rounded-pill px-2 py-0.5 small" style="font-size: 0.7rem;">
+                                                        <?php echo sanitizeInput($pDetails['reservation']); ?>
+                                                    </span>
+                                                <?php endif; ?>
+                                            </div>
+                                            <div class="card-body p-3">
+                                                <ul class="list-unstyled mb-3 small text-secondary">
+                                                    <?php if (!empty($pDetails['father_husband'])): ?>
+                                                        <li class="mb-1 text-truncate">
+                                                            <i class="bi bi-person text-muted me-1.5"></i>
+                                                            <span class="text-muted">पिता/पति:</span> <strong><?php echo sanitizeInput($pDetails['father_husband']); ?></strong>
+                                                        </li>
+                                                    <?php endif; ?>
+                                                    <?php if (!empty($pDetails['category']) || !empty($pDetails['gender'])): ?>
+                                                        <li class="mb-1 text-truncate">
+                                                            <i class="bi bi-tag text-muted me-1.5"></i>
+                                                            <span><?php echo sanitizeInput($pDetails['category'] ?? ''); ?><?php echo (!empty($pDetails['category']) && !empty($pDetails['gender'])) ? ' • ' : ''; ?><?php echo sanitizeInput($pDetails['gender'] ?? ''); ?></span>
+                                                        </li>
+                                                    <?php endif; ?>
+                                                    <?php if (!empty($pDetails['address']) || !empty($pm['address'])): ?>
+                                                        <li class="mb-1 text-truncate">
+                                                            <i class="bi bi-geo-alt text-muted me-1.5"></i>
+                                                            <span><?php echo sanitizeInput(!empty($pDetails['address']) ? $pDetails['address'] : $pm['address']); ?></span>
+                                                        </li>
+                                                    <?php endif; ?>
+                                                </ul>
+
+                                                <?php if (!empty($pmMob)): ?>
+                                                    <?php if ($isLoggedIn): ?>
+                                                        <div class="d-flex gap-2">
+                                                            <a href="tel:<?php echo $pmMob; ?>" class="btn btn-outline-warning text-dark rounded-pill px-2.5 py-1 flex-grow-1 fw-semibold btn-sm">
+                                                                <i class="bi bi-telephone-fill me-1"></i> Call <?php echo $pmMob; ?>
+                                                            </a>
+                                                            <a href="https://wa.me/91<?php echo $pmMob; ?>" target="_blank" rel="noopener" class="btn btn-outline-success rounded-pill px-2.5 py-1 fw-semibold btn-sm">
+                                                                <i class="bi bi-whatsapp"></i>
+                                                            </a>
+                                                        </div>
+                                                    <?php else: ?>
+                                                        <a href="<?php echo $loginRedirectUrl; ?>" class="btn btn-outline-secondary rounded-pill px-2.5 py-1 w-100 small text-decoration-none">
+                                                            <i class="bi bi-shield-lock me-1"></i> Log In to View Mobile
+                                                        </a>
+                                                    <?php endif; ?>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
+                    <!-- 4. Panchayat Samiti Members (BDC Tier) -->
                     <div class="mb-5">
                         <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
                             <div class="d-flex align-items-center gap-2">

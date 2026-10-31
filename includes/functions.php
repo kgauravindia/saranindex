@@ -21,6 +21,7 @@ function devanagariToLatin($text) {
         'प्रो.' => 'prof-', 'प्रो०' => 'prof-', 'श्री' => 'shri-', 'श्रीमती' => 'shrimati-',
         'कु.' => 'ku-', 'कु०' => 'ku-', 'मु.' => 'md-', 'मो.' => 'mohd-', 'मोहम्मद' => 'mohammad-',
         'वार्ड' => 'ward-', 'सं.' => 'no-', 'सं०' => 'no-',
+        'देवी' => 'devi', 'कुमारी' => 'kumari',
 
         // Vowels
         'अ' => 'a', 'आ' => 'aa', 'इ' => 'i', 'ई' => 'ee', 'उ' => 'u', 'ऊ' => 'oo',
@@ -5564,6 +5565,18 @@ function getDistrictFullStats() {
     try {
         $stats['sarpanch_count'] = intval($db->query("SELECT COUNT(*) FROM listings WHERE subcategory_id = 247 AND status = 'ACTIVE'")->fetchColumn() ?: 315);
     } catch (Exception $e) { $stats['sarpanch_count'] = 315; }
+
+    try {
+        $stats['ward_member_count'] = intval($db->query("SELECT COUNT(*) FROM listings WHERE subcategory_id = 244 AND status = 'ACTIVE'")->fetchColumn() ?: 4492);
+    } catch (Exception $e) { $stats['ward_member_count'] = 4492; }
+
+    try {
+        $stats['panch_count'] = intval($db->query("SELECT COUNT(*) FROM listings WHERE subcategory_id = 245 AND status = 'ACTIVE'")->fetchColumn() ?: 3782);
+    } catch (Exception $e) { $stats['panch_count'] = 3782; }
+
+    try {
+        $stats['samiti_count'] = intval($db->query("SELECT COUNT(*) FROM listings WHERE subcategory_id = 248 AND status = 'ACTIVE'")->fetchColumn() ?: 452);
+    } catch (Exception $e) { $stats['samiti_count'] = 452; }
 
     try {
         $stats['kendra_count'] = intval($db->query("SELECT COUNT(*) FROM listings WHERE title LIKE '%Jan Aushadhi%' OR title LIKE '%PMBJK%'")->fetchColumn() ?: 58);
