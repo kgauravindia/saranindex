@@ -44,6 +44,14 @@ $pending_claims_count = count(getClaimsList('PENDING'));
 $recentListings = getAllAdminListings(null, null);
 // Limit to top 8 recent listings for dashboard summary
 $recentListings = array_slice($recentListings, 0, 8);
+
+$bus_count = 0;
+$db = getDB();
+if ($db) {
+    try {
+        $bus_count = (int)$db->query("SELECT COUNT(*) FROM vehicle")->fetchColumn();
+    } catch (Exception $e) {}
+}
 ?>
 
 <?php if (!empty($msg)): ?>
@@ -67,6 +75,9 @@ $recentListings = array_slice($recentListings, 0, 8);
             </a>
             <a href="listing_edit.php" class="btn btn-outline-light text-white fw-bold btn-sm px-3 shadow-sm">
                 <i class="bi bi-plus-circle me-1"></i> Add Listing
+            </a>
+            <a href="bus_edit.php" class="btn btn-outline-light text-white fw-bold btn-sm px-3 shadow-sm">
+                <i class="bi bi-bus-front me-1"></i> Add Bus
             </a>
             <a href="git.php" class="btn btn-outline-light text-white fw-bold btn-sm px-3 shadow-sm">
                 <i class="bi bi-cloud-arrow-up-fill text-danger me-1"></i> Git Push
@@ -211,6 +222,22 @@ $recentListings = array_slice($recentListings, 0, 8);
                 </div>
                 <h2 class="fw-bold text-dark mb-1">20 <span class="fs-6 text-muted font-weight-normal">Blocks</span></h2>
                 <small class="text-muted"><i class="bi bi-houses me-1"></i><?php echo number_format($stats['total_panchayats']); ?> Panchayats • <?php echo number_format($stats['total_halkas']); ?> Mouzas</small>
+            </div>
+        </a>
+    </div>
+
+    <!-- Card: Bus Permits & Routes -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <a href="buses.php" class="text-decoration-none">
+            <div class="stat-card p-3 h-100 shadow-sm border-0">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small fw-bold text-uppercase">Bus Permits</span>
+                    <div class="stat-icon bg-warning bg-opacity-20 text-warning rounded-circle p-2 fs-5">
+                        <i class="bi bi-bus-front-fill"></i>
+                    </div>
+                </div>
+                <h2 class="fw-bold text-dark mb-1"><?php echo number_format($bus_count); ?></h2>
+                <small class="text-muted"><i class="bi bi-signpost-split me-1 text-primary"></i>RTA Saran Division Routes</small>
             </div>
         </a>
     </div>

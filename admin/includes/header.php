@@ -263,6 +263,11 @@ $admin_name = $_SESSION['admin_full_name'] ?? 'Administrator';
                 </a>
             </li>
             <li class="nav-item">
+                <a class="nav-link <?php echo ($current_page === 'buses.php' || $current_page === 'bus_edit.php') ? 'active' : ''; ?>" href="buses.php" title="Bus Permits & Routes">
+                    <i class="bi bi-bus-front-fill text-warning"></i> <span class="nav-text">Bus Permits</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link <?php echo $current_page === 'bulk_upload.php' ? 'active' : ''; ?>" href="bulk_upload.php" title="Bulk Upload CSV">
                     <i class="bi bi-cloud-upload-fill"></i> <span class="nav-text">Bulk Upload CSV</span>
                 </a>
@@ -349,6 +354,11 @@ $admin_name = $_SESSION['admin_full_name'] ?? 'Administrator';
             <li class="nav-item">
                 <a class="nav-link text-white-50" href="listing_edit.php" title="Add New Listing">
                     <i class="bi bi-plus-circle"></i> <span class="nav-text">Add New Listing</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white-50" href="bus_edit.php" title="Add Bus Permit">
+                    <i class="bi bi-bus-front"></i> <span class="nav-text">Add Bus Permit</span>
                 </a>
             </li>
             <li class="nav-item">
