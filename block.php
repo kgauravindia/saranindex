@@ -48,6 +48,34 @@ if ($block) {
     require_once __DIR__ . '/includes/header.php';
     ?>
 
+    <!-- Schema.org JSON-LD BreadcrumbList -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://saranindex.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Blocks",
+          "item": "https://saranindex.com/blocks"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": <?php echo json_encode($block['block_name']); ?>,
+          "item": <?php echo json_encode(getSiteCanonicalUrl('block/' . $block['slug'])); ?>
+        }
+      ]
+    }
+    </script>
+
     <!-- Hero Section (matching index.php UI) -->
     <section class="hero-wrapper position-relative text-center">
         <div class="container position-relative z-1">
@@ -58,7 +86,7 @@ if ($block) {
 
             <nav aria-label="breadcrumb" class="d-flex justify-content-center mb-3">
                 <ol class="breadcrumb bg-white bg-opacity-10 px-3 py-1.5 rounded-pill mb-0 small border border-white border-opacity-10">
-                    <li class="breadcrumb-item"><a href="./" class="text-white-50 text-decoration-none">Home</a></li>
+                    <li class="breadcrumb-item"><a href="<?php echo BASE_URL; ?>" class="text-white-50 text-decoration-none">Home</a></li>
                     <li class="breadcrumb-item"><a href="blocks" class="text-white-50 text-decoration-none">Blocks</a></li>
                     <li class="breadcrumb-item active text-warning fw-semibold" aria-current="page"><?php echo sanitizeInput($block['block_name']); ?></li>
                 </ol>

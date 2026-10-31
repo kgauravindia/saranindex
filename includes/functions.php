@@ -530,7 +530,7 @@ function getListingBySlug($slug) {
             }
             $cleanSlug = preg_replace('~\.html?$~i', '', $cleanSlug);
 
-            $sql = "SELECT l.*, c.name as category_name, b.name as block_name, u.full_name as owner_name, u.name as owner_short_name, u.username_handle as owner_handle, u.profile_image as owner_image, u.designation as owner_designation, u.profile_visibility as owner_visibility 
+            $sql = "SELECT l.*, c.name as category_name, c.slug as category_slug, c.hindi_name as category_hindi_name, b.name as block_name, b.slug as block_slug, u.full_name as owner_name, u.name as owner_short_name, u.username_handle as owner_handle, u.profile_image as owner_image, u.designation as owner_designation, u.profile_visibility as owner_visibility 
                     FROM listings l 
                     LEFT JOIN categories c ON l.category_id = c.id 
                     LEFT JOIN blocks b ON l.block_id = b.id 
@@ -5730,14 +5730,23 @@ function getDistrictFullStats() {
  * Computes exact clean canonical URL for any page to prevent Google Search Console duplicate canonical errors
  */
 function getSiteCanonicalUrl($customCanonical = null, $isHindi = false) {
+    $baseDomain = 'https://saranindex.com';
     if (!empty($customCanonical)) {
         $clean = trim((string)$customCanonical);
         $clean = preg_replace('#^http://#i', 'https://', $clean);
         $clean = preg_replace('#^https://www\.saranindex\.com#i', 'https://saranindex.com', $clean);
+        if (!preg_match('#^https?://#i', $clean)) {
+            $clean = ltrim($clean, '/');
+            if ($isHindi && strpos($clean, 'hindi/') !== 0) {
+                $clean = $baseDomain . '/hindi/' . $clean;
+            } else {
+                $clean = $baseDomain . '/' . $clean;
+            }
+        }
         if (strpos($clean, '?') !== false) {
             $parts = explode('?', $clean, 2);
             parse_str($parts[1], $query);
-            $allowedParams = ['page', 'p', 'q', 'category'];
+            $allowedParams = ['page', 'p', 'q', 'category', 'block', 'code', 'slug'];
             $filteredQuery = array_intersect_key($query, array_flip($allowedParams));
             $clean = $parts[0] . (!empty($filteredQuery) ? '?' . http_build_query($filteredQuery) : '');
         }

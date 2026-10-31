@@ -53,11 +53,38 @@ $saran_pins = [
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "PostalAddress",
-  "postalCode": "<?php echo htmlspecialchars($code); ?>",
-  "addressLocality": "<?php echo htmlspecialchars($district_name); ?>",
-  "addressRegion": "<?php echo htmlspecialchars($state_name); ?>",
-  "addressCountry": "IN"
+  "@graph": [
+    {
+      "@type": "PostalAddress",
+      "postalCode": "<?php echo htmlspecialchars($code); ?>",
+      "addressLocality": "<?php echo htmlspecialchars($district_name); ?>",
+      "addressRegion": "<?php echo htmlspecialchars($state_name); ?>",
+      "addressCountry": "IN"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://saranindex.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Postal Directory",
+          "item": "https://saranindex.com/pincode.php"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": <?php echo json_encode("PIN " . $code); ?>,
+          "item": <?php echo json_encode(getSiteCanonicalUrl('pincode.php?code=' . $code)); ?>
+        }
+      ]
+    }
+  ]
 }
 </script>
 
@@ -68,7 +95,7 @@ $saran_pins = [
         <nav aria-label="breadcrumb" class="mb-3">
             <ol class="breadcrumb mb-0 small text-white-50">
                 <li class="breadcrumb-item"><a href="<?php echo BASE_URL; ?>" class="text-white-50 text-decoration-none"><i class="bi bi-house-door me-1"></i>Home</a></li>
-                <li class="breadcrumb-item text-white-50">Postal Directory</li>
+                <li class="breadcrumb-item"><a href="pincode.php" class="text-white-50 text-decoration-none">Postal Directory</a></li>
                 <li class="breadcrumb-item active text-warning fw-semibold" aria-current="page">PIN <?php echo htmlspecialchars($code); ?></li>
             </ol>
         </nav>

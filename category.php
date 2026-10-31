@@ -52,15 +52,30 @@ $listings = getListings('', $selected_category['slug'], '', 50, 0, $sub_slug);
 $blocks = getBlocks();
 ?>
 
+<?php
+$schemaItems = [];
+$pos = 1;
+foreach ($listings as $lItem) {
+    if ($pos > 30) break;
+    $schemaItems[] = [
+        '@type' => 'ListItem',
+        'position' => $pos++,
+        'name' => $lItem['title'],
+        'url' => getSiteCanonicalUrl('listing/' . $lItem['slug'], false)
+    ];
+}
+$itemListSchema = [
+    '@context' => 'https://schema.org',
+    '@type' => 'ItemList',
+    'name' => $selected_category['name'] . ' in Saran District',
+    'description' => $meta_description,
+    'numberOfItems' => count($listings),
+    'itemListElement' => $schemaItems
+];
+?>
 <!-- SEO Schema.org Structured Data -->
 <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "ItemList",
-  "name": "<?php echo sanitizeInput($selected_category['name']); ?> in Saran District",
-  "description": "<?php echo sanitizeInput($meta_description); ?>",
-  "numberOfItems": <?php echo count($listings); ?>
-}
+<?php echo json_encode($itemListSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT); ?>
 </script>
 
 <!-- Category Hero Banner -->

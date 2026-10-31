@@ -40,7 +40,7 @@ $social_wa = defined('SOCIAL_WHATSAPP') ? SOCIAL_WHATSAPP : 'https://whatsapp.co
             </div>
         </div>
 
-        <!-- Main 4-Column Footer Grid -->
+        <!-- Main 5-Column Footer Grid -->
         <div class="row g-4 pt-2">
             <!-- Column 1: Brand & Social Hub -->
             <div class="col-lg-3 col-md-6">
@@ -88,14 +88,14 @@ $social_wa = defined('SOCIAL_WHATSAPP') ? SOCIAL_WHATSAPP : 'https://whatsapp.co
             </div>
             
             <!-- Column 2: Popular Categories -->
-            <div class="col-lg-3 col-md-6 ps-lg-4">
+            <div class="col-lg-2 col-md-6 col-6">
                 <h6 class="footer-heading">मुख्य श्रेणियां</h6>
                 <div class="d-flex flex-column gap-2">
                     <a href="category/businesses-retail-stores" class="footer-link">
                         <i class="bi bi-shop text-warning me-1"></i> व्यापार एवं दुकानें
                     </a>
                     <a href="category/advocates-legal" class="footer-link">
-                        <i class="bi bi-briefcase-fill text-warning me-1"></i> वकील एवं कानूनी सेवाएं
+                        <i class="bi bi-briefcase-fill text-warning me-1"></i> वकील एवं कानूनी सेवा
                     </a>
                     <a href="category/doctors-healthcare" class="footer-link">
                         <i class="bi bi-hospital-fill text-warning me-1"></i> डॉक्टर एवं अस्पताल
@@ -110,38 +110,45 @@ $social_wa = defined('SOCIAL_WHATSAPP') ? SOCIAL_WHATSAPP : 'https://whatsapp.co
                         <i class="bi bi-cup-hot-fill text-warning me-1"></i> होटल एवं रेस्टोरेंट
                     </a>
                     <a href="emergency" class="footer-link">
-                        <i class="bi bi-telephone-fill text-warning me-1"></i> आपातकालीन हेल्पलाइन
+                        <i class="bi bi-telephone-fill text-warning me-1"></i> आपातकालीन 24x7
                     </a>
                     <a href="pricing" class="footer-link">
-                        <i class="bi bi-star-fill text-warning me-1"></i> प्रमाणित व्यापार योजनाएं
+                        <i class="bi bi-star-fill text-warning me-1"></i> प्रमाणित व्यापार
                     </a>
                 </div>
             </div>
 
             <!-- Column 3: Quick Navigation -->
-            <div class="col-lg-3 col-md-6">
-                <h6 class="footer-heading">त्वरित लिंक एवं कानूनी जानकारी</h6>
+            <div class="col-lg-2 col-md-6 col-6">
+                <h6 class="footer-heading">त्वरित लिंक</h6>
                 <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
-                    <li><a href="./" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> मुख्य पृष्ठ (होम)</a></li>
-                    <li><a href="hindi/today" class="footer-link"><i class="bi bi-calendar2-day-fill text-warning"></i> आज सारण में क्या है</a></li>
-                    <li><a href="search-names" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> नाम व नागरिक निर्देशिका</a></li>
-                    <li><a href="blocks" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> सारण के सभी 20 प्रखंड</a></li>
-                    <li><a href="pincode.php" class="footer-link"><i class="bi bi-mailbox2 text-warning"></i> पिन कोड निर्देशिका (Postal PIN)</a></li>
+                    <li><a href="./" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> मुख्य पृष्ठ</a></li>
+                    <li><a href="hindi/today" class="footer-link"><i class="bi bi-calendar2-day-fill text-warning"></i> आज सारण में</a></li>
+                    <li><a href="search-names" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> नागरिक निर्देशिका</a></li>
+                    <li><a href="blocks" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> सभी 20 प्रखंड</a></li>
+                    <li><a href="pincode.php" class="footer-link"><i class="bi bi-mailbox2 text-warning"></i> पिन कोड सूची</a></li>
                     <li><a href="categories" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> सभी श्रेणियां</a></li>
-                    <li><a href="hindi/business/" class="footer-link"><i class="bi bi-lightbulb-fill text-warning"></i> 90 बिज़नेस टिप्स (व्यापार बढ़ाएं)</a></li>
-                    <li><a href="blog/" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> ब्लॉग एवं स्थानीय गाइड</a></li>
-                    <li><a href="emergency" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> 24x7 आपातकालीन सेवाएं</a></li>
-                    <li><a href="about" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> ऑफ़रप्लांट एवं सारण इंडेक्स के बारे में</a></li>
-                    <li><a href="sources" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> आधिकारिक डेटा स्रोत</a></li>
-                    <li><a href="privacy-policy" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> गोपनीयता नीति (Privacy Policy)</a></li>
-                    <li><a href="terms" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> नियम एवं शर्तें (Terms & Conditions)</a></li>
-                    <li><a href="refund-policy" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> रिफंड नीति (Refund Policy)</a></li>
-                    <li><a href="contact" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> संपर्क एवं सहायता</a></li>
+                    <li><a href="hindi/business/" class="footer-link"><i class="bi bi-lightbulb-fill text-warning"></i> 90 बिज़नेस टिप्स</a></li>
+                    <li><a href="blog/" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> ब्लॉग एवं गाइड</a></li>
+                    <li><a href="about" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> हमारे बारे में</a></li>
+                </ul>
+            </div>
+
+            <!-- Column 4: Legal & Policies -->
+            <div class="col-lg-2 col-md-6 col-6">
+                <h6 class="footer-heading">कानूनी एवं नीतियां</h6>
+                <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
+                    <li><a href="privacy-policy" class="footer-link"><i class="bi bi-shield-check text-warning"></i> गोपनीयता नीति</a></li>
+                    <li><a href="terms" class="footer-link"><i class="bi bi-file-earmark-text text-warning"></i> नियम एवं शर्तें</a></li>
+                    <li><a href="refund-policy" class="footer-link"><i class="bi bi-arrow-counterclockwise text-warning"></i> रिफंड नीति</a></li>
+                    <li><a href="sources" class="footer-link"><i class="bi bi-database-check text-warning"></i> आधिकारिक स्रोत</a></li>
+                    <li><a href="#" class="footer-link" data-bs-toggle="modal" data-bs-target="#disclaimerModal"><i class="bi bi-exclamation-octagon text-warning"></i> अस्वीकरण सूचना</a></li>
+                    <li><a href="contact" class="footer-link"><i class="bi bi-headset text-warning"></i> संपर्क एवं सहायता</a></li>
                     <li><a href="../admin/login.php" class="footer-link"><i class="bi bi-shield-lock-fill text-warning"></i> एडमिन पोर्टल</a></li>
                 </ul>
             </div>
 
-            <!-- Column 4: Contact & Support Box -->
+            <!-- Column 5: Contact & Support Box -->
             <div class="col-lg-3 col-md-6">
                 <h6 class="footer-heading">संपर्क एवं सहायता</h6>
                 <div class="contact-info-card">

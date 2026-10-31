@@ -114,23 +114,59 @@ $og_type = 'place';
 require_once __DIR__ . '/includes/header.php';
 ?>
 
-<!-- Schema.org JSON-LD Structured Data for Local SEO -->
+<!-- Schema.org JSON-LD Structured Data for Local SEO & BreadcrumbList -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "LocalBusiness",
-  "name": <?php echo json_encode($listingTitle); ?>,
-  "description": <?php echo json_encode($meta_description); ?>,
-  "url": <?php echo json_encode($canonical_url); ?>,
-  "telephone": <?php echo json_encode('+91' . preg_replace('/[^0-9]/', '', $listing['mobile'])); ?>,
-  "address": {
-    "@type": "PostalAddress",
-    "streetAddress": <?php echo json_encode($listing['address'] ?: $listing['block_name']); ?>,
-    "addressLocality": <?php echo json_encode($listing['block_name'] ?: 'छपरा'); ?>,
-    "addressRegion": "Bihar",
-    "postalCode": <?php echo json_encode($listing['pincode'] ?: '841301'); ?>,
-    "addressCountry": "IN"
-  }
+  "@graph": [
+    {
+      "@type": "LocalBusiness",
+      "name": <?php echo json_encode($listingTitle); ?>,
+      "description": <?php echo json_encode($meta_description); ?>,
+      "url": <?php echo json_encode($canonical_url); ?>,
+      "telephone": <?php echo json_encode('+91' . preg_replace('/[^0-9]/', '', $listing['mobile'])); ?>,
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": <?php echo json_encode($listing['address'] ?: $listing['block_name']); ?>,
+        "addressLocality": <?php echo json_encode($listing['block_name'] ?: 'छपरा'); ?>,
+        "addressRegion": "Bihar",
+        "postalCode": <?php echo json_encode($listing['pincode'] ?: '841301'); ?>,
+        "addressCountry": "IN"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "मुख्य पृष्ठ",
+          "item": "https://saranindex.com/hindi/"
+        },
+        <?php if (!empty($listing['category_name'])): ?>
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": <?php echo json_encode(!empty($listing['category_hindi_name']) ? $listing['category_hindi_name'] : $listing['category_name']); ?>,
+          "item": <?php echo json_encode(getSiteCanonicalUrl('category/' . ($listing['category_slug'] ?? ''), true)); ?>
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": <?php echo json_encode($listingTitle); ?>,
+          "item": <?php echo json_encode($canonical_url); ?>
+        }
+        <?php else: ?>
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": <?php echo json_encode($listingTitle); ?>,
+          "item": <?php echo json_encode($canonical_url); ?>
+        }
+        <?php endif; ?>
+      ]
+    }
+  ]
 }
 </script>
 
@@ -139,13 +175,11 @@ require_once __DIR__ . '/includes/header.php';
     <div class="container">
         <nav aria-label="breadcrumb" class="mb-3">
             <ol class="breadcrumb mb-0 align-items-center">
-                <li class="breadcrumb-item"><a href="index.php" class="text-white-50 text-decoration-none"><i class="bi bi-house-door-fill me-1"></i>मुख्य पृष्ठ</a></li>
-                <?php if (!empty($listing['block_name'])): ?>
-                    <li class="breadcrumb-item"><a href="search.php?block=<?php echo urlencode($listing['block_name']); ?>" class="text-white-50 text-decoration-none"><?php echo sanitizeInput($listing['block_name']); ?></a></li>
-                <?php endif; ?>
+                <li class="breadcrumb-item"><a href="<?php echo BASE_URL; ?>hindi/" class="text-white-50 text-decoration-none"><i class="bi bi-house-door-fill me-1"></i>मुख्य पृष्ठ</a></li>
                 <?php if (!empty($listing['category_name'])): ?>
-                    <li class="breadcrumb-item text-warning active" aria-current="page"><?php echo sanitizeInput($listing['category_name']); ?></li>
+                    <li class="breadcrumb-item"><a href="<?php echo getCategoryUrl($listing['category_slug'] ?? ''); ?>" class="text-white-50 text-decoration-none"><?php echo sanitizeInput(!empty($listing['category_hindi_name']) ? $listing['category_hindi_name'] : $listing['category_name']); ?></a></li>
                 <?php endif; ?>
+                <li class="breadcrumb-item text-warning active text-truncate" aria-current="page" style="max-width: 280px;"><?php echo sanitizeInput($listingTitle); ?></li>
             </ol>
         </nav>
 

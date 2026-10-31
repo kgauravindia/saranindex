@@ -40,7 +40,7 @@ $social_wa = defined('SOCIAL_WHATSAPP') ? SOCIAL_WHATSAPP : 'https://whatsapp.co
             </div>
         </div>
 
-        <!-- Main 4-Column Footer Grid -->
+        <!-- Main 5-Column Footer Grid -->
         <div class="row g-4 pt-2">
             <!-- Column 1: Brand & Social Hub -->
             <div class="col-lg-3 col-md-6">
@@ -87,61 +87,68 @@ $social_wa = defined('SOCIAL_WHATSAPP') ? SOCIAL_WHATSAPP : 'https://whatsapp.co
                 </div>
             </div>
             
-            <!-- Column 2: Popular Categories -->
-            <div class="col-lg-3 col-md-6 ps-lg-4">
+            <!-- Column 2: Key Verticals -->
+            <div class="col-lg-2 col-md-6 col-6">
                 <h6 class="footer-heading">Key Verticals</h6>
                 <div class="d-flex flex-column gap-2">
                     <a href="category/businesses-retail-stores" class="footer-link">
-                        <i class="bi bi-shop text-warning me-1"></i> Businesses & Retail Stores
+                        <i class="bi bi-shop text-warning me-1"></i> Businesses
                     </a>
                     <a href="category/advocates-legal" class="footer-link">
-                        <i class="bi bi-briefcase-fill text-warning me-1"></i> Advocates & Legal Services
+                        <i class="bi bi-briefcase-fill text-warning me-1"></i> Advocates
                     </a>
                     <a href="category/doctors-healthcare" class="footer-link">
-                        <i class="bi bi-hospital-fill text-warning me-1"></i> Doctors & Hospitals
+                        <i class="bi bi-hospital-fill text-warning me-1"></i> Doctors
                     </a>
                     <a href="category/schools-education" class="footer-link">
-                        <i class="bi bi-book-half text-warning me-1"></i> Schools & Colleges
+                        <i class="bi bi-book-half text-warning me-1"></i> Education
                     </a>
                     <a href="category/government-offices" class="footer-link">
-                        <i class="bi bi-building-gear text-warning me-1"></i> Government Offices
+                        <i class="bi bi-building-gear text-warning me-1"></i> Govt Offices
                     </a>
                     <a href="category/hotels-restaurants" class="footer-link">
-                        <i class="bi bi-cup-hot-fill text-warning me-1"></i> Hotels & Restaurants
+                        <i class="bi bi-cup-hot-fill text-warning me-1"></i> Hotels & Food
                     </a>
                     <a href="emergency" class="footer-link">
-                        <i class="bi bi-telephone-fill text-warning me-1"></i> Emergency Helplines
+                        <i class="bi bi-telephone-fill text-warning me-1"></i> Helplines
                     </a>
                     <a href="pricing" class="footer-link">
-                        <i class="bi bi-star-fill text-warning me-1"></i> Verified Business Plans
+                        <i class="bi bi-star-fill text-warning me-1"></i> Verified Plans
                     </a>
                 </div>
             </div>
 
-            <!-- Column 3: Quick Navigation -->
-            <div class="col-lg-3 col-md-6">
-                <h6 class="footer-heading">Quick Links & Legal</h6>
+            <!-- Column 3: Quick Links -->
+            <div class="col-lg-2 col-md-6 col-6">
+                <h6 class="footer-heading">Quick Links</h6>
                 <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
                     <li><a href="./" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> Home Page</a></li>
-                    <li><a href="today" class="footer-link"><i class="bi bi-calendar2-day-fill text-warning"></i> Today in Saran (आज सारण में)</a></li>
-                    <li><a href="search-names" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> People & Names Directory</a></li>
-                    <li><a href="blocks" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> All 20 Saran Blocks</a></li>
-                    <li><a href="pincode.php" class="footer-link"><i class="bi bi-mailbox2 text-warning"></i> Postal PIN Code Directory</a></li>
+                    <li><a href="today" class="footer-link"><i class="bi bi-calendar2-day-fill text-warning"></i> Today in Saran</a></li>
+                    <li><a href="search-names" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> People Directory</a></li>
+                    <li><a href="blocks" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> All 20 Blocks</a></li>
+                    <li><a href="pincode.php" class="footer-link"><i class="bi bi-mailbox2 text-warning"></i> PIN Codes</a></li>
                     <li><a href="categories" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> All Categories</a></li>
-                    <li><a href="business/" class="footer-link"><i class="bi bi-lightbulb-fill text-warning"></i> 90 Business Tips (Grow in Saran)</a></li>
-                    <li><a href="blog/" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> Blog & Local Guides</a></li>
-                    <li><a href="emergency" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> 24x7 Emergency Services</a></li>
-                    <li><a href="about" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> About OfferPlant & Saran Index</a></li>
-                    <li><a href="sources" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> Official Data Sources</a></li>
-                    <li><a href="privacy-policy" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> Privacy Policy</a></li>
-                    <li><a href="terms" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> Terms & Conditions</a></li>
-                    <li><a href="refund-policy" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> Refund Policy</a></li>
-                    <li><a href="contact" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> Contact & Support</a></li>
+                    <li><a href="business/" class="footer-link"><i class="bi bi-lightbulb-fill text-warning"></i> 90 Business Tips</a></li>
+                    <li><a href="blog/" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> Blog & Guides</a></li>
+                    <li><a href="about" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> About Saran Index</a></li>
+                </ul>
+            </div>
+
+            <!-- Column 4: Legal & Policies -->
+            <div class="col-lg-2 col-md-6 col-6">
+                <h6 class="footer-heading">Legal & Policies</h6>
+                <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
+                    <li><a href="privacy-policy" class="footer-link"><i class="bi bi-shield-check text-warning"></i> Privacy Policy</a></li>
+                    <li><a href="terms" class="footer-link"><i class="bi bi-file-earmark-text text-warning"></i> Terms & Conditions</a></li>
+                    <li><a href="refund-policy" class="footer-link"><i class="bi bi-arrow-counterclockwise text-warning"></i> Refund Policy</a></li>
+                    <li><a href="sources" class="footer-link"><i class="bi bi-database-check text-warning"></i> Data Sources</a></li>
+                    <li><a href="#" class="footer-link" data-bs-toggle="modal" data-bs-target="#disclaimerModal"><i class="bi bi-exclamation-octagon text-warning"></i> Disclaimer</a></li>
+                    <li><a href="contact" class="footer-link"><i class="bi bi-headset text-warning"></i> Contact & Help</a></li>
                     <li><a href="admin/login.php" class="footer-link"><i class="bi bi-shield-lock-fill text-warning"></i> Admin Portal</a></li>
                 </ul>
             </div>
 
-            <!-- Column 4: Contact & Support Box -->
+            <!-- Column 5: Contact & Support Box -->
             <div class="col-lg-3 col-md-6">
                 <h6 class="footer-heading">Contact & District Support</h6>
                 <div class="contact-info-card">

@@ -260,39 +260,49 @@ if (empty($top_categories)) {
     </div>
 </section>
 
-<!-- Verified Listings Section (Clean Dual-Tab View) -->
-<section class="py-5 bg-light">
+<!-- Top Verified Listings Section -->
+<section class="py-5 bg-white border-top">
     <div class="container">
         <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
             <div>
-                <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-1.5 rounded-pill small uppercase tracking-wider">
+                <span class="badge bg-success-subtle text-success fw-bold px-3 py-1.5 rounded-pill small uppercase tracking-wider">
                     <i class="bi bi-patch-check-fill me-1"></i>Verified Directory
                 </span>
-                <h2 class="fw-bold font-heading text-dark mt-2 mb-0 fs-2">Featured & Recent Listings</h2>
-                <p class="text-muted small mb-0">Discover verified institutions, health clinics, and businesses across Saran.</p>
+                <h2 class="fw-bold font-heading text-dark mt-2 mb-0 fs-2">Top Verified Listings</h2>
+                <p class="text-muted small mb-0">Recommended institutions, healthcare clinics, verified businesses, and established services in Saran.</p>
             </div>
-            
-            <div class="btn-group p-1 bg-white rounded-pill shadow-xs border" role="group" aria-label="Listing Filter">
-                <button type="button" class="btn btn-primary rounded-pill btn-sm px-3 fw-semibold" id="tabFeaturedBtn">
-                    <i class="bi bi-star-fill me-1"></i>Top Verified
-                </button>
-                <button type="button" class="btn btn-outline-primary border-0 rounded-pill btn-sm px-3 fw-semibold" id="tabRecentBtn">
-                    <i class="bi bi-clock-history me-1"></i>Recently Added
-                </button>
-            </div>
+            <a href="search" class="btn btn-outline-primary rounded-pill px-4 btn-sm fw-semibold">
+                Explore All Verified <i class="bi bi-arrow-right ms-1"></i>
+            </a>
         </div>
 
-        <!-- Tab 1: Top Verified Listings -->
-        <div id="viewFeaturedListings" class="row g-4">
+        <div class="row g-4">
             <?php foreach ($featured_listings as $item): ?>
                 <div class="col-lg-6">
                     <?php echo renderListingCard($item); ?>
                 </div>
             <?php endforeach; ?>
         </div>
+    </div>
+</section>
 
-        <!-- Tab 2: Recently Added Listings (Initially Hidden) -->
-        <div id="viewRecentListings" class="row g-4 d-none">
+<!-- Latest Joined Listings Section -->
+<section class="py-5 bg-light border-top border-bottom">
+    <div class="container">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
+            <div>
+                <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-1.5 rounded-pill small uppercase tracking-wider">
+                    <i class="bi bi-clock-history me-1"></i>Latest Joined
+                </span>
+                <h2 class="fw-bold font-heading text-dark mt-2 mb-0 fs-2">Latest Joined Listings</h2>
+                <p class="text-muted small mb-0">Newly registered local businesses, public services, clinics, and community members in Saran.</p>
+            </div>
+            <a href="search" class="btn btn-outline-primary rounded-pill px-4 btn-sm fw-semibold">
+                View All Directory Listings <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <div class="row g-4">
             <?php foreach ($recent_listings as $item): ?>
                 <div class="col-lg-6">
                     <?php echo renderListingCard($item); ?>
@@ -355,34 +365,5 @@ if (empty($top_categories)) {
     </div>
 </section>
 
-<!-- Clean & Secure Interactive Tab Switcher JS -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const tabFeatured = document.getElementById('tabFeaturedBtn');
-    const tabRecent = document.getElementById('tabRecentBtn');
-    const viewFeatured = document.getElementById('viewFeaturedListings');
-    const viewRecent = document.getElementById('viewRecentListings');
-
-    if (tabFeatured && tabRecent && viewFeatured && viewRecent) {
-        tabFeatured.addEventListener('click', function() {
-            tabFeatured.classList.add('btn-primary');
-            tabFeatured.classList.remove('btn-outline-primary', 'border-0');
-            tabRecent.classList.remove('btn-primary');
-            tabRecent.classList.add('btn-outline-primary', 'border-0');
-            viewFeatured.classList.remove('d-none');
-            viewRecent.classList.add('d-none');
-        });
-
-        tabRecent.addEventListener('click', function() {
-            tabRecent.classList.add('btn-primary');
-            tabRecent.classList.remove('btn-outline-primary', 'border-0');
-            tabFeatured.classList.remove('btn-primary');
-            tabFeatured.classList.add('btn-outline-primary', 'border-0');
-            viewRecent.classList.remove('d-none');
-            viewFeatured.classList.add('d-none');
-        });
-    }
-});
-</script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

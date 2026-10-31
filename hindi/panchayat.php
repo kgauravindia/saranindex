@@ -64,6 +64,42 @@ require_once __DIR__ . '/includes/header.php';
 $blocks = getBlocks();
 ?>
 
+<?php if ($panchayat): ?>
+<!-- Schema.org JSON-LD BreadcrumbList -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "होम",
+      "item": "https://saranindex.com/hindi/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "प्रखंड",
+      "item": "https://saranindex.com/hindi/blocks"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": <?php echo json_encode($bName); ?>,
+      "item": <?php echo json_encode(getSiteCanonicalUrl('block/' . $panchayat['block_slug'], true)); ?>
+    },
+    {
+      "@type": "ListItem",
+      "position": 4,
+      "name": <?php echo json_encode($pName); ?>,
+      "item": <?php echo json_encode(getSiteCanonicalUrl('panchayat/' . $panchayat['panchayat_slug'], true)); ?>
+    }
+  ]
+}
+</script>
+<?php endif; ?>
+
 <!-- Hero Section (matching hindi/index.php UI) -->
 <section class="hero-wrapper position-relative text-center">
     <div class="container position-relative z-1">
@@ -82,7 +118,7 @@ $blocks = getBlocks();
 
             <nav aria-label="breadcrumb" class="d-flex justify-content-center mb-3">
                 <ol class="breadcrumb bg-white bg-opacity-10 px-3 py-1.5 rounded-pill mb-0 small border border-white border-opacity-10">
-                    <li class="breadcrumb-item"><a href="./" class="text-white-50 text-decoration-none">होम</a></li>
+                    <li class="breadcrumb-item"><a href="<?php echo BASE_URL; ?>hindi/" class="text-white-50 text-decoration-none">होम</a></li>
                     <li class="breadcrumb-item"><a href="blocks" class="text-white-50 text-decoration-none">प्रखंड</a></li>
                     <li class="breadcrumb-item"><a href="block/<?php echo urlencode($panchayat['block_slug']); ?>" class="text-white-50 text-decoration-none"><?php echo sanitizeInput($bName); ?></a></li>
                     <li class="breadcrumb-item active text-warning fw-semibold" aria-current="page"><?php echo sanitizeInput($pName); ?></li>

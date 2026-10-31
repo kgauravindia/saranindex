@@ -134,32 +134,59 @@ require_once dirname(__DIR__) . '/includes/header.php';
 }
 </style>
 
-<!-- JSON-LD Article Schema for SEO -->
+<!-- JSON-LD Article & Breadcrumb Schema for SEO -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": <?php echo json_encode($blog['title']); ?>,
-  "description": <?php echo json_encode($meta_description); ?>,
-  "image": <?php echo json_encode($og_image); ?>,
-  "author": {
-    "@type": "Person",
-    "name": <?php echo json_encode($blog['author'] ?? 'Saran Index Editorial'); ?>
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Saran Index",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "<?php echo defined('BASE_URL') ? BASE_URL : 'https://saranindex.com/'; ?>assets/logo.png"
+  "@graph": [
+    {
+      "@type": "BlogPosting",
+      "headline": <?php echo json_encode($blog['title']); ?>,
+      "description": <?php echo json_encode($meta_description); ?>,
+      "image": <?php echo json_encode($og_image); ?>,
+      "author": {
+        "@type": "Person",
+        "name": <?php echo json_encode($blog['author'] ?? 'Saran Index Editorial'); ?>
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Saran Index",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "<?php echo defined('BASE_URL') ? BASE_URL : 'https://saranindex.com/'; ?>assets/logo.png"
+        }
+      },
+      "datePublished": "<?php echo date('c', strtotime($blog['published_at'] ?? $blog['created_at'])); ?>",
+      "dateModified": "<?php echo date('c', strtotime($blog['updated_at'] ?? $blog['created_at'])); ?>",
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": <?php echo json_encode($canonical_url); ?>
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://saranindex.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Blog & Guides",
+          "item": "https://saranindex.com/blog/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": <?php echo json_encode($blog['title']); ?>,
+          "item": <?php echo json_encode($canonical_url); ?>
+        }
+      ]
     }
-  },
-  "datePublished": "<?php echo date('c', strtotime($blog['published_at'] ?? $blog['created_at'])); ?>",
-  "dateModified": "<?php echo date('c', strtotime($blog['updated_at'] ?? $blog['created_at'])); ?>",
-  "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": <?php echo json_encode($canonical_url); ?>
-  }
+  ]
 }
 </script>
 

@@ -53,11 +53,38 @@ $saran_pins = [
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "PostalAddress",
-  "postalCode": "<?php echo htmlspecialchars($code); ?>",
-  "addressLocality": "<?php echo htmlspecialchars($district_name); ?>",
-  "addressRegion": "<?php echo htmlspecialchars($state_name); ?>",
-  "addressCountry": "IN"
+  "@graph": [
+    {
+      "@type": "PostalAddress",
+      "postalCode": "<?php echo htmlspecialchars($code); ?>",
+      "addressLocality": "<?php echo htmlspecialchars($district_name); ?>",
+      "addressRegion": "<?php echo htmlspecialchars($state_name); ?>",
+      "addressCountry": "IN"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "होम",
+          "item": "https://saranindex.com/hindi/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "डाक निर्देशिका",
+          "item": "https://saranindex.com/hindi/pincode.php"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": <?php echo json_encode("पिन " . $code); ?>,
+          "item": <?php echo json_encode(getSiteCanonicalUrl('pincode.php?code=' . $code, true)); ?>
+        }
+      ]
+    }
+  ]
 }
 </script>
 
@@ -68,7 +95,7 @@ $saran_pins = [
         <nav aria-label="breadcrumb" class="mb-3">
             <ol class="breadcrumb mb-0 small text-white-50">
                 <li class="breadcrumb-item"><a href="<?php echo BASE_URL; ?>hindi/" class="text-white-50 text-decoration-none"><i class="bi bi-house-door me-1"></i>होम</a></li>
-                <li class="breadcrumb-item text-white-50">डाक निर्देशिका</li>
+                <li class="breadcrumb-item"><a href="pincode.php" class="text-white-50 text-decoration-none">डाक निर्देशिका</a></li>
                 <li class="breadcrumb-item active text-warning fw-semibold" aria-current="page">पिन <?php echo htmlspecialchars($code); ?></li>
             </ol>
         </nav>
