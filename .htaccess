@@ -22,11 +22,11 @@ ErrorDocument 500 /404.php
 
     # 3. Canonical Clean URLs for Core Pages (/about.php -> /about) - GET requests only
     RewriteCond %{REQUEST_METHOD} =GET
-    RewriteCond %{THE_REQUEST} ^GET\ /(about|contact|terms|privacy-policy|refund-policy|pricing|sources|emergency|health|history|river|nahar|university|today|categories|add-contact|add-listing|login|register|forgot-password|dashboard|my-listings|pay|search|search-names|names|bus)\.php[?\s] [NC]
+    RewriteCond %{THE_REQUEST} ^GET\ /(about|contact|terms|privacy-policy|refund-policy|pricing|sources|emergency|health|history|river|nahar|electricity|university|today|categories|add-contact|add-listing|login|register|forgot-password|dashboard|my-listings|pay|search|search-names|names|bus)\.php[?\s] [NC]
     RewriteRule ^([a-zA-Z0-9_-]+)\.php$ $1 [R=301,L]
 
     RewriteCond %{REQUEST_METHOD} =GET
-    RewriteCond %{THE_REQUEST} ^GET\ /hindi/(about|contact|terms|privacy-policy|refund-policy|pricing|sources|emergency|health|history|river|nahar|university|today|categories|add-contact|add-listing|login|register|dashboard|search|search-names|names|bus)\.php[?\s] [NC]
+    RewriteCond %{THE_REQUEST} ^GET\ /hindi/(about|contact|terms|privacy-policy|refund-policy|pricing|sources|emergency|health|history|river|nahar|electricity|university|today|categories|add-contact|add-listing|login|register|dashboard|search|search-names|names|bus)\.php[?\s] [NC]
     RewriteRule ^hindi/([a-zA-Z0-9_-]+)\.php$ hindi/$1 [R=301,L]
 
     # Friendly Bus Directory Rewrites
@@ -86,6 +86,12 @@ ErrorDocument 500 /404.php
     RewriteRule ^river/?$ river.php [L,QSA]
     RewriteRule ^nahar/?$ nahar.php [L,QSA]
     RewriteRule ^canals?/?$ nahar.php [L,QSA]
+    RewriteRule ^electricity/?$ electricity.php [L,QSA]
+    RewriteRule ^nbpdcl/?$ electricity.php [L,QSA]
+    RewriteRule ^bijli/?$ electricity.php [L,QSA]
+    RewriteRule ^hindi/electricity/?$ hindi/electricity.php [L,QSA]
+    RewriteRule ^hindi/nbpdcl/?$ hindi/electricity.php [L,QSA]
+    RewriteRule ^hindi/bijli/?$ hindi/electricity.php [L,QSA]
     RewriteRule ^add-listing/?$ add-contact.php [L,QSA]
     RewriteRule ^add-contact/?$ add-contact.php [L,QSA]
     RewriteRule ^about/?$ about.php [L,QSA]

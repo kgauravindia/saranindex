@@ -112,6 +112,9 @@ $social_wa = defined('SOCIAL_WHATSAPP') ? SOCIAL_WHATSAPP : 'https://whatsapp.co
                     <a href="emergency" class="footer-link">
                         <i class="bi bi-telephone-fill text-warning me-1"></i> Helplines
                     </a>
+                    <a href="electricity" class="footer-link">
+                        <i class="bi bi-lightning-charge-fill text-warning me-1"></i> Electricity (NBPDCL)
+                    </a>
                     <a href="pricing" class="footer-link">
                         <i class="bi bi-star-fill text-warning me-1"></i> Verified Plans
                     </a>
