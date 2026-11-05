@@ -64,4 +64,8 @@ define('SOCIAL_TELEGRAM', 'https://t.me/saranindex');
 // Online to Offline Data Sync Settings
 define('SYNC_SECRET_KEY', getenv('SYNC_SECRET_KEY') ?: 'SI_SYNC_KEY_2026_offerplant_secure_token');
 define('REMOTE_LIVE_URL', getenv('REMOTE_LIVE_URL') ?: 'https://saranindex.com/');
+
+// OLAW Postal & Banking API Settings (Pincode / IFSC)
+define('OLAW_API_KEY', getenv('OLAW_API_KEY') ?: 'OLAW_0027B26F114E93B918C1');
+define('OLAW_API_URL', getenv('OLAW_API_URL') ?: 'https://olaw.in/api.php');
 ?>

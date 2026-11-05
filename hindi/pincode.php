@@ -102,9 +102,14 @@ $saran_pins = [
 
         <div class="row align-items-center g-4">
             <div class="col-lg-8">
-                <div class="d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-pill bg-warning text-dark fw-bold small mb-3 shadow-sm">
-                    <i class="bi bi-mailbox2-flag fs-6"></i>
-                    <span>आधिकारिक भारतीय पिन कोड निर्देशिका</span>
+                <div class="d-flex align-items-center gap-2 flex-wrap mb-3">
+                    <span class="d-inline-flex align-items-center gap-1.5 px-3 py-1.5 rounded-pill bg-warning text-dark fw-bold small shadow-sm">
+                        <i class="bi bi-mailbox2-flag fs-6"></i>
+                        <span>आधिकारिक भारतीय पिन कोड निर्देशिका</span>
+                    </span>
+                    <a href="hindi/ifsc.php" class="btn btn-outline-light btn-sm rounded-pill fw-semibold" style="font-size: 0.8rem;">
+                        <i class="bi bi-bank2 me-1"></i> बैंक आईएफएससी (IFSC) खोजें
+                    </a>
                 </div>
                 <h1 class="fw-bolder font-heading text-white display-5 mb-2">
                     पिन कोड: <span class="text-warning font-monospace"><?php echo htmlspecialchars($code); ?></span>

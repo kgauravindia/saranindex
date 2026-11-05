@@ -6133,7 +6133,7 @@ function lookupPincodeApi($pincode) {
         return ['success' => false, 'message' => 'PIN code must be exactly 6 digits.'];
     }
 
-    $apiKey = defined('OLAW_API_KEY') ? OLAW_API_KEY : 'OLAW_918271E7416CEB78F1A5';
+    $apiKey = defined('OLAW_API_KEY') ? OLAW_API_KEY : 'OLAW_0027B26F114E93B918C1';
     $apiUrl = defined('OLAW_API_URL') ? OLAW_API_URL : 'https://olaw.in/api.php';
     $endpoint = $apiUrl . '?action=pincode&pincode=' . urlencode($cleanPin) . '&api_key=' . urlencode($apiKey);
 
@@ -6214,7 +6214,7 @@ function lookupIfscApi($ifsc) {
         return ['success' => false, 'message' => 'IFSC code must be exactly 11 alphanumeric characters.'];
     }
 
-    $apiKey = defined('OLAW_API_KEY') ? OLAW_API_KEY : 'OLAW_918271E7416CEB78F1A5';
+    $apiKey = defined('OLAW_API_KEY') ? OLAW_API_KEY : 'OLAW_0027B26F114E93B918C1';
     $apiUrl = defined('OLAW_API_URL') ? OLAW_API_URL : 'https://olaw.in/api.php';
     $endpoint = $apiUrl . '?action=bank-ifsc&ifsc=' . urlencode($cleanIfsc) . '&api_key=' . urlencode($apiKey);
 

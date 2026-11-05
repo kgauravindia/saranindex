@@ -130,6 +130,7 @@ $social_wa = defined('SOCIAL_WHATSAPP') ? SOCIAL_WHATSAPP : 'https://whatsapp.co
                     <li><a href="search-names" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> People Directory</a></li>
                     <li><a href="blocks" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> All 20 Blocks</a></li>
                     <li><a href="pincode.php" class="footer-link"><i class="bi bi-mailbox2 text-warning"></i> PIN Codes</a></li>
+                    <li><a href="ifsc.php" class="footer-link"><i class="bi bi-bank2 text-warning"></i> Bank IFSC Search</a></li>
                     <li><a href="categories" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> All Categories</a></li>
                     <li><a href="business/" class="footer-link"><i class="bi bi-lightbulb-fill text-warning"></i> 90 Business Tips</a></li>
                     <li><a href="blog/" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> Blog & Guides</a></li>
