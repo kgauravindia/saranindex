@@ -300,9 +300,14 @@ require_once __DIR__ . '/includes/header.php';
             <h5 class="fw-bold text-dark mb-0 font-heading">
                 <i class="bi bi-building-fill-gear text-warning me-2 fs-4"></i> जिला प्रशासन एवं अग्निशमन (District Admin & Fire)
             </h5>
-            <span class="badge bg-warning-subtle text-dark rounded-pill px-3 py-1 fs-7 fw-bold">
-                प्रशासनिक कंट्रोल रूम
-            </span>
+            <div class="d-flex gap-2 align-items-center">
+                <a href="whos-who" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold">
+                    <i class="bi bi-people-fill me-1"></i> पूरी अधिकारी निर्देशिका (Who's Who)
+                </a>
+                <span class="badge bg-warning-subtle text-dark rounded-pill px-3 py-1 fs-7 fw-bold d-none d-sm-inline-block">
+                    प्रशासनिक नियंत्रण कक्ष
+                </span>
+            </div>
         </div>
 
         <div class="row g-3">
@@ -310,15 +315,33 @@ require_once __DIR__ . '/includes/header.php';
                 <div class="p-3 border rounded-3 bg-light hover-shadow transition-all h-100 d-flex flex-column justify-content-between">
                     <div>
                         <div class="d-flex align-items-center justify-content-between mb-1">
-                            <h6 class="fw-bold text-dark mb-0">डीएम सारण नियंत्रण कक्ष (DM Saran Control Room)</h6>
+                            <h6 class="fw-bold text-dark mb-0">डीएम सारण (समाहरणालय कार्यालय)</h6>
                             <span class="badge bg-primary text-white fs-7 rounded-pill">डीएम कार्यालय</span>
                         </div>
                         <p class="text-muted fs-7 mb-2"><i class="bi bi-geo-alt me-1 text-primary"></i> समाहरणालय परिसर, कचहरी चौक, छपरा</p>
                     </div>
                     <div class="d-flex align-items-center justify-content-between pt-2 border-top">
-                        <span class="fw-bold text-dark fs-6">06152-245001</span>
-                        <a href="tel:06152245001" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold">
-                            <i class="bi bi-telephone-fill me-1"></i> डीएम कंट्रोल कॉल करें
+                        <span class="fw-bold text-dark fs-6">06152-240001 / 245001</span>
+                        <a href="tel:06152240001" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold">
+                            <i class="bi bi-telephone-fill me-1"></i> डीएम कार्यालय कॉल करें
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="p-3 border rounded-3 bg-light hover-shadow transition-all h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <h6 class="fw-bold text-dark mb-0">वरीय पुलिस अधीक्षक (SSP सारण)</h6>
+                            <span class="badge bg-danger text-white fs-7 rounded-pill">एसएसपी कार्यालय</span>
+                        </div>
+                        <p class="text-muted fs-7 mb-2"><i class="bi bi-geo-alt me-1 text-danger"></i> पुलिस अधीक्षक कार्यालय, समाहरणालय परिसर, छपरा</p>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+                        <span class="fw-bold text-dark fs-6">9031827135 / 06152-232307</span>
+                        <a href="tel:9031827135" class="btn btn-danger btn-sm rounded-pill px-3 fw-bold">
+                            <i class="bi bi-telephone-fill me-1"></i> एसएसपी कार्यालय कॉल करें
                         </a>
                     </div>
                 </div>
@@ -373,6 +396,24 @@ require_once __DIR__ . '/includes/header.php';
                         <span class="fw-bold text-dark fs-6">06152-242401</span>
                         <a href="tel:06152242401" class="btn btn-secondary btn-sm rounded-pill px-3 fw-bold">
                             <i class="bi bi-telephone-fill me-1"></i> एसडीएम कार्यालय कॉल करें
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="p-3 border rounded-3 bg-light hover-shadow transition-all h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <h6 class="fw-bold text-dark mb-0">उप विकास आयुक्त (DDC सारण)</h6>
+                            <span class="badge bg-success text-white fs-7 rounded-pill">डीडीसी कार्यालय</span>
+                        </div>
+                        <p class="text-muted fs-7 mb-2"><i class="bi bi-geo-alt me-1 text-success"></i> उप विकास आयुक्त कार्यालय, समाहरणालय, छपरा</p>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+                        <span class="fw-bold text-dark fs-6">9031071904</span>
+                        <a href="tel:9031071904" class="btn btn-success btn-sm rounded-pill px-3 fw-bold">
+                            <i class="bi bi-telephone-fill me-1"></i> डीडीसी कार्यालय कॉल करें
                         </a>
                     </div>
                 </div>

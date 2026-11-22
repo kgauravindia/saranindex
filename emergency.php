@@ -296,9 +296,14 @@ require_once __DIR__ . '/includes/header.php';
             <h5 class="fw-bold text-dark mb-0 font-heading">
                 <i class="bi bi-building-fill-gear text-warning me-2 fs-4"></i> District Administration & Fire Station
             </h5>
-            <span class="badge bg-warning-subtle text-dark rounded-pill px-3 py-1 fs-7 fw-bold">
-                Admin Control Rooms
-            </span>
+            <div class="d-flex gap-2 align-items-center">
+                <a href="whos-who" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold">
+                    <i class="bi bi-people-fill me-1"></i> Full Who's Who Directory
+                </a>
+                <span class="badge bg-warning-subtle text-dark rounded-pill px-3 py-1 fs-7 fw-bold d-none d-sm-inline-block">
+                    Admin Control
+                </span>
+            </div>
         </div>
 
         <div class="row g-3">
@@ -306,15 +311,33 @@ require_once __DIR__ . '/includes/header.php';
                 <div class="p-3 border rounded-3 bg-light hover-shadow transition-all h-100 d-flex flex-column justify-content-between">
                     <div>
                         <div class="d-flex align-items-center justify-content-between mb-1">
-                            <h6 class="fw-bold text-dark mb-0">DM Saran Control Room</h6>
+                            <h6 class="fw-bold text-dark mb-0">DM Saran (Collectorate Office)</h6>
                             <span class="badge bg-primary text-white fs-7 rounded-pill">DM Office</span>
                         </div>
                         <p class="text-muted fs-7 mb-2"><i class="bi bi-geo-alt me-1 text-primary"></i> Collectorate Campus, Katchahry Chowk, Chapra</p>
                     </div>
                     <div class="d-flex align-items-center justify-content-between pt-2 border-top">
-                        <span class="fw-bold text-dark fs-6">06152-245001</span>
-                        <a href="tel:06152245001" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold">
-                            <i class="bi bi-telephone-fill me-1"></i> Call DM Control
+                        <span class="fw-bold text-dark fs-6">06152-240001 / 245001</span>
+                        <a href="tel:06152240001" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold">
+                            <i class="bi bi-telephone-fill me-1"></i> Call DM Office
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="p-3 border rounded-3 bg-light hover-shadow transition-all h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <h6 class="fw-bold text-dark mb-0">Senior SP Saran (District Police)</h6>
+                            <span class="badge bg-danger text-white fs-7 rounded-pill">SSP Office</span>
+                        </div>
+                        <p class="text-muted fs-7 mb-2"><i class="bi bi-geo-alt me-1 text-danger"></i> SP Office, Collectorate Campus, Chapra</p>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+                        <span class="fw-bold text-dark fs-6">9031827135 / 06152-232307</span>
+                        <a href="tel:9031827135" class="btn btn-danger btn-sm rounded-pill px-3 fw-bold">
+                            <i class="bi bi-telephone-fill me-1"></i> Call SSP Office
                         </a>
                     </div>
                 </div>
@@ -369,6 +392,24 @@ require_once __DIR__ . '/includes/header.php';
                         <span class="fw-bold text-dark fs-6">06152-242401</span>
                         <a href="tel:06152242401" class="btn btn-secondary btn-sm rounded-pill px-3 fw-bold">
                             <i class="bi bi-telephone-fill me-1"></i> Call SDM Office
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="p-3 border rounded-3 bg-light hover-shadow transition-all h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <h6 class="fw-bold text-dark mb-0">DDC Saran (Rural Development)</h6>
+                            <span class="badge bg-success text-white fs-7 rounded-pill">DDC Office</span>
+                        </div>
+                        <p class="text-muted fs-7 mb-2"><i class="bi bi-geo-alt me-1 text-success"></i> Deputy Development Commissioner, Collectorate, Chapra</p>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+                        <span class="fw-bold text-dark fs-6">9031071904</span>
+                        <a href="tel:9031071904" class="btn btn-success btn-sm rounded-pill px-3 fw-bold">
+                            <i class="bi bi-telephone-fill me-1"></i> Call DDC Office
                         </a>
                     </div>
                 </div>

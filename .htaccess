@@ -22,11 +22,11 @@ ErrorDocument 500 /404.php
 
     # 3. Canonical Clean URLs for Core Pages (/about.php -> /about) - GET requests only
     RewriteCond %{REQUEST_METHOD} =GET
-    RewriteCond %{THE_REQUEST} ^GET\ /(about|contact|terms|privacy-policy|refund-policy|pricing|sources|emergency|health|history|river|nahar|electricity|university|today|categories|add-contact|add-listing|login|register|forgot-password|dashboard|my-listings|pay|search|search-names|names|bus|ifsc|sonpur-mela|sonepur-mela)\.php[?\s] [NC]
+    RewriteCond %{THE_REQUEST} ^GET\ /(about|contact|terms|privacy-policy|refund-policy|pricing|sources|emergency|health|history|river|nahar|electricity|university|today|categories|add-contact|add-listing|login|register|forgot-password|dashboard|my-listings|pay|search|search-names|names|bus|ifsc|sonpur-mela|sonepur-mela|whos-who|who-is-who|whoswho)\.php[?\s] [NC]
     RewriteRule ^([a-zA-Z0-9_-]+)\.php$ $1 [R=301,L]
 
     RewriteCond %{REQUEST_METHOD} =GET
-    RewriteCond %{THE_REQUEST} ^GET\ /hindi/(about|contact|terms|privacy-policy|refund-policy|pricing|sources|emergency|health|history|river|nahar|electricity|university|today|categories|add-contact|add-listing|login|register|dashboard|search|search-names|names|bus|ifsc|sonpur-mela|sonepur-mela)\.php[?\s] [NC]
+    RewriteCond %{THE_REQUEST} ^GET\ /hindi/(about|contact|terms|privacy-policy|refund-policy|pricing|sources|emergency|health|history|river|nahar|electricity|university|today|categories|add-contact|add-listing|login|register|dashboard|search|search-names|names|bus|ifsc|sonpur-mela|sonepur-mela|whos-who|who-is-who|whoswho)\.php[?\s] [NC]
     RewriteRule ^hindi/([a-zA-Z0-9_-]+)\.php$ hindi/$1 [R=301,L]
 
     # Friendly Bus Directory Rewrites
@@ -84,6 +84,12 @@ ErrorDocument 500 /404.php
     RewriteRule ^data-sources/?$ sources.php [L,QSA]
     RewriteRule ^today/?$ today.php [L,QSA]
     RewriteRule ^hindi/today/?$ hindi/today.php [L,QSA]
+    RewriteRule ^whos-who/?$ whos-who.php [L,QSA]
+    RewriteRule ^who-is-who/?$ whos-who.php [L,QSA]
+    RewriteRule ^whoswho/?$ whos-who.php [L,QSA]
+    RewriteRule ^hindi/whos-who/?$ hindi/whos-who.php [L,QSA]
+    RewriteRule ^hindi/who-is-who/?$ hindi/whos-who.php [L,QSA]
+    RewriteRule ^hindi/whoswho/?$ hindi/whos-who.php [L,QSA]
     RewriteRule ^emergency/?$ emergency.php [L,QSA]
     RewriteRule ^history/?$ history.php [L,QSA]
     RewriteRule ^rivers/?$ river.php [L,QSA]

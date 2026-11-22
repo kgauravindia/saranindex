@@ -329,6 +329,26 @@ if (empty($top_categories)) {
                 </div>
             </div>
         </div>
+
+        <!-- Who's Who Official District Administration Showcase Banner -->
+        <div class="card border-0 rounded-4 shadow-sm mt-4 p-4 text-white overflow-hidden position-relative" style="background: linear-gradient(135deg, #091e3a 0%, #103766 100%);">
+            <div class="row align-items-center position-relative z-1">
+                <div class="col-lg-8 mb-3 mb-lg-0">
+                    <span class="badge bg-warning text-dark fw-bold rounded-pill px-3 py-1 mb-2">
+                        <i class="bi bi-patch-check-fill me-1"></i>Official Officers Directory
+                    </span>
+                    <h3 class="fw-bold font-heading text-white mb-1 fs-4">Who's Who in Saran District Administration</h3>
+                    <p class="text-white-50 small mb-0">
+                        Official contact registry of District Magistrate (DM) Shri Vaibhava Srivastava IAS, Senior SP Shri Roshan Kumar IPS, DDC Shri Laxman Tiwari IAS, SDOs, BDOs, COs, and Department Heads from saran.nic.in.
+                    </p>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <a href="whos-who" class="btn btn-warning text-dark fw-bold rounded-pill px-4 py-2 shadow-sm">
+                        <i class="bi bi-people-fill me-1"></i> Explore Who's Who <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 </section>
 
