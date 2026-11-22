@@ -944,7 +944,7 @@ require_once __DIR__ . '/includes/header.php';
                     <h5 class="fw-bold text-dark font-heading mb-1 fs-5">आज</h5>
                     <div class="text-muted extra-small mb-2">Aaj Daily (छपरा संस्करण)</div>
                     <p class="text-secondary extra-small mb-3">Historic Hindi publication known for traditional Bhojpuri region reporting & local public issues.</p>
-                    <a href="http://ajhindidaily.com/%E0%A4%88-%E0%A4%AA%E0%A5%87%E0%A4%AA%E0%A4%B0" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary btn-sm w-100 rounded-pill fw-bold mt-auto">
+                    <a href="https://ajhindidaily.com/e-paper/<?php echo date('Y-m-d'); ?>/patna-3-charpa-3108" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary btn-sm w-100 rounded-pill fw-bold mt-auto">
                         <i class="bi bi-book-half me-1"></i> Read Aaj Daily →
                     </a>
                 </div>

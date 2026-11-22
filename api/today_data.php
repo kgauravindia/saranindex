@@ -259,7 +259,7 @@ $epapers = [
         'language' => 'Hindi',
         'tag' => 'Heritage',
         'color' => '#b91c1c',
-        'url' => 'http://ajhindidaily.com/%E0%A4%88-%E0%A4%AA%E0%A5%87%E0%A4%AA%E0%A4%B0'
+        'url' => 'https://ajhindidaily.com/e-paper/' . $now->format('Y-m-d') . '/patna-3-charpa-3108'
     ],
     [
         'name' => 'Aaj Tak',
