@@ -117,6 +117,9 @@ require_once __DIR__ . '/includes/header.php';
                         <i class="bi bi-fire fs-6"></i>
                         <span>एशिया का सबसे बड़ा ऐतिहासिक मेला • श्री हरिहर क्षेत्र</span>
                     </span>
+                    <a href="https://saran.nic.in/festival/sonepur-mela/" target="_blank" rel="noopener" class="badge bg-danger text-white rounded-pill px-3 py-1.5 small fw-semibold text-decoration-none shadow-xs">
+                        <i class="bi bi-patch-check-fill me-1"></i> आधिकारिक संदर्भ: saran.nic.in
+                    </a>
                     <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1.5 small fw-semibold">
                         <i class="bi bi-geo-alt-fill text-warning me-1"></i> सोनपुर, सारण (बिहार)
                     </span>
@@ -234,6 +237,36 @@ require_once __DIR__ . '/includes/header.php';
         </div>
     </div>
 
+    <!-- आधिकारिक प्रशासनिक व्यवस्था (सारण जिला प्रशासन - saran.nic.in) -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-5 bg-white border-start border-5 border-danger">
+        <div class="row align-items-center g-3">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge bg-danger text-white fw-bold px-2.5 py-1 rounded-pill small">
+                        <i class="bi bi-bank me-1"></i> आधिकारिक प्रशासनिक व्यवस्था
+                    </span>
+                    <span class="text-muted small fw-semibold">सारण जिला प्रशासन (बिहार सरकार / NIC)</span>
+                </div>
+                <h4 class="fw-bold font-heading text-dark mb-2">
+                    आधिकारिक संदर्भ: सारण जिला प्रशासन पोर्टल (<a href="https://saran.nic.in/festival/sonepur-mela/" target="_blank" rel="noopener" class="text-primary text-decoration-none">saran.nic.in</a>)
+                </h4>
+                <p class="text-secondary small mb-0 leading-relaxed">
+                    <strong>जिलाधिकारी एवं समाहर्ता, सारण</strong> तथा <strong>पुलिस अधीक्षक, सारण</strong> के प्रशासनिक नेतृत्व में मेला क्षेत्र को सुदृढ़ सुरक्षा चक्र में विभाजित किया जाता है। केंद्रीय कैंप कार्यालय, अनुमंडल पदाधिकारी (एसडीओ) सोनपुर, सेक्टर मजिस्ट्रेट, सैरात भूमि आवंटन, स्वच्छ पेयजल-शौचालय ग्रिड, 24 घंटे सक्रिय खोया-पाया केंद्र एवं एसडीआरएफ/एनडीआरएफ की जल सुरक्षा टुकड़ियों द्वारा पूर्ण व्यवस्था संचालित की जाती है।
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end text-start">
+                <div class="d-flex flex-column gap-2">
+                    <a href="https://saran.nic.in/festival/sonepur-mela/" target="_blank" rel="noopener" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-2 fw-bold d-inline-flex align-items-center justify-content-center gap-1.5 shadow-xs">
+                        <i class="bi bi-box-arrow-up-right"></i> saran.nic.in मेला पोर्टल
+                    </a>
+                    <a href="https://saran.nic.in/tourism/places-of-interest/" target="_blank" rel="noopener" class="btn btn-light btn-sm rounded-pill px-3 py-2 fw-semibold border d-inline-flex align-items-center justify-content-center gap-1.5">
+                        <i class="bi bi-geo-alt-fill text-danger"></i> NIC पर्यटन स्थल
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- पौराणिक एवं ऐतिहासिक महत्व -->
     <div class="row g-4 align-items-center mb-5 pb-3">
         <div class="col-lg-7">
@@ -273,13 +306,13 @@ require_once __DIR__ . '/includes/header.php';
                     </div>
                     <div class="border-start border-2 border-warning ps-3 pb-3 position-relative">
                         <span class="position-absolute top-0 start-0 translate-middle bg-warning rounded-circle" style="width: 12px; height: 12px;"></span>
-                        <div class="fw-bold text-dark small">मुगल काल (16वीं–17वीं शताब्दी)</div>
-                        <p class="text-muted small mb-0">मुगल बादशाह अकबर और उनके सूबेदार सोनपुर में शाही अस्तबल के लिए बेहतरीन नस्ल के घोड़ों और हाथियों का व्यापार करवाते थे।</p>
+                        <div class="fw-bold text-dark small">मुगल काल एवं औरंगजेब द्वारा मेला स्थानांतरण (saran.nic.in अभिलेख)</div>
+                        <p class="text-muted small mb-0">सारण जिला प्रशासन के आधिकारिक अभिलेख के अनुसार, यह मेला पूर्व में गंडक पार हाजीपुर में आयोजित होता था जहाँ श्रद्धालु केवल पूजा के लिए सोनपुर आते थे। मुगल बादशाह औरंगजेब के शासनकाल में इस मेले को औपचारिक व स्थायी रूप से सोनपुर में स्थानांतरित कर दिया गया।</p>
                     </div>
                     <div class="border-start border-2 border-success ps-3 pb-3 position-relative">
                         <span class="position-absolute top-0 start-0 translate-middle bg-success rounded-circle" style="width: 12px; height: 12px;"></span>
-                        <div class="fw-bold text-dark small">राजा रामनारायण द्वारा मंदिर निर्माण (18वीं सदी)</div>
-                        <p class="text-muted small mb-0">बिहार के तत्कालीन नायब नाजिम राजा रामनारायण ने बाबा हरिहरनाथ के भव्य आधुनिक मंदिर का जीर्णोद्धार करवाया।</p>
+                        <div class="fw-bold text-dark small">राजा रामनारायण द्वारा मंदिर निर्माण एवं हथुआ/बिड़ला ट्रस्ट का योगदान (18वीं सदी)</div>
+                        <p class="text-muted small mb-0">बिहार के तत्कालीन नायब नाजिम राजा रामनारायण ने बाबा हरिहरनाथ मंदिर का भव्य पाषाण गर्भगृह बनवाया, जिसके उपरांत हथुआ महाराज एवं बिड़ला ट्रस्ट द्वारा धर्मशालाओं व मंदिर परिसर का ऐतिहासिक विस्तार किया गया।</p>
                     </div>
                     <div class="ps-3 position-relative">
                         <span class="position-absolute top-0 start-0 translate-middle bg-info rounded-circle" style="width: 12px; height: 12px;"></span>
@@ -358,12 +391,12 @@ require_once __DIR__ . '/includes/header.php';
                     </div>
                     <h5 class="fw-bold font-heading text-dark mb-2">मुख्य सांस्कृतिक मंच व प्रस्तुतियां</h5>
                     <p class="text-muted small mb-3">
-                        कला, संस्कृति एवं युवा विभाग तथा बिहार पर्यटन द्वारा मुख्य पंडाल में प्रतिदिन संध्या को नामचीन गायकों, लोकनृत्य कलाकारों, नाटकों और राष्ट्रीय कवि सम्मेलनों का आयोजन होता है।
+                        कला, संस्कृति एवं युवा विभाग, बिहार पर्यटन तथा सारण जिला प्रशासन द्वारा मुख्य पंडाल में भव्य 'हरिहर महोत्सव', राज्यस्तरीय 'सोनपुर आइडल' गायन प्रतियोगिता, परंपरागत दंगल (कुश्ती), नौका दौड़ एवं राष्ट्रीय कवि सम्मेलनों का आयोजन होता है।
                     </p>
                     <ul class="list-unstyled small text-secondary mb-0">
-                        <li><i class="bi bi-check-circle-fill text-success me-1.5"></i> भोजपुरी लोकगीत, निर्गुण व बिरहा गायन</li>
-                        <li><i class="bi bi-check-circle-fill text-success me-1.5"></i> शास्त्रीय संगीत, कथक व लोकनृत्य</li>
-                        <li><i class="bi bi-check-circle-fill text-success me-1.5"></i> अखिल भारतीय कवि सम्मेलन एवं मुशायरा</li>
+                        <li><i class="bi bi-check-circle-fill text-success me-1.5"></i> सारण जिला प्रशासन का 'हरिहर महोत्सव' एवं सांस्कृतिक संध्या</li>
+                        <li><i class="bi bi-check-circle-fill text-success me-1.5"></i> बिहार राज्यस्तरीय 'सोनपुर आइडल' प्रतिभा गायन मंच</li>
+                        <li><i class="bi bi-check-circle-fill text-success me-1.5"></i> परंपरागत कुश्ती (दंगल) एवं गंडक नौकायन प्रतियोगिता</li>
                     </ul>
                 </div>
             </div>
@@ -457,7 +490,7 @@ require_once __DIR__ . '/includes/header.php';
                                 <h5 class="fw-bold font-heading mb-0 text-dark">रेल मार्ग से</h5>
                             </div>
                             <p class="text-muted small mb-2">
-                                <strong>सोनपुर जंक्शन (स्टेशन कोड: SEE)</strong> पूर्व मध्य रेल (ECR) का ए-ग्रेड मंडल मुख्यालय है।
+                                <strong>सोनपुर जंक्शन (स्टेशन कोड: SEE)</strong> पूर्व मध्य रेल (ECR) का ए-ग्रेड मंडल मुख्यालय है जो मंदिर से मात्र ~2 किमी दूर है और यहाँ भारत के सबसे लंबे रेलवे प्लेटफार्मों में से एक (~736 मीटर / 2,415 फीट) स्थित है।
                             </p>
                             <ul class="list-unstyled small text-secondary mb-0">
                                 <li class="mb-1"><i class="bi bi-arrow-right-short text-primary"></i> दिल्ली, कोलकाता, मुंबई, गुवाहाटी, लखनऊ से सीधी सुपरफास्ट ट्रेनें।</li>
@@ -471,13 +504,14 @@ require_once __DIR__ . '/includes/header.php';
                         <div class="p-3.5 rounded-4 bg-light border h-100">
                             <div class="d-flex align-items-center gap-2 mb-2 text-success">
                                 <i class="bi bi-car-front-fill fs-3"></i>
-                                <h5 class="fw-bold font-heading mb-0 text-dark">सड़क मार्ग से</h5>
+                                <h5 class="fw-bold font-heading mb-0 text-dark">सड़क एवं हवाई मार्ग</h5>
                             </div>
                             <p class="text-muted small mb-2">
                                 नदीय पुलों और राष्ट्रीय राजमार्गों से सुगम फोर-लेन संपर्क:
                             </p>
                             <ul class="list-unstyled small text-secondary mb-0">
-                                <li class="mb-1"><i class="bi bi-arrow-right-short text-success"></i> <strong>पटना से (15 किमी)</strong>: दीघा-सोनपुर जेपी सेतु पार कर मात्र 20 से 25 मिनट में पहुंचे।</li>
+                                <li class="mb-1"><i class="bi bi-arrow-right-short text-success"></i> <strong>पटना हवाई अड्डा (PAT) (~25 किमी)</strong>: जयप्रकाश नारायण एयरपोर्ट से जेपी सेतु मार्ग द्वारा 30-35 मिनट में पहुंचे।</li>
+                                <li class="mb-1"><i class="bi bi-arrow-right-short text-success"></i> <strong>पटना शहर से (15 किमी)</strong>: दीघा-सोनपुर जेपी सेतु पार कर मात्र 20 से 25 मिनट में पहुंचे।</li>
                                 <li class="mb-1"><i class="bi bi-arrow-right-short text-success"></i> <strong>छपरा से (45 किमी)</strong>: एनएच-19 एक्सप्रेसवे द्वारा गरखा व दिघवारा होते हुए सोनपुर।</li>
                                 <li><i class="bi bi-arrow-right-short text-success"></i> नखास एवं बाजितपुर में जिला प्रशासन द्वारा विशाल सुसज्जित पार्किंग स्थल।</li>
                             </ul>
@@ -537,7 +571,7 @@ require_once __DIR__ . '/includes/header.php';
                     <div class="text-primary fs-2 mb-1"><i class="bi bi-headset"></i></div>
                     <h6 class="fw-bold text-dark mb-1">मेला केंद्रीय नियंत्रण कक्ष</h6>
                     <div class="fs-5 fw-bold text-primary font-monospace mb-1">06158-222201</div>
-                    <small class="text-muted d-block mb-2">जिलाधिकारी व पुलिस अधीक्षक कैंप कार्यालय</small>
+                    <small class="text-muted d-block mb-2">केंद्रीय कैंप कार्यालय सोनपुर (NIC सारण)</small>
                     <a href="tel:06158222201" class="btn btn-primary btn-sm w-100 rounded-pill fw-bold">कंट्रोल रूम कॉल करें</a>
                 </div>
             </div>
@@ -559,6 +593,59 @@ require_once __DIR__ . '/includes/header.php';
                     <div class="display-6 fw-bold text-dark font-monospace mb-1">1912</div>
                     <small class="text-muted d-block mb-2">सोनपुर विद्युत प्रशाखा: 7763815208</small>
                     <a href="tel:1912" class="btn btn-warning text-dark btn-sm w-100 rounded-pill fw-bold">कॉल करें 1912</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- आधिकारिक प्रशासनिक एवं पुलिस टेलीफोन डायरेक्टरी (saran.nic.in) -->
+        <div class="mt-4 p-3.5 rounded-4 bg-white border shadow-xs">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-danger-subtle text-danger fw-bold rounded-pill px-2.5 py-1 small">
+                        <i class="bi bi-person-badge-fill me-1"></i> सारण जिला प्रशासन
+                    </span>
+                    <h6 class="fw-bold font-heading text-dark mb-0">आधिकारिक प्रशासनिक एवं पुलिस अधिकारी निर्देशिका</h6>
+                </div>
+                <a href="https://saran.nic.in/festival/sonepur-mela/" target="_blank" rel="noopener" class="small text-decoration-none fw-semibold text-danger">
+                    स्रोत: saran.nic.in <i class="bi bi-box-arrow-up-right ms-0.5"></i>
+                </a>
+            </div>
+            <div class="row g-2 text-center text-sm-start">
+                <div class="col-6 col-md-4 col-lg-2">
+                    <div class="p-2.5 rounded-3 bg-light border">
+                        <div class="text-muted" style="font-size: 0.75rem;">जिलाधिकारी सारण (छपरा)</div>
+                        <a href="tel:06152245055" class="fw-bold font-monospace text-dark text-decoration-none small d-block">06152-245055</a>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-lg-2">
+                    <div class="p-2.5 rounded-3 bg-light border">
+                        <div class="text-muted" style="font-size: 0.75rem;">पुलिस अधीक्षक सारण (छपरा)</div>
+                        <a href="tel:06152245058" class="fw-bold font-monospace text-dark text-decoration-none small d-block">06152-245058</a>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-lg-2">
+                    <div class="p-2.5 rounded-3 bg-light border">
+                        <div class="text-muted" style="font-size: 0.75rem;">एसडीओ सोनपुर</div>
+                        <a href="tel:06158222202" class="fw-bold font-monospace text-primary text-decoration-none small d-block">06158-222202</a>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-lg-2">
+                    <div class="p-2.5 rounded-3 bg-light border">
+                        <div class="text-muted" style="font-size: 0.75rem;">एसडीपीओ सोनपुर</div>
+                        <a href="tel:06158222203" class="fw-bold font-monospace text-primary text-decoration-none small d-block">06158-222203</a>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-lg-2">
+                    <div class="p-2.5 rounded-3 bg-light border">
+                        <div class="text-muted" style="font-size: 0.75rem;">सोनपुर पुलिस थाना</div>
+                        <a href="tel:9431822851" class="fw-bold font-monospace text-danger text-decoration-none small d-block">9431822851</a>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-lg-2">
+                    <div class="p-2.5 rounded-3 bg-light border">
+                        <div class="text-muted" style="font-size: 0.75rem;">अग्निशमन नियंत्रण कक्ष</div>
+                        <a href="tel:101" class="fw-bold font-monospace text-danger text-decoration-none small d-block">101 / 112</a>
+                    </div>
                 </div>
             </div>
         </div>
