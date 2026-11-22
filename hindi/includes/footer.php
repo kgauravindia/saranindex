@@ -115,6 +115,9 @@ $social_wa = defined('SOCIAL_WHATSAPP') ? SOCIAL_WHATSAPP : 'https://whatsapp.co
                     <a href="electricity" class="footer-link">
                         <i class="bi bi-lightning-charge-fill text-warning me-1"></i> विद्युत विभाग (NBPDCL)
                     </a>
+                    <a href="sonpur-mela" class="footer-link">
+                        <i class="bi bi-fire text-warning me-1"></i> सोनपुर मेला
+                    </a>
                     <a href="pricing" class="footer-link">
                         <i class="bi bi-star-fill text-warning me-1"></i> प्रमाणित व्यापार
                     </a>
@@ -126,6 +129,7 @@ $social_wa = defined('SOCIAL_WHATSAPP') ? SOCIAL_WHATSAPP : 'https://whatsapp.co
                 <h6 class="footer-heading">त्वरित लिंक</h6>
                 <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
                     <li><a href="./" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> मुख्य पृष्ठ</a></li>
+                    <li><a href="sonpur-mela" class="footer-link"><i class="bi bi-fire text-warning"></i> हरिहर क्षेत्र सोनपुर मेला</a></li>
                     <li><a href="hindi/today" class="footer-link"><i class="bi bi-calendar2-day-fill text-warning"></i> आज सारण में</a></li>
                     <li><a href="search-names" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> नागरिक निर्देशिका</a></li>
                     <li><a href="blocks" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> सभी 20 प्रखंड</a></li>

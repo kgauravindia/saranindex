@@ -115,6 +115,9 @@ $social_wa = defined('SOCIAL_WHATSAPP') ? SOCIAL_WHATSAPP : 'https://whatsapp.co
                     <a href="electricity" class="footer-link">
                         <i class="bi bi-lightning-charge-fill text-warning me-1"></i> Electricity (NBPDCL)
                     </a>
+                    <a href="sonpur-mela" class="footer-link">
+                        <i class="bi bi-fire text-warning me-1"></i> Sonpur Mela
+                    </a>
                     <a href="pricing" class="footer-link">
                         <i class="bi bi-star-fill text-warning me-1"></i> Verified Plans
                     </a>
@@ -126,6 +129,7 @@ $social_wa = defined('SOCIAL_WHATSAPP') ? SOCIAL_WHATSAPP : 'https://whatsapp.co
                 <h6 class="footer-heading">Quick Links</h6>
                 <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
                     <li><a href="./" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> Home Page</a></li>
+                    <li><a href="sonpur-mela" class="footer-link"><i class="bi bi-fire text-warning"></i> Sonpur Mela</a></li>
                     <li><a href="today" class="footer-link"><i class="bi bi-calendar2-day-fill text-warning"></i> Today in Saran</a></li>
                     <li><a href="search-names" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> People Directory</a></li>
                     <li><a href="blocks" class="footer-link"><i class="bi bi-chevron-right text-warning"></i> All 20 Blocks</a></li>

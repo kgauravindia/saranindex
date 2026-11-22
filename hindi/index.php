@@ -85,6 +85,7 @@ if (empty($top_categories)) {
         <!-- Popular Quick Search Suggestions -->
         <div class="d-flex align-items-center justify-content-center flex-wrap gap-2 pt-2">
             <span class="text-white-50 small fw-semibold me-1"><i class="bi bi-lightning-charge-fill text-warning me-1"></i>लोकप्रिय:</span>
+            <a href="sonpur-mela" class="hero-tag-pill" style="background: rgba(245, 158, 11, 0.25); border-color: rgba(245, 158, 11, 0.6); color: #fef08a;"><i class="bi bi-fire text-warning me-1"></i> सोनपुर मेला</a>
             <a href="search.php?q=Doctor" class="hero-tag-pill"><i class="bi bi-heart-pulse text-danger me-1"></i> डॉक्टर</a>
             <a href="search.php?q=School" class="hero-tag-pill"><i class="bi bi-mortarboard text-warning me-1"></i> स्कूल एवं कॉलेज</a>
             <a href="panchayat" class="hero-tag-pill"><i class="bi bi-building text-info me-1"></i> 318 पंचायतें</a>
@@ -128,6 +129,77 @@ if (empty($top_categories)) {
                 <div class="p-3 rounded-4 bg-light border h-100 hover-lift">
                     <div class="h3 fw-bold text-dark mb-1 font-heading"><?php echo number_format($total_reps); ?>+</div>
                     <div class="text-secondary small fw-semibold">निर्वाचित जनप्रतिनिधि</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- विशेष आकर्षण: विश्व प्रसिद्ध सोनपुर मेला (हरिहर क्षेत्र) -->
+<section class="py-4 py-md-5 position-relative overflow-hidden" style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%); color: #ffffff;">
+    <div class="container position-relative z-2">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center gap-2 flex-wrap mb-2.5">
+                    <span class="badge bg-warning text-dark fw-bold px-3 py-1.5 rounded-pill shadow-sm small">
+                        <i class="bi bi-fire me-1"></i> एशिया का सबसे बड़ा ऐतिहासिक व सांस्कृतिक मेला
+                    </span>
+                    <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1.5 small fw-semibold">
+                        <i class="bi bi-geo-alt-fill text-warning me-1"></i> श्री हरिहर क्षेत्र, सोनपुर (सारण)
+                    </span>
+                    <span class="badge bg-success rounded-pill px-3 py-1.5 small fw-semibold">
+                        <i class="bi bi-calendar-event me-1"></i> वार्षिक कार्तिक पूर्णिमा
+                    </span>
+                </div>
+                <h2 class="fw-bold font-heading text-white display-6 mb-2">
+                    भव्य <span class="text-warning">हरिहर क्षेत्र सोनपुर मेला</span> में आपका स्वागत है
+                </h2>
+                <p class="text-white-50 mb-4" style="max-width: 720px; font-size: 1.05rem; line-height: 1.6;">
+                    गंगा और गंडक (नारायणी) के पावन संगम स्नान, बाबा हरिहरनाथ मंदिर दर्शन, ऐतिहासिक घोड़ा व पशु बाजार, बिहार पर्यटन की सांस्कृतिक संध्या, आसमानी झूले, सर्कस और पारंपरिक बिहारी व्यंजनों (लिट्टी चोखा व बताशा) का अद्भुत आनंद लें।
+                </p>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <a href="sonpur-mela" class="btn btn-warning text-dark fw-bold px-4 py-2.5 rounded-pill shadow">
+                        <i class="bi bi-compass me-1"></i> संपूर्ण मेला मार्गदर्शिका एवं आकर्षण
+                    </a>
+                    <a href="sonpur-mela#how-to-reach" class="btn btn-light text-primary fw-bold px-4 py-2.5 rounded-pill shadow">
+                        <i class="bi bi-signpost-2 me-1"></i> पटना व छपरा से पहुंचने का मार्ग
+                    </a>
+                    <a href="sonpur-mela#helpline" class="btn btn-outline-light fw-bold px-3.5 py-2.5 rounded-pill">
+                        <i class="bi bi-telephone-fill text-warning me-1"></i> 24x7 हेल्पलाइन
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="p-3.5 rounded-4 shadow-lg text-dark" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px);">
+                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                        <div class="fw-bold font-heading small text-uppercase text-muted"><i class="bi bi-stars text-warning me-1"></i>मेले के मुख्य तथ्य</div>
+                        <span class="badge bg-warning-subtle text-dark rounded-pill">सोनपुर प्रखंड</span>
+                    </div>
+                    <div class="d-flex flex-column gap-2 small">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted"><i class="bi bi-water text-primary me-1"></i>पावन संगम:</span>
+                            <strong class="text-dark">गंगा-गंडक संगम</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted"><i class="bi bi-building text-danger me-1"></i>प्रधान मंदिर:</span>
+                            <strong class="text-dark">बाबा हरिहरनाथ</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted"><i class="bi bi-car-front text-success me-1"></i>पटना से दूरी:</span>
+                            <strong class="text-dark">15 किमी (जेपी सेतु ~20 मिनट)</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted"><i class="bi bi-telephone text-danger me-1"></i>कंट्रोल रूम:</span>
+                            <strong class="text-dark font-monospace">06158-222201 / 112</strong>
+                        </div>
+                        <div class="d-flex justify-content-between pt-1 border-top">
+                            <span class="text-muted"><i class="bi bi-check-circle text-primary me-1"></i>सारण इंडेक्स:</span>
+                            <strong class="text-primary"><?php echo number_format($total_listings ?? 15000); ?>+ सत्यापित सेवाएं</strong>
+                        </div>
+                    </div>
+                    <a href="block/sonpur" class="btn btn-outline-primary btn-sm rounded-pill w-100 fw-bold mt-3">
+                        सोनपुर नागरिक निर्देशिका देखें <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
                 </div>
             </div>
         </div>

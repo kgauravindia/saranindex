@@ -83,6 +83,7 @@ if (empty($top_categories)) {
         <!-- Popular Quick Search Suggestions -->
         <div class="d-flex align-items-center justify-content-center flex-wrap gap-2 pt-2">
             <span class="text-white-50 small fw-semibold me-1"><i class="bi bi-lightning-charge-fill text-warning me-1"></i>Popular:</span>
+            <a href="sonpur-mela" class="hero-tag-pill" style="background: rgba(245, 158, 11, 0.25); border-color: rgba(245, 158, 11, 0.6); color: #fef08a;"><i class="bi bi-fire text-warning me-1"></i> Sonpur Mela</a>
             <a href="search?q=Doctor" class="hero-tag-pill"><i class="bi bi-heart-pulse text-danger me-1"></i> Doctors</a>
             <a href="search?q=School" class="hero-tag-pill"><i class="bi bi-mortarboard text-warning me-1"></i> Schools</a>
             <a href="panchayat" class="hero-tag-pill"><i class="bi bi-building text-info me-1"></i> 318 Panchayats</a>
@@ -126,6 +127,77 @@ if (empty($top_categories)) {
                 <div class="p-3 rounded-4 bg-light border h-100 hover-lift">
                     <div class="h3 fw-bold text-dark mb-1 font-heading"><?php echo number_format($total_reps); ?>+</div>
                     <div class="text-secondary small fw-semibold">Elected Leaders</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Spotlight: Sonpur Mela (Asia's Largest Historic Fair) -->
+<section class="py-4 py-md-5 position-relative overflow-hidden" style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%); color: #ffffff;">
+    <div class="container position-relative z-2">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center gap-2 flex-wrap mb-2.5">
+                    <span class="badge bg-warning text-dark fw-bold px-3 py-1.5 rounded-pill shadow-sm small">
+                        <i class="bi bi-fire me-1"></i> Asia's Largest Cultural & Cattle Fair
+                    </span>
+                    <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1.5 small fw-semibold">
+                        <i class="bi bi-geo-alt-fill text-warning me-1"></i> Harihar Kshetra, Sonpur (Saran)
+                    </span>
+                    <span class="badge bg-success rounded-pill px-3 py-1.5 small fw-semibold">
+                        <i class="bi bi-calendar-event me-1"></i> Annual Kartik Purnima
+                    </span>
+                </div>
+                <h2 class="fw-bold font-heading text-white display-6 mb-2">
+                    Experience World-Famous <span class="text-warning">Sonpur Mela</span>
+                </h2>
+                <p class="text-white-50 mb-4" style="max-width: 720px; font-size: 1.05rem; line-height: 1.6;">
+                    Discover the sacred confluence of the Ganga and Gandak rivers, holy Baba Harihar Nath Temple rituals, the historic horse & livestock bazaar, nightly cultural concerts by Bihar Tourism, giant amusement rides, and authentic Bihari cuisine.
+                </p>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <a href="sonpur-mela" class="btn btn-warning text-dark fw-bold px-4 py-2.5 rounded-pill shadow">
+                        <i class="bi bi-compass me-1"></i> Complete Mela Guide & Attractions
+                    </a>
+                    <a href="sonpur-mela#how-to-reach" class="btn btn-light text-primary fw-bold px-4 py-2.5 rounded-pill shadow">
+                        <i class="bi bi-signpost-2 me-1"></i> How to Reach from Patna & Chapra
+                    </a>
+                    <a href="sonpur-mela#helpline" class="btn btn-outline-light fw-bold px-3.5 py-2.5 rounded-pill">
+                        <i class="bi bi-telephone-fill text-warning me-1"></i> 24x7 Helplines
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="p-3.5 rounded-4 shadow-lg text-dark" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px);">
+                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                        <div class="fw-bold font-heading small text-uppercase text-muted"><i class="bi bi-stars text-warning me-1"></i>Quick Fair Facts</div>
+                        <span class="badge bg-warning-subtle text-dark rounded-pill">Sonpur Block</span>
+                    </div>
+                    <div class="d-flex flex-column gap-2 small">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted"><i class="bi bi-water text-primary me-1"></i>Confluence:</span>
+                            <strong class="text-dark">Ganga & Gandak Sangam</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted"><i class="bi bi-building text-danger me-1"></i>Sacred Temple:</span>
+                            <strong class="text-dark">Baba Harihar Nath</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted"><i class="bi bi-car-front text-success me-1"></i>From Patna:</span>
+                            <strong class="text-dark">15 km (JP Setu ~20 mins)</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted"><i class="bi bi-telephone text-danger me-1"></i>Control Room:</span>
+                            <strong class="text-dark font-monospace">06158-222201 / 112</strong>
+                        </div>
+                        <div class="d-flex justify-content-between pt-1 border-top">
+                            <span class="text-muted"><i class="bi bi-check-circle text-primary me-1"></i>Saran Index:</span>
+                            <strong class="text-primary"><?php echo number_format($total_listings ?? 15000); ?>+ Verified Listings</strong>
+                        </div>
+                    </div>
+                    <a href="block/sonpur" class="btn btn-outline-primary btn-sm rounded-pill w-100 fw-bold mt-3">
+                        Explore Sonpur Civic Directory <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
                 </div>
             </div>
         </div>
