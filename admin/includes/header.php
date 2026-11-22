@@ -345,12 +345,18 @@ $admin_name = $_SESSION['admin_full_name'] ?? 'Administrator';
             <li class="nav-item">
                 <a class="nav-link <?php echo ($current_page === 'git.php' || $current_page === 'git_push.php') ? 'active' : ''; ?>" href="git.php" title="Git Push & Deployment">
                     <i class="bi bi-git text-danger"></i> <span class="nav-text">Git Push & Deploy</span>
+                    <span class="badge bg-danger-subtle text-danger rounded-pill ms-auto px-1.5 py-0.5" style="font-size: 0.65rem;">Push</span>
                 </a>
             </li>
         </ul>
 
         <div class="px-3 mt-4 mb-2 text-uppercase text-white-50 fw-bold nav-section-title" style="font-size: 0.68rem; letter-spacing: 0.08em;">Quick Actions</div>
         <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link text-warning fw-semibold" href="git.php" title="Git Push & Repository Sync">
+                    <i class="bi bi-cloud-arrow-up-fill text-warning"></i> <span class="nav-text">Git Push / Sync</span>
+                </a>
+            </li>
             <li class="nav-item">
                 <a class="nav-link text-white-50" href="listing_edit.php" title="Add New Listing">
                     <i class="bi bi-plus-circle"></i> <span class="nav-text">Add New Listing</span>
@@ -396,7 +402,13 @@ $admin_name = $_SESSION['admin_full_name'] ?? 'Administrator';
             <h5 class="mb-0 fw-bold text-dark"><?php echo isset($header_title) ? sanitizeInput($header_title) : 'Dashboard Overview'; ?></h5>
         </div>
 
-        <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-2">
+            <!-- Quick 1-Click Git Push Action Button -->
+            <button type="button" class="btn btn-danger btn-sm rounded-pill px-3 fw-bold d-flex align-items-center gap-1.5 shadow-sm" data-bs-toggle="modal" data-bs-target="#quickGitPushModal" title="Git Push & Sync with GitHub">
+                <i class="bi bi-cloud-arrow-up-fill"></i>
+                <span class="d-none d-sm-inline">Git Push</span>
+            </button>
+
             <a href="../index.php" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold">
                 <i class="bi bi-globe me-1"></i> Live Site
             </a>
@@ -412,6 +424,7 @@ $admin_name = $_SESSION['admin_full_name'] ?? 'Administrator';
                     <li><h6 class="dropdown-header">Logged in as Administrator</h6></li>
                     <li><a class="dropdown-item" href="profile.php"><i class="bi bi-person-gear me-2 text-primary"></i>My Profile & Password</a></li>
                     <li><a class="dropdown-item" href="admins.php"><i class="bi bi-person-badge me-2 text-secondary"></i>Manage Admin Accounts</a></li>
+                    <li><a class="dropdown-item text-danger fw-semibold" href="git.php"><i class="bi bi-cloud-arrow-up-fill me-2 text-danger"></i>Git Push & Deploy</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item text-danger" href="logout.php"><i class="bi bi-box-arrow-right me-2"></i>Sign Out</a></li>
                 </ul>

@@ -79,9 +79,9 @@ if ($db) {
             <a href="bus_edit.php" class="btn btn-outline-light text-white fw-bold btn-sm px-3 shadow-sm">
                 <i class="bi bi-bus-front me-1"></i> Add Bus
             </a>
-            <a href="git.php" class="btn btn-outline-light text-white fw-bold btn-sm px-3 shadow-sm">
-                <i class="bi bi-cloud-arrow-up-fill text-danger me-1"></i> Git Push
-            </a>
+            <button type="button" class="btn btn-danger text-white fw-bold btn-sm px-3 shadow-sm d-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#quickGitPushModal" title="Git Push & Sync Code to GitHub">
+                <i class="bi bi-cloud-arrow-up-fill"></i> Git Push
+            </button>
             <a href="categories.php" class="btn btn-outline-light btn-sm px-3 fw-medium">
                 <i class="bi bi-folder-plus me-1"></i> Add Category
             </a>
