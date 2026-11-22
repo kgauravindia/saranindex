@@ -119,9 +119,6 @@ $meta_description = $meta_description ?? 'सारण इंडेक्स स
                     <a class="nav-link text-dark px-3" href="./"><i class="bi bi-house-door me-1"></i>होम</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-dark px-3" href="whos-who"><i class="bi bi-people-fill me-1"></i>कौन-कौन हैं</a>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link text-dark px-3" href="blocks"><i class="bi bi-geo-alt me-1"></i>प्रखंड</a>
                 </li>
                 <li class="nav-item">

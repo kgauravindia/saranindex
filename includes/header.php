@@ -124,9 +124,6 @@ $meta_description = $meta_description ?? 'Saran Index is the digital directory o
                     <a class="nav-link text-dark px-3" href="./"><i class="bi bi-house-door me-1"></i>Home</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-dark px-3" href="whos-who"><i class="bi bi-people-fill me-1"></i>Who's Who</a>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link text-dark px-3" href="blocks"><i class="bi bi-geo-alt me-1"></i>Blocks</a>
                 </li>
                 <li class="nav-item">
