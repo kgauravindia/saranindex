@@ -8,39 +8,138 @@ checkAdminAuth();
 require_once __DIR__ . '/../includes/functions.php';
 
 $repoPath = realpath(dirname(__DIR__));
+$isGitDir = is_dir($repoPath . DIRECTORY_SEPARATOR . '.git');
 
-// Safe Git command executor with environment preservation
+// Server process execution capabilities & diagnostics
+if (!function_exists('getGitServerDiagnostics')) {
+    function getGitServerDiagnostics() {
+        static $diag = null;
+        if ($diag !== null) return $diag;
+
+        $disabledStr = ini_get('disable_functions') ?: '';
+        $disabled = array_filter(array_map('trim', explode(',', strtolower($disabledStr))));
+
+        $canProcOpen = function_exists('proc_open') && !in_array('proc_open', $disabled);
+        $canExec = function_exists('exec') && !in_array('exec', $disabled);
+        $canShellExec = function_exists('shell_exec') && !in_array('shell_exec', $disabled);
+        $canSystem = function_exists('system') && !in_array('system', $disabled);
+        $hasProcessExecution = ($canProcOpen || $canExec || $canShellExec || $canSystem);
+
+        $diag = [
+            'has_process_exec' => $hasProcessExecution,
+            'proc_open' => $canProcOpen,
+            'exec' => $canExec,
+            'shell_exec' => $canShellExec,
+            'system' => $canSystem,
+            'disabled_functions' => $disabled,
+            'os' => PHP_OS,
+            'is_windows' => (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')
+        ];
+        return $diag;
+    }
+}
+
+// Safe Git command executor with cross-platform environment preservation
 if (!function_exists('runGitCmd')) {
     function runGitCmd($cmd, $workingDir) {
-        // Preserve essential system environment for Git, SSH, and Credential Manager
-        $env = array_merge($_ENV, [
-            'PATH' => getenv('PATH') ?: 'C:\\Program Files\\Git\\cmd;C:\\Windows\\system32;C:\\Windows',
-            'SYSTEMROOT' => getenv('SYSTEMROOT') ?: 'C:\\Windows',
-            'USERPROFILE' => getenv('USERPROFILE') ?: 'C:\\Users\\' . get_current_user(),
-            'HOME' => getenv('USERPROFILE') ?: (getenv('HOME') ?: 'C:\\Users\\' . get_current_user()),
-            'GIT_TERMINAL_PROMPT' => '0' // Prevent hanging on interactive credential prompts
+        $diag = getGitServerDiagnostics();
+        $isWindows = $diag['is_windows'];
+
+        // Automatically inject safe.directory to bypass Git 2.35+ dubious ownership errors on Linux/shared hosting
+        if (!str_contains($cmd, 'safe.directory') && !str_starts_with(trim($cmd), 'rm ') && !str_starts_with(trim($cmd), 'del ')) {
+            $cmd = preg_replace('/^([\'"]?[^\s]+[\'"]?)\s+/', '$1 -c safe.directory=* ', $cmd);
+        }
+
+        // Determine correct PATH for Linux vs Windows
+        $sysPath = getenv('PATH') ?: '';
+        if ($isWindows) {
+            $defaultPaths = 'C:\\Program Files\\Git\\cmd;C:\\Program Files\\Git\\bin;C:\\Windows\\system32;C:\\Windows';
+            $finalPath = $sysPath ? ($sysPath . ';' . $defaultPaths) : $defaultPaths;
+            $homeDir = getenv('USERPROFILE') ?: (getenv('HOME') ?: ('C:\\Users\\' . get_current_user()));
+        } else {
+            $defaultPaths = '/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/cpanel/3rdparty/bin:/opt/cpanel/ea-git/bin';
+            $finalPath = $sysPath ? ($sysPath . ':' . $defaultPaths) : $defaultPaths;
+            $homeDir = getenv('HOME') ?: ('/home/' . get_current_user());
+        }
+
+        // Environment variables
+        $env = array_merge(is_array($_ENV) ? $_ENV : [], [
+            'PATH' => $finalPath,
+            'HOME' => $homeDir,
+            'GIT_TERMINAL_PROMPT' => '0',
+            'LC_ALL' => 'en_US.UTF-8',
+            'LANG' => 'en_US.UTF-8'
         ]);
+        if ($isWindows) {
+            $env['SYSTEMROOT'] = getenv('SYSTEMROOT') ?: 'C:\\Windows';
+            $env['USERPROFILE'] = $homeDir;
+        }
 
-        $descriptor = [
-            0 => ["pipe", "r"], // stdin
-            1 => ["pipe", "w"], // stdout
-            2 => ["pipe", "w"]  // stderr
-        ];
-
-        $startTime = microtime(true);
-        $proc = proc_open($cmd, $descriptor, $pipes, $workingDir, $env);
         $stdout = '';
         $stderr = '';
         $exitCode = -1;
+        $startTime = microtime(true);
 
-        if (is_resource($proc)) {
-            fclose($pipes[0]);
-            $stdout = stream_get_contents($pipes[1]);
-            fclose($pipes[1]);
-            $stderr = stream_get_contents($pipes[2]);
-            fclose($pipes[2]);
-            $exitCode = proc_close($proc);
+        // Tier 1: Try proc_open if enabled
+        if ($diag['proc_open']) {
+            try {
+                $descriptor = [
+                    0 => ["pipe", "r"], // stdin
+                    1 => ["pipe", "w"], // stdout
+                    2 => ["pipe", "w"]  // stderr
+                ];
+                $proc = @proc_open($cmd, $descriptor, $pipes, $workingDir, $env);
+                if (is_resource($proc)) {
+                    fclose($pipes[0]);
+                    $stdout = stream_get_contents($pipes[1]);
+                    fclose($pipes[1]);
+                    $stderr = stream_get_contents($pipes[2]);
+                    fclose($pipes[2]);
+                    $exitCode = proc_close($proc);
+                } else {
+                    $stderr = "proc_open failed to spawn process.";
+                }
+            } catch (\Throwable $e) {
+                $stderr = "proc_open error: " . $e->getMessage();
+            }
         }
+
+        // Tier 2: Fallback to exec() if proc_open failed or returned -1 / disabled
+        if ($exitCode === -1 && $diag['exec']) {
+            try {
+                $outputLines = [];
+                $retVal = -1;
+                $execCmd = $isWindows 
+                    ? "cd /D " . escapeshellarg($workingDir) . " && {$cmd}"
+                    : "cd " . escapeshellarg($workingDir) . " && PATH=" . escapeshellarg($finalPath) . " HOME=" . escapeshellarg($homeDir) . " GIT_TERMINAL_PROMPT=0 {$cmd}";
+                @exec($execCmd, $outputLines, $retVal);
+                $stdout = implode("\n", $outputLines);
+                $exitCode = $retVal;
+            } catch (\Throwable $e) {
+                $stderr .= " exec error: " . $e->getMessage();
+            }
+        }
+
+        // Tier 3: Fallback to shell_exec()
+        if ($exitCode === -1 && $diag['shell_exec'] && empty($stdout)) {
+            try {
+                $execCmd = $isWindows 
+                    ? "cd /D " . escapeshellarg($workingDir) . " && {$cmd}"
+                    : "cd " . escapeshellarg($workingDir) . " && PATH=" . escapeshellarg($finalPath) . " HOME=" . escapeshellarg($homeDir) . " GIT_TERMINAL_PROMPT=0 {$cmd}";
+                $res = @shell_exec($execCmd);
+                if ($res !== null) {
+                    $stdout = (string)$res;
+                    $exitCode = 0;
+                }
+            } catch (\Throwable $e) {}
+        }
+
+        // If no process execution is available on the server
+        if ($exitCode === -1 && !$diag['has_process_exec']) {
+            $stderr = "Server restriction: proc_open() and exec() are in disable_functions in php.ini on Hostinger. Please enable proc_open/exec in Hostinger hPanel > Advanced > PHP Configuration > PHP Functions.";
+            $exitCode = 126;
+        }
+
         $duration = round((microtime(true) - $startTime) * 1000, 2);
 
         return [
@@ -53,30 +152,45 @@ if (!function_exists('runGitCmd')) {
     }
 }
 
-// Auto-detect git binary
+// Auto-detect git binary across Linux and Windows
 if (!function_exists('getGitBinary')) {
     function getGitBinary() {
         static $gitBin = null;
         if ($gitBin !== null) return $gitBin;
 
+        $diag = getGitServerDiagnostics();
+        $isWindows = $diag['is_windows'];
+
         // Check if git in PATH is responsive
         $check = runGitCmd("git --version", sys_get_temp_dir());
-        if ($check['code'] === 0) {
+        if ($check['code'] === 0 && !empty($check['stdout'])) {
             $gitBin = 'git';
             return $gitBin;
         }
 
-        // Windows fallback paths
-        $commonPaths = [
-            'C:\\Program Files\\Git\\cmd\\git.exe',
-            'C:\\Program Files\\Git\\bin\\git.exe',
-            'C:\\Program Files (x86)\\Git\\cmd\\git.exe',
-            'D:\\laragon\\bin\\git\\bin\\git.exe',
-            'D:\\laragon\\bin\\git\\cmd\\git.exe'
-        ];
+        // Common binary paths
+        if ($isWindows) {
+            $commonPaths = [
+                'C:\\Program Files\\Git\\cmd\\git.exe',
+                'C:\\Program Files\\Git\\bin\\git.exe',
+                'C:\\Program Files (x86)\\Git\\cmd\\git.exe',
+                'D:\\laragon\\bin\\git\\bin\\git.exe',
+                'D:\\laragon\\bin\\git\\cmd\\git.exe'
+            ];
+        } else {
+            $commonPaths = [
+                '/usr/bin/git',
+                '/usr/local/bin/git',
+                '/bin/git',
+                '/usr/local/cpanel/3rdparty/bin/git',
+                '/opt/cpanel/ea-git/bin/git',
+                '/home/' . get_current_user() . '/bin/git'
+            ];
+        }
+
         foreach ($commonPaths as $p) {
-            if (file_exists($p)) {
-                $gitBin = '"' . $p . '"';
+            if (@file_exists($p)) {
+                $gitBin = $isWindows ? ('"' . $p . '"') : $p;
                 return $gitBin;
             }
         }
@@ -176,9 +290,14 @@ if (!empty($action) && ($requestMethod === 'POST' || $action === 'diff' || $acti
     if ($action === 'push') {
         $cmdOutput = runGitCmd("{$gitBin} push origin {$branch} 2>&1", $repoPath);
         $success = ($cmdOutput['code'] === 0);
+        $failMsg = "Git push failed or was rejected. Review terminal log.";
+        $out = ($cmdOutput['stdout'] ?: '') . ' ' . ($cmdOutput['stderr'] ?: '');
+        if (str_contains($out, 'terminal prompts disabled') || str_contains($out, 'could not read Username') || str_contains($out, 'Permission') || str_contains($out, 'Authentication')) {
+            $failMsg = "Git push requires GitHub credentials. On a remote web server, use 'Deploy / Pull from GitHub' to update your site, or configure a GitHub Personal Access Token.";
+        }
         $response = [
             'success' => $success,
-            'message' => $success ? "Successfully pushed branch '{$branch}' to origin!" : "Git push failed or was rejected. Review terminal log.",
+            'message' => $success ? "Successfully pushed branch '{$branch}' to origin!" : $failMsg,
             'cmd' => $cmdOutput['cmd'],
             'output' => $cmdOutput['stdout'] ?: $cmdOutput['stderr'],
             'code' => $cmdOutput['code'],
@@ -195,6 +314,41 @@ if (!empty($action) && ($requestMethod === 'POST' || $action === 'diff' || $acti
             'output' => $cmdOutput['stdout'] ?: $cmdOutput['stderr'],
             'code' => $cmdOutput['code'],
             'duration_ms' => $cmdOutput['duration_ms']
+        ];
+    } elseif ($action === 'deploy') {
+        // Fast, reliable deployment from remote GitHub
+        $fetchRes = runGitCmd("{$gitBin} fetch origin {$branch} 2>&1", $repoPath);
+        $resetRes = runGitCmd("{$gitBin} reset --hard origin/{$branch} 2>&1", $repoPath);
+        $success = ($resetRes['code'] === 0);
+        $combinedLog = "=== 1. GIT FETCH ===\n" . ($fetchRes['stdout'] ?: ($fetchRes['stderr'] ?: 'Done')) . "\n\n" .
+                       "=== 2. GIT RESET --HARD ===\n" . ($resetRes['stdout'] ?: ($resetRes['stderr'] ?: 'Done'));
+        $response = [
+            'success' => $success,
+            'message' => $success ? "Successfully deployed latest code from origin/{$branch} to production!" : "Deployment encountered an issue. Review log.",
+            'cmd' => "git fetch origin {$branch} && git reset --hard origin/{$branch}",
+            'output' => $combinedLog,
+            'code' => $resetRes['code'],
+            'duration_ms' => $fetchRes['duration_ms'] + $resetRes['duration_ms']
+        ];
+    } elseif ($action === 'init_repo') {
+        $initRes = runGitCmd("{$gitBin} init 2>&1", $repoPath);
+        $remoteRes = runGitCmd("{$gitBin} remote add origin https://github.com/kgauravindia/saranindex.git 2>&1", $repoPath);
+        if ($remoteRes['code'] !== 0) {
+            $remoteRes = runGitCmd("{$gitBin} remote set-url origin https://github.com/kgauravindia/saranindex.git 2>&1", $repoPath);
+        }
+        $fetchRes = runGitCmd("{$gitBin} fetch origin 2>&1", $repoPath);
+        $branchRes = runGitCmd("{$gitBin} branch -M main 2>&1", $repoPath);
+        $combinedLog = "=== 1. GIT INIT ===\n" . ($initRes['stdout'] ?: 'Initialized.') . "\n\n" .
+                       "=== 2. GIT REMOTE ===\n" . ($remoteRes['stdout'] ?: 'Remote set to https://github.com/kgauravindia/saranindex.git') . "\n\n" .
+                       "=== 3. GIT FETCH ===\n" . ($fetchRes['stdout'] ?: ($fetchRes['stderr'] ?: 'Fetched.'));
+        $success = ($initRes['code'] === 0);
+        $response = [
+            'success' => $success,
+            'message' => $success ? "Git repository initialized and connected to GitHub origin/main!" : "Init failed. Check terminal.",
+            'cmd' => 'git init && git remote add origin https://github.com/kgauravindia/saranindex.git',
+            'output' => $combinedLog,
+            'code' => $initRes['code'],
+            'duration_ms' => $initRes['duration_ms'] + $fetchRes['duration_ms']
         ];
     } elseif ($action === 'fetch') {
         $cmdOutput = runGitCmd("{$gitBin} fetch origin --prune 2>&1", $repoPath);
@@ -414,54 +568,70 @@ if (!empty($action) && ($requestMethod === 'POST' || $action === 'diff' || $acti
 // -------------------------------------------------------------
 // Read Current Repository State for Page Display
 // -------------------------------------------------------------
-$branchInfo = runGitCmd("{$gitBin} rev-parse --abbrev-ref HEAD", $repoPath);
-$currentBranch = !empty($branchInfo['stdout']) ? trim($branchInfo['stdout']) : 'main';
-
-$remoteInfo = runGitCmd("{$gitBin} config --get remote.origin.url", $repoPath);
-$remoteUrl = !empty($remoteInfo['stdout']) ? trim($remoteInfo['stdout']) : 'Not configured';
-
-$statusPorcelain = runGitCmd("{$gitBin} status --porcelain", $repoPath);
-$rawStatusLines = array_filter(explode("\n", trim($statusPorcelain['stdout'] ?? '')));
-$parsedChanges = [];
-foreach ($rawStatusLines as $rLine) {
-    $p = parseGitStatusLine($rLine);
-    if ($p) $parsedChanges[] = $p;
-}
-$isWorkingTreeClean = empty($parsedChanges);
-
-// Ahead & Behind Tracking
-$unpushedInfo = runGitCmd("{$gitBin} log origin/{$currentBranch}..HEAD --oneline", $repoPath);
-$unpushedCommits = array_filter(explode("\n", trim($unpushedInfo['stdout'] ?? '')));
-
-$behindInfo = runGitCmd("{$gitBin} log HEAD..origin/{$currentBranch} --oneline", $repoPath);
-$behindCommits = array_filter(explode("\n", trim($behindInfo['stdout'] ?? '')));
-
-// Stash count
-$stashInfo = runGitCmd("{$gitBin} stash list", $repoPath);
-$stashes = array_filter(explode("\n", trim($stashInfo['stdout'] ?? '')));
-
-// Git Author & Version
+$diag = getGitServerDiagnostics();
+$isGitDir = is_dir($repoPath . DIRECTORY_SEPARATOR . '.git');
 $gitVersionInfo = runGitCmd("{$gitBin} --version", $repoPath);
-$gitVersion = $gitVersionInfo['stdout'] ?: 'Git';
+$gitVersion = $gitVersionInfo['stdout'] ?: 'Git (Not Detected)';
+$isGitInstalled = ($gitVersionInfo['code'] === 0 && !empty($gitVersionInfo['stdout']));
 
-$gitUserName = runGitCmd("{$gitBin} config --get user.name", $repoPath)['stdout'] ?: 'Not set';
-$gitUserEmail = runGitCmd("{$gitBin} config --get user.email", $repoPath)['stdout'] ?: 'Not set';
+if ($isGitDir && $diag['has_process_exec'] && $isGitInstalled) {
+    $branchInfo = runGitCmd("{$gitBin} rev-parse --abbrev-ref HEAD", $repoPath);
+    $currentBranch = !empty($branchInfo['stdout']) ? trim($branchInfo['stdout']) : 'main';
 
-// Recent 15 commits
-$recentCommitsRaw = runGitCmd("{$gitBin} log -n 15 --pretty=format:\"%h|%an|%ar|%s\"", $repoPath);
-$recentCommits = [];
-if (!empty($recentCommitsRaw['stdout'])) {
-    foreach (explode("\n", trim($recentCommitsRaw['stdout'])) as $line) {
-        $parts = explode("|", $line, 4);
-        if (count($parts) === 4) {
-            $recentCommits[] = [
-                'hash' => $parts[0],
-                'author' => $parts[1],
-                'time' => $parts[2],
-                'msg' => $parts[3]
-            ];
+    $remoteInfo = runGitCmd("{$gitBin} config --get remote.origin.url", $repoPath);
+    $remoteUrl = !empty($remoteInfo['stdout']) ? trim($remoteInfo['stdout']) : 'https://github.com/kgauravindia/saranindex.git';
+
+    $statusPorcelain = runGitCmd("{$gitBin} status --porcelain", $repoPath);
+    $rawStatusLines = array_filter(explode("\n", trim($statusPorcelain['stdout'] ?? '')));
+    $parsedChanges = [];
+    foreach ($rawStatusLines as $rLine) {
+        $p = parseGitStatusLine($rLine);
+        if ($p) $parsedChanges[] = $p;
+    }
+    $isWorkingTreeClean = empty($parsedChanges);
+
+    // Ahead & Behind Tracking
+    $unpushedInfo = runGitCmd("{$gitBin} log origin/{$currentBranch}..HEAD --oneline", $repoPath);
+    $unpushedCommits = array_filter(explode("\n", trim($unpushedInfo['stdout'] ?? '')));
+
+    $behindInfo = runGitCmd("{$gitBin} log HEAD..origin/{$currentBranch} --oneline", $repoPath);
+    $behindCommits = array_filter(explode("\n", trim($behindInfo['stdout'] ?? '')));
+
+    // Stash count
+    $stashInfo = runGitCmd("{$gitBin} stash list", $repoPath);
+    $stashes = array_filter(explode("\n", trim($stashInfo['stdout'] ?? '')));
+
+    // Git Author & Version
+    $gitUserName = runGitCmd("{$gitBin} config --get user.name", $repoPath)['stdout'] ?: 'Not set';
+    $gitUserEmail = runGitCmd("{$gitBin} config --get user.email", $repoPath)['stdout'] ?: 'Not set';
+
+    // Recent 15 commits
+    $recentCommitsRaw = runGitCmd("{$gitBin} log -n 15 --pretty=format:\"%h|%an|%ar|%s\"", $repoPath);
+    $recentCommits = [];
+    if (!empty($recentCommitsRaw['stdout'])) {
+        foreach (explode("\n", trim($recentCommitsRaw['stdout'])) as $line) {
+            $parts = explode("|", $line, 4);
+            if (count($parts) === 4) {
+                $recentCommits[] = [
+                    'hash' => $parts[0],
+                    'author' => $parts[1],
+                    'time' => $parts[2],
+                    'msg' => $parts[3]
+                ];
+            }
         }
     }
+} else {
+    $currentBranch = 'main';
+    $remoteUrl = 'https://github.com/kgauravindia/saranindex.git';
+    $isWorkingTreeClean = true;
+    $parsedChanges = [];
+    $unpushedCommits = [];
+    $behindCommits = [];
+    $stashes = [];
+    $gitUserName = 'Not set';
+    $gitUserEmail = 'admin@saranindex.com';
+    $recentCommits = [];
 }
 
 // GitHub repo path for direct linking
@@ -489,11 +659,15 @@ require_once __DIR__ . '/includes/header.php';
             <h2 class="h3 fw-bold font-heading mb-1 text-dark d-flex align-items-center gap-2">
                 <i class="bi bi-git text-danger"></i> Git Manager & Deployment
             </h2>
-            <p class="text-muted small mb-0">Push, pull, stage, inspect diffs, and synchronize Saran Index code with your GitHub repository in real time.</p>
+            <p class="text-muted small mb-0">Push, pull, stage, inspect diffs, and deploy latest updates from GitHub in real time.</p>
         </div>
 
         <!-- Quick Deployment Action Controls -->
         <div class="d-flex align-items-center gap-2 flex-wrap">
+            <button type="button" class="btn btn-success btn-sm rounded-pill px-3.5 fw-bold shadow-sm d-flex align-items-center gap-1.5" onclick="triggerGitAction('deploy', this)" title="Fast 1-Click Deployment: Fetch and update website with latest code from GitHub">
+                <i class="bi bi-cloud-arrow-down-fill"></i>
+                <span>Deploy from GitHub</span>
+            </button>
             <button type="button" class="btn btn-primary btn-sm rounded-pill px-3.5 fw-bold shadow-sm d-flex align-items-center gap-1.5" onclick="triggerGitAction('sync', this)" title="Fetch, Pull with Auto-stash, and Push in 1 Click">
                 <i class="bi bi-arrow-left-right"></i>
                 <span>Smart Sync</span>
@@ -503,7 +677,7 @@ require_once __DIR__ . '/includes/header.php';
                 <span>Fetch</span>
             </button>
             <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold d-flex align-items-center gap-1" onclick="triggerGitAction('pull', this)" title="Pull latest changes from origin/<?php echo htmlspecialchars($currentBranch); ?>">
-                <i class="bi bi-cloud-arrow-down-fill"></i>
+                <i class="bi bi-download"></i>
                 <span>Pull</span>
             </button>
             <button type="button" class="btn btn-danger btn-sm rounded-pill px-3.5 fw-bold shadow-sm d-flex align-items-center gap-1" onclick="triggerGitAction('push', this)" title="Push committed changes to origin/<?php echo htmlspecialchars($currentBranch); ?>">
@@ -517,6 +691,52 @@ require_once __DIR__ . '/includes/header.php';
             <?php endif; ?>
         </div>
     </div>
+
+    <!-- Server Environment Diagnostic Alerts (Hostinger / cPanel) -->
+    <?php if (!$diag['has_process_exec']): ?>
+        <div class="alert alert-warning border-0 rounded-4 p-4 shadow-sm mb-4">
+            <div class="d-flex align-items-start gap-3">
+                <div class="fs-2 text-warning"><i class="bi bi-shield-lock-fill"></i></div>
+                <div class="flex-grow-1">
+                    <h5 class="fw-bold text-dark mb-1">Server Process Execution Restricted (Hostinger / Shared Hosting)</h5>
+                    <p class="text-secondary small mb-2">
+                        PHP process execution functions (<code>proc_open</code>, <code>exec</code>) are currently in <code>disable_functions</code> on your web server. To enable 1-click Git deployment directly from this admin panel:
+                    </p>
+                    <div class="small text-muted mb-3">
+                        <strong>How to enable on Hostinger hPanel:</strong>
+                        <ol class="mb-0 ps-3 mt-1">
+                            <li>Log in to <strong>Hostinger hPanel</strong> &rarr; Select <strong>saranindex.com</strong>.</li>
+                            <li>Navigate to <strong>Advanced &rarr; PHP Configuration &rarr; PHP Functions</strong> tab.</li>
+                            <li>Find <code>proc_open</code> and <code>exec</code> in the <em>Disable functions</em> box, remove them, and click <strong>Save</strong>.</li>
+                        </ol>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <a href="https://hpanel.hostinger.com" target="_blank" rel="noopener" class="btn btn-warning text-dark btn-sm rounded-pill fw-bold px-3">
+                            <i class="bi bi-box-arrow-up-right me-1"></i> Open Hostinger hPanel
+                        </a>
+                        <a href="https://github.com/kgauravindia/saranindex" target="_blank" rel="noopener" class="btn btn-outline-dark btn-sm rounded-pill fw-semibold px-3">
+                            <i class="bi bi-github me-1"></i> Open GitHub Repository
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <?php elseif (!$isGitDir): ?>
+        <div class="alert alert-info border-0 rounded-4 p-4 shadow-sm mb-4">
+            <div class="d-flex align-items-start gap-3">
+                <div class="fs-2 text-info"><i class="bi bi-folder-plus"></i></div>
+                <div class="flex-grow-1">
+                    <h5 class="fw-bold text-dark mb-1">Git Repository Not Initialized in Web Directory</h5>
+                    <p class="text-secondary small mb-2">
+                        No <code>.git</code> repository was found at <code><?php echo htmlspecialchars($repoPath); ?></code>. Click below to initialize Git and link this live directory to <code>https://github.com/kgauravindia/saranindex.git</code>:
+                    </p>
+                    <button type="button" class="btn btn-primary btn-sm rounded-pill fw-bold px-3.5 shadow-sm" onclick="triggerGitAction('init_repo', this)">
+                        <i class="bi bi-magic me-1"></i> Initialize Git & Connect origin/main
+                    </button>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
 
     <!-- Live Flash Message -->
     <div id="flashContainer">
@@ -994,6 +1214,12 @@ function triggerGitAction(actionName, btnElem) {
     if (actionName === 'push' && !confirm('Are you sure you want to push commits to origin?')) {
         return;
     }
+    if (actionName === 'deploy' && !confirm('Deploy latest updates from GitHub? This will fetch and update this website with the latest commits from origin/main.')) {
+        return;
+    }
+    if (actionName === 'init_repo' && !confirm('Initialize this directory as a Git repository connected to https://github.com/kgauravindia/saranindex.git?')) {
+        return;
+    }
     
     const termSpinner = document.getElementById('termSpinner');
     termSpinner.classList.remove('d-none');
@@ -1028,7 +1254,7 @@ function triggerGitAction(actionName, btnElem) {
         showToastFlash(data.message, data.success ? 'success' : 'danger');
 
         // If action changed state, refresh after short delay so numbers update
-        if (data.success && (actionName === 'pull' || actionName === 'sync' || actionName === 'push' || actionName === 'stash_save' || actionName === 'stash_pop')) {
+        if (data.success && (actionName === 'deploy' || actionName === 'init_repo' || actionName === 'pull' || actionName === 'sync' || actionName === 'push' || actionName === 'stash_save' || actionName === 'stash_pop')) {
             setTimeout(() => { window.location.reload(); }, 1500);
         }
     })

@@ -62,14 +62,17 @@
                 </div>
 
                 <div class="d-flex gap-2 flex-wrap mb-3">
-                    <button type="button" id="globalPushBtn" class="btn btn-danger btn-sm rounded-pill px-3.5 fw-bold flex-grow-1" onclick="executeGlobalGit('commit_push')">
+                    <button type="button" id="globalDeployBtn" class="btn btn-success btn-sm rounded-pill px-3 fw-bold flex-grow-1" onclick="executeGlobalGit('deploy')" title="Deploy latest updates from GitHub">
+                        <i class="bi bi-cloud-arrow-down-fill me-1"></i> Deploy
+                    </button>
+                    <button type="button" id="globalPushBtn" class="btn btn-danger btn-sm rounded-pill px-3 fw-bold flex-grow-1" onclick="executeGlobalGit('commit_push')">
                         <i class="bi bi-cloud-arrow-up-fill me-1"></i> Commit & Push
                     </button>
-                    <button type="button" id="globalSyncBtn" class="btn btn-primary btn-sm rounded-pill px-3.5 fw-bold flex-grow-1" onclick="executeGlobalGit('sync')">
+                    <button type="button" id="globalSyncBtn" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold flex-grow-1" onclick="executeGlobalGit('sync')">
                         <i class="bi bi-arrow-left-right me-1"></i> Smart Sync
                     </button>
-                    <button type="button" id="globalPullBtn" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold" onclick="executeGlobalGit('pull')">
-                        <i class="bi bi-cloud-arrow-down-fill me-1"></i> Pull
+                    <button type="button" id="globalPullBtn" class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 fw-semibold" onclick="executeGlobalGit('pull')">
+                        <i class="bi bi-download me-1"></i> Pull
                     </button>
                 </div>
 
@@ -90,7 +93,7 @@
 function executeGlobalGit(action) {
     const resBox = document.getElementById('globalGitResult');
     const msg = document.getElementById('globalCommitMsg').value;
-    const btns = [document.getElementById('globalPushBtn'), document.getElementById('globalSyncBtn'), document.getElementById('globalPullBtn')];
+    const btns = [document.getElementById('globalDeployBtn'), document.getElementById('globalPushBtn'), document.getElementById('globalSyncBtn'), document.getElementById('globalPullBtn')];
     
     btns.forEach(b => { if(b) b.disabled = true; });
     resBox.classList.remove('d-none');
