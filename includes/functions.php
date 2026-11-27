@@ -6133,6 +6133,15 @@ function lookupPincodeApi($pincode) {
         return ['success' => false, 'message' => 'PIN code must be exactly 6 digits.'];
     }
 
+    // Fast local file cache / pre-bundled postal dataset
+    $cacheFile = __DIR__ . '/pincode_' . $cleanPin . '.json';
+    if (file_exists($cacheFile)) {
+        $cached = json_decode(@file_get_contents($cacheFile), true);
+        if (!empty($cached) && !empty($cached['success'])) {
+            return $cached;
+        }
+    }
+
     $apiKey = defined('OLAW_API_KEY') ? OLAW_API_KEY : 'OLAW_0027B26F114E93B918C1';
     $apiUrl = defined('OLAW_API_URL') ? OLAW_API_URL : 'https://olaw.in/api.php';
     $endpoint = $apiUrl . '?action=pincode&pincode=' . urlencode($cleanPin) . '&api_key=' . urlencode($apiKey);
@@ -6192,7 +6201,7 @@ function lookupPincodeApi($pincode) {
         }
     }
 
-    return [
+    $res = [
         'success'        => true,
         'pincode'        => $cleanPin,
         'district'       => $district,
@@ -6203,6 +6212,10 @@ function lookupPincodeApi($pincode) {
         'total_records'  => count($rawList),
         'raw_data'       => $rawList
     ];
+    if (!empty($rawList) && !file_exists($cacheFile)) {
+        @file_put_contents($cacheFile, json_encode($res, JSON_UNESCAPED_UNICODE));
+    }
+    return $res;
 }
 
 /**

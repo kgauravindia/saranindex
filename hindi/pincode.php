@@ -1,12 +1,14 @@
 <?php
 require_once __DIR__ . '/includes/functions.php';
 
-$code = isset($_GET['code']) ? preg_replace('/[^0-9]/', '', $_GET['code']) : '841301';
+$code = isset($_GET['code']) ? preg_replace('/[^0-9]/', '', $_GET['code']) : (isset($_GET['pin']) ? preg_replace('/[^0-9]/', '', $_GET['pin']) : '841419');
 if (strlen($code) !== 6) {
-    $code = '841301';
+    $code = '841419';
 }
 
-// Fetch live PIN code information from API
+$langSwitchUrl = 'pincode.php?code=' . urlencode($code);
+
+// Fetch live PIN code information from API or local cached postal dataset
 $pinData = lookupPincodeApi($code);
 
 $district_name = !empty($pinData['district']) ? $pinData['district'] : 'SARAN';
@@ -15,17 +17,24 @@ $sub_districts = !empty($pinData['sub_districts']) ? $pinData['sub_districts'] :
 $post_offices  = !empty($pinData['offices']) ? $pinData['offices'] : [];
 $localities    = !empty($pinData['localities']) ? $pinData['localities'] : [];
 
+// Extract and alphabetically sort all raw localities for standard index matching
+$rawLocalities = !empty($pinData['raw_data']) ? $pinData['raw_data'] : [];
+usort($rawLocalities, function($a, $b) {
+    return strcasecmp($a['locality_name'] ?? '', $b['locality_name'] ?? '');
+});
+
 // Fetch local listings matching this PIN code
 $listings = getListingsByPincode($code, 30, 0);
 $listing_count = count($listings);
 
-$page_title = "पिन कोड " . htmlspecialchars($code) . " डाक निर्देशिका – " . htmlspecialchars($district_name) . ", " . htmlspecialchars($state_name);
-$meta_description = "पिन कोड " . htmlspecialchars($code) . " (जिला " . htmlspecialchars($district_name) . ", " . htmlspecialchars($state_name) . ") की संपूर्ण डाक जानकारी। डाकघर, गांव, दुकानें, डॉक्टर, स्कूल एवं आपातकालीन संपर्क।";
+$page_title = "पिन कोड " . htmlspecialchars($code) . " डाक निर्देशिका – डाकघर एवं इलाके (Post Offices & Localities) | " . htmlspecialchars(ucwords(strtolower($district_name))) . ", " . htmlspecialchars(ucwords(strtolower($state_name)));
+$meta_description = "पिन कोड " . htmlspecialchars($code) . " (जिला " . htmlspecialchars($district_name) . ", " . htmlspecialchars($state_name) . ") के अंतर्गत डाकघर एवं इलाकों (Post Offices & Localities) की संपूर्ण डाक निर्देशिका। डाक शाखाएं, गांव और सत्यापित स्थानीय व्यवसाय।";
 
 require_once __DIR__ . '/includes/header.php';
 
-// Popular Saran Pincodes
+// Popular Saran Pincodes for fast navigation
 $saran_pins = [
+    '841419' => 'मिर्जापुर / अमनौर',
     '841301' => 'छपरा सदर',
     '841418' => 'मढ़ौरा',
     '841101' => 'सोनपुर',
@@ -107,15 +116,15 @@ $saran_pins = [
                         <i class="bi bi-mailbox2-flag fs-6"></i>
                         <span>आधिकारिक भारतीय पिन कोड निर्देशिका</span>
                     </span>
-                    <a href="hindi/ifsc.php" class="btn btn-outline-light btn-sm rounded-pill fw-semibold" style="font-size: 0.8rem;">
+                    <a href="ifsc.php" class="btn btn-outline-light btn-sm rounded-pill fw-semibold" style="font-size: 0.8rem;">
                         <i class="bi bi-bank2 me-1"></i> बैंक आईएफएससी (IFSC) खोजें
                     </a>
                 </div>
                 <h1 class="fw-bolder font-heading text-white display-5 mb-2">
                     पिन कोड: <span class="text-warning font-monospace"><?php echo htmlspecialchars($code); ?></span>
                 </h1>
-                <p class="text-white-50 lead mb-4" style="max-width: 650px;">
-                    जिला <strong class="text-white"><?php echo htmlspecialchars($district_name); ?></strong>, <strong class="text-white"><?php echo htmlspecialchars($state_name); ?></strong> की संपूर्ण डाक जानकारी। डाकघर, गांव, इलाके एवं सत्यापित स्थानीय व्यवसाय।
+                <p class="text-white-50 lead mb-4" style="max-width: 680px;">
+                    पिन कोड <strong class="text-white"><?php echo htmlspecialchars($code); ?></strong> के अंतर्गत डाकघर एवं इलाके (Post Offices & Localities), जिला <strong class="text-white"><?php echo htmlspecialchars($district_name); ?></strong>, <strong class="text-white"><?php echo htmlspecialchars($state_name); ?></strong>।
                 </p>
 
                 <!-- Search PIN Code Form -->
@@ -135,7 +144,7 @@ $saran_pins = [
             <div class="col-lg-4">
                 <div class="card border-0 bg-white bg-opacity-10 backdrop-blur rounded-4 p-4 text-white shadow-lg border-top border-white-20">
                     <h6 class="fw-bold text-warning text-uppercase letter-spacing-1 mb-3 small">
-                        <i class="bi bi-info-circle-fill me-1.5"></i> डाक विवरण
+                        <i class="bi bi-info-circle-fill me-1.5"></i> डाक विवरण अवलोकन
                     </h6>
                     <ul class="list-unstyled mb-0 d-flex flex-column gap-2.5 small">
                         <li class="d-flex justify-content-between align-items-center border-bottom border-white-10 pb-2">
@@ -152,7 +161,7 @@ $saran_pins = [
                         </li>
                         <li class="d-flex justify-content-between align-items-center border-bottom border-white-10 pb-2">
                             <span class="text-white-50"><i class="bi bi-signpost-2 me-1.5"></i> इलाके / गांव:</span>
-                            <span class="badge bg-light text-dark fw-bold rounded-pill"><?php echo count($localities); ?> क्षेत्र</span>
+                            <span class="badge bg-light text-dark fw-bold rounded-pill"><?php echo count($rawLocalities); ?> गांव / क्षेत्र</span>
                         </li>
                         <li class="d-flex justify-content-between align-items-center">
                             <span class="text-white-50"><i class="bi bi-shop me-1.5"></i> डायरेक्टरी लिस्टिंग:</span>
@@ -185,12 +194,12 @@ $saran_pins = [
 <!-- Main Postal Details & Local Directory -->
 <div class="container py-5">
     
-    <!-- Postal Data Summary -->
+    <!-- Top Summary: Post Offices & Sub-districts -->
     <?php if (!empty($pinData['success'])): ?>
-    <div class="row g-4 mb-5">
+    <div class="row g-4 mb-4">
         
         <!-- Post Offices Card -->
-        <div class="col-lg-6">
+        <div class="col-lg-7">
             <div class="card border-0 shadow-sm rounded-4 h-100 p-4 bg-white">
                 <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-3">
                     <div class="d-flex align-items-center gap-2">
@@ -214,8 +223,8 @@ $saran_pins = [
                                     <div class="fw-bold text-dark small mb-0"><?php echo htmlspecialchars($po); ?></div>
                                     <small class="text-muted" style="font-size: 0.75rem;">
                                         <?php 
-                                            if (stripos($po, 'H.O') !== false) echo 'प्रधान डाकघर (H.O)';
-                                            elseif (stripos($po, 'S.O') !== false) echo 'उप डाकघर (S.O)';
+                                            if (stripos($po, 'H.O') !== false || stripos($po, 'HO') !== false) echo 'प्रधान डाकघर (H.O)';
+                                            elseif (stripos($po, 'S.O') !== false || stripos($po, 'SO') !== false) echo 'उप डाकघर (S.O)';
                                             else echo 'शाखा डाकघर (B.O)';
                                         ?>
                                     </small>
@@ -228,8 +237,8 @@ $saran_pins = [
                 </div>
 
                 <?php if (!empty($sub_districts)): ?>
-                <div class="mt-4 pt-3 border-top">
-                    <h6 class="fw-bold text-dark small mb-2"><i class="bi bi-diagram-3-fill text-primary me-1.5"></i>प्रखंड / अनुमंडल:</h6>
+                <div class="mt-3 pt-3 border-top">
+                    <h6 class="fw-bold text-dark small mb-2"><i class="bi bi-diagram-3-fill text-primary me-1.5"></i>प्रखंड / तहसील (Sub-Districts):</h6>
                     <div class="d-flex flex-wrap gap-1.5">
                         <?php foreach ($sub_districts as $sd): ?>
                             <span class="badge bg-secondary-subtle text-secondary-emphasis border px-2.5 py-1 rounded-pill small"><?php echo htmlspecialchars($sd); ?></span>
@@ -240,42 +249,137 @@ $saran_pins = [
             </div>
         </div>
 
-        <!-- Localities / Coverage Areas -->
-        <div class="col-lg-6">
-            <div class="card border-0 shadow-sm rounded-4 h-100 p-4 bg-white">
-                <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-3">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="rounded-3 bg-success-subtle text-success p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                            <i class="bi bi-houses-fill fs-5"></i>
+        <!-- Quick Summary & Actions Card -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-4 bg-white d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-3 bg-success-subtle text-success p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i class="bi bi-shield-check fs-5"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold font-heading text-dark mb-0">डाक वितरण नेटवर्क</h5>
+                                <small class="text-muted"><?php echo count($rawLocalities); ?> इलाके शामिल</small>
+                            </div>
                         </div>
-                        <div>
-                            <h5 class="fw-bold font-heading text-dark mb-0">शामिल इलाके एवं गांव</h5>
-                            <small class="text-muted"><?php echo count($localities); ?> वितरण क्षेत्र</small>
+                        <span class="badge bg-success text-white rounded-pill px-2.5 py-1">सक्रिय नेटवर्क</span>
+                    </div>
+
+                    <p class="text-muted small mb-3">
+                        भारतीय पिन कोड <strong><?php echo htmlspecialchars($code); ?></strong> के अंतर्गत जिला <strong><?php echo htmlspecialchars($district_name); ?></strong> (<?php echo htmlspecialchars($state_name); ?>) के सभी आधिकारिक गांव, वार्ड एवं वितरण इलाके।
+                    </p>
+
+                    <div class="p-3 bg-light rounded-3 border mb-3">
+                        <div class="row g-2 text-center">
+                            <div class="col-6 border-end">
+                                <div class="text-muted extra-small text-uppercase fw-bold">कुल डाकघर</div>
+                                <div class="fs-4 fw-bolder text-primary font-monospace"><?php echo count($post_offices); ?></div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-muted extra-small text-uppercase fw-bold">कुल इलाके / गांव</div>
+                                <div class="fs-4 fw-bolder text-success font-monospace"><?php echo count($rawLocalities); ?></div>
+                            </div>
                         </div>
                     </div>
-                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">वितरण क्षेत्र</span>
                 </div>
 
-                <div class="d-flex flex-wrap gap-1.5 overflow-y-auto" style="max-height: 280px;">
-                    <?php if (!empty($localities)): ?>
-                        <?php foreach ($localities as $loc): ?>
-                            <span class="badge bg-light text-dark border px-2.5 py-1.5 rounded-3 fw-normal small d-inline-flex align-items-center gap-1">
-                                <i class="bi bi-geo-alt text-danger small"></i> <?php echo htmlspecialchars($loc); ?>
-                            </span>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <div class="text-muted small py-3"><?php echo htmlspecialchars($district_name); ?> के अंतर्गत क्षेत्र।</div>
-                    <?php endif; ?>
-                </div>
-
-                <div class="mt-auto pt-3 border-top d-flex align-items-center justify-content-between">
-                    <small class="text-muted">
-                        <i class="bi bi-shield-check text-success me-1"></i> भारतीय डाक सेवा नेटवर्क से समन्वयित
-                    </small>
-                    <a href="<?php echo BASE_URL; ?>hindi/add-contact.php" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                        <i class="bi bi-plus-circle me-1"></i> पिन कोड <?php echo htmlspecialchars($code); ?> में जोड़ें
+                <div class="pt-2">
+                    <a href="<?php echo BASE_URL; ?>hindi/add-contact.php" class="btn btn-outline-primary btn-sm rounded-pill w-100 py-2 fw-semibold">
+                        <i class="bi bi-plus-circle me-1.5"></i> पिन कोड <?php echo htmlspecialchars($code); ?> में व्यवसाय जोड़ें
                     </a>
                 </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- PRIMARY INTERACTIVE POST OFFICES & LOCALITIES TABLE SECTION -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-5">
+        
+        <!-- Header & Title -->
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 pb-3 border-bottom gap-3">
+            <div>
+                <div class="d-inline-flex align-items-center gap-1.5 text-primary fw-bold small text-uppercase letter-spacing-1 mb-1">
+                    <i class="bi bi-table text-danger"></i> संपूर्ण डाक निर्देशिका तालिका
+                </div>
+                <h3 class="fw-bold font-heading text-dark mb-1 fs-4">
+                    Post Offices & Localities under PIN Code <span class="text-primary font-monospace"><?php echo htmlspecialchars($code); ?></span>
+                </h3>
+                <p class="text-muted small mb-0">
+                    पिन कोड <?php echo htmlspecialchars($code); ?> के अंतर्गत सभी <?php echo count($rawLocalities); ?> डाकघरों, इलाकों एवं गांवों की संपूर्ण सूची।
+                </p>
+            </div>
+            <div>
+                <span class="badge bg-light text-dark border rounded-pill px-3 py-1.5 fw-semibold small">
+                    <i class="bi bi-patch-check-fill text-primary me-1"></i> आधिकारिक डाक डेटा
+                </span>
+            </div>
+        </div>
+
+        <!-- Controls: Show Entries & Live Search Filter -->
+        <div class="row align-items-center g-3 mb-3">
+            <div class="col-sm-6 col-md-4">
+                <div class="d-flex align-items-center gap-2">
+                    <label class="text-secondary small fw-semibold text-nowrap mb-0" for="tableEntriesSelect">Show</label>
+                    <select id="tableEntriesSelect" class="form-select form-select-sm border-secondary-subtle rounded-3 py-1 px-2.5 fw-bold" style="width: auto; min-width: 85px;" onchange="changePageSize(this.value)">
+                        <option value="10">10</option>
+                        <option value="25" selected>25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                        <option value="-1">All</option>
+                    </select>
+                    <label class="text-secondary small fw-semibold text-nowrap mb-0" for="tableEntriesSelect">entries</label>
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-8 d-flex justify-content-sm-end">
+                <div class="d-flex align-items-center gap-2 w-100 justify-content-sm-end" style="max-width: 340px;">
+                    <label class="text-secondary small fw-semibold text-nowrap mb-0" for="localitySearchInput">
+                        <i class="bi bi-search text-primary me-1"></i>Search:
+                    </label>
+                    <div class="input-group input-group-sm">
+                        <input type="text" id="localitySearchInput" class="form-control form-control-sm border-secondary-subtle py-1.5 px-3" placeholder="Filter localities (e.g. mani)..." oninput="filterTable()">
+                        <button class="btn btn-outline-secondary" type="button" id="clearSearchBtn" onclick="clearSearch()" title="फ़िल्टर हटाएं">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Responsive Data Table -->
+        <div class="table-responsive rounded-3 border">
+            <table class="table table-hover table-striped align-middle mb-0" id="localityDataTable">
+                <thead class="table-dark text-white text-uppercase" style="font-size: 0.78rem; letter-spacing: 0.05em;">
+                    <tr>
+                        <th class="py-3 px-3 text-center" style="width: 60px;">#</th>
+                        <th class="py-3 px-3">Locality / Village</th>
+                        <th class="py-3 px-3">Post Office Name</th>
+                        <th class="py-3 px-3">Sub District</th>
+                        <th class="py-3 px-3">District</th>
+                        <th class="py-3 px-3">State / UT</th>
+                        <th class="py-3 px-3 text-center" style="width: 110px;">PIN Code</th>
+                    </tr>
+                </thead>
+                <tbody id="localityTableBody">
+                    <!-- Rows populated dynamically by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Table Footer: Info Text & Pagination Controls -->
+        <div class="row align-items-center g-3 mt-3 pt-2">
+            <div class="col-md-6 text-center text-md-start">
+                <div id="tableInfoText" class="small text-muted fw-semibold">
+                    Showing 1 to <?php echo min(25, count($rawLocalities)); ?> of <?php echo count($rawLocalities); ?> entries
+                </div>
+            </div>
+            <div class="col-md-6 d-flex justify-content-center justify-content-md-end">
+                <nav aria-label="Locality table pagination">
+                    <ul class="pagination pagination-sm mb-0 gap-1" id="paginationControls">
+                        <!-- Populated by JavaScript -->
+                    </ul>
+                </nav>
             </div>
         </div>
 
@@ -328,5 +432,197 @@ $saran_pins = [
     <?php endif; ?>
 
 </div>
+
+<!-- Interactive Client-side Script for Localities Table -->
+<script>
+const allLocalities = <?php echo json_encode(array_values(array_map(function($idx, $r) {
+    return [
+        'index' => $idx + 1,
+        'locality_name' => $r['locality_name'] ?? '',
+        'office_name' => $r['office_name'] ?? '',
+        'sub_district_name' => $r['sub_district_name'] ?? '',
+        'district_name' => $r['district_name'] ?? '',
+        'state_name' => $r['state_name'] ?? '',
+        'pincode' => $r['pincode'] ?? ''
+    ];
+}, array_keys($rawLocalities), $rawLocalities)), JSON_UNESCAPED_UNICODE); ?>;
+
+let currentPage = 1;
+let pageSize = 25;
+let filteredData = [...allLocalities];
+
+function escapeHtml(str) {
+    return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function renderTable() {
+    const tbody = document.getElementById('localityTableBody');
+    const tableInfo = document.getElementById('tableInfoText');
+    if (!tbody || !tableInfo) return;
+
+    const total = filteredData.length;
+    const originalTotal = allLocalities.length;
+
+    if (total === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-muted"><i class="bi bi-search fs-3 d-block mb-2 text-secondary opacity-50"></i>कोई मेल खाता इलाका या डाकघर नहीं मिला (No matching localities found).</td></tr>`;
+        tableInfo.innerText = `Showing 0 to 0 of 0 entries (filtered from ${originalTotal} total entries)`;
+        renderPagination(0);
+        return;
+    }
+
+    const effectivePageSize = pageSize === -1 ? total : pageSize;
+    const totalPages = Math.ceil(total / effectivePageSize);
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIndex = (currentPage - 1) * effectivePageSize;
+    const endIndex = Math.min(startIndex + effectivePageSize, total);
+    const pageData = filteredData.slice(startIndex, endIndex);
+
+    let rowsHtml = '';
+    pageData.forEach(row => {
+        let poClass = 'bg-primary-subtle text-primary border border-primary-subtle';
+        if (row.office_name.includes('S.O') || row.office_name.includes('SO')) {
+            poClass = 'bg-info-subtle text-info-emphasis border border-info-subtle';
+        } else if (row.office_name.includes('H.O') || row.office_name.includes('HO')) {
+            poClass = 'bg-success-subtle text-success border border-success-subtle';
+        }
+
+        rowsHtml += `<tr>
+            <td class="text-center fw-bold font-monospace text-secondary">${row.index}</td>
+            <td>
+                <div class="fw-bold text-dark">
+                    <i class="bi bi-geo-alt-fill text-danger me-1"></i>${escapeHtml(row.locality_name)}
+                </div>
+            </td>
+            <td>
+                <span class="badge ${poClass} rounded-pill px-2.5 py-1 fw-semibold">
+                    ${escapeHtml(row.office_name)}
+                </span>
+            </td>
+            <td>
+                <span class="badge bg-light text-dark border rounded-pill px-2 py-1">
+                    ${escapeHtml(row.sub_district_name)}
+                </span>
+            </td>
+            <td class="fw-semibold text-secondary">${escapeHtml(row.district_name)}</td>
+            <td class="text-muted small">${escapeHtml(row.state_name)}</td>
+            <td class="text-center">
+                <span class="badge bg-dark font-monospace text-warning px-2.5 py-1 rounded-pill">
+                    ${escapeHtml(row.pincode)}
+                </span>
+            </td>
+        </tr>`;
+    });
+
+    tbody.innerHTML = rowsHtml;
+
+    // Update Info Text
+    const searchInputVal = document.getElementById('localitySearchInput').value.trim();
+    if (searchInputVal) {
+        tableInfo.innerText = `Showing ${startIndex + 1} to ${endIndex} of ${total} entries (filtered from ${originalTotal} total entries)`;
+    } else {
+        tableInfo.innerText = `Showing ${startIndex + 1} to ${endIndex} of ${total} entries`;
+    }
+
+    renderPagination(totalPages);
+}
+
+function renderPagination(totalPages) {
+    const paginationUl = document.getElementById('paginationControls');
+    if (!paginationUl) return;
+
+    if (totalPages <= 1) {
+        paginationUl.innerHTML = '';
+        return;
+    }
+
+    let html = '';
+    // Previous
+    html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+        <button class="page-link rounded-2" onclick="goToPage(${currentPage - 1})" aria-label="Previous">&laquo;</button>
+    </li>`;
+
+    let startP = Math.max(1, currentPage - 2);
+    let endP = Math.min(totalPages, currentPage + 2);
+
+    if (startP > 1) {
+        html += `<li class="page-item"><button class="page-link rounded-2" onclick="goToPage(1)">1</button></li>`;
+        if (startP > 2) {
+            html += `<li class="page-item disabled"><span class="page-link border-0">...</span></li>`;
+        }
+    }
+
+    for (let p = startP; p <= endP; p++) {
+        html += `<li class="page-item ${p === currentPage ? 'active' : ''}">
+            <button class="page-link rounded-2 fw-semibold" onclick="goToPage(${p})">${p}</button>
+        </li>`;
+    }
+
+    if (endP < totalPages) {
+        if (endP < totalPages - 1) {
+            html += `<li class="page-item disabled"><span class="page-link border-0">...</span></li>`;
+        }
+        html += `<li class="page-item"><button class="page-link rounded-2" onclick="goToPage(${totalPages})">${totalPages}</button></li>`;
+    }
+
+    // Next
+    html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+        <button class="page-link rounded-2" onclick="goToPage(${currentPage + 1})" aria-label="Next">&raquo;</button>
+    </li>`;
+
+    paginationUl.innerHTML = html;
+}
+
+function goToPage(p) {
+    currentPage = p;
+    renderTable();
+    const tableCard = document.getElementById('localityDataTable');
+    if (tableCard) {
+        tableCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+function changePageSize(val) {
+    pageSize = parseInt(val, 10);
+    currentPage = 1;
+    renderTable();
+}
+
+function filterTable() {
+    const q = document.getElementById('localitySearchInput').value.toLowerCase().trim();
+    if (!q) {
+        filteredData = [...allLocalities];
+    } else {
+        filteredData = allLocalities.filter(row => {
+            return (
+                row.locality_name.toLowerCase().includes(q) ||
+                row.office_name.toLowerCase().includes(q) ||
+                row.sub_district_name.toLowerCase().includes(q) ||
+                row.district_name.toLowerCase().includes(q) ||
+                row.state_name.toLowerCase().includes(q) ||
+                row.pincode.toLowerCase().includes(q) ||
+                String(row.index).includes(q)
+            );
+        });
+    }
+    currentPage = 1;
+    renderTable();
+}
+
+function clearSearch() {
+    document.getElementById('localitySearchInput').value = '';
+    filterTable();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    renderTable();
+});
+</script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
