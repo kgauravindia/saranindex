@@ -1,9 +1,9 @@
 <?php
 require_once __DIR__ . '/includes/functions.php';
 
-$code = isset($_GET['code']) ? preg_replace('/[^0-9]/', '', $_GET['code']) : (isset($_GET['pin']) ? preg_replace('/[^0-9]/', '', $_GET['pin']) : '841419');
+$code = isset($_GET['code']) ? preg_replace('/[^0-9]/', '', $_GET['code']) : (isset($_GET['pin']) ? preg_replace('/[^0-9]/', '', $_GET['pin']) : '841301');
 if (strlen($code) !== 6) {
-    $code = '841419';
+    $code = '841301';
 }
 
 $langSwitchUrl = 'pincode.php?code=' . urlencode($code);
@@ -34,8 +34,8 @@ require_once __DIR__ . '/includes/header.php';
 
 // Popular Saran Pincodes for fast navigation
 $saran_pins = [
-    '841419' => 'मिर्जापुर / अमनौर',
     '841301' => 'छपरा सदर',
+    '841419' => 'मिर्जापुर / अमनौर',
     '841418' => 'मढ़ौरा',
     '841101' => 'सोनपुर',
     '841305' => 'रिविलगंज',

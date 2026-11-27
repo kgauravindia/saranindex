@@ -1,9 +1,9 @@
 <?php
 require_once __DIR__ . '/includes/functions.php';
 
-$code = isset($_GET['code']) ? preg_replace('/[^0-9]/', '', $_GET['code']) : (isset($_GET['pin']) ? preg_replace('/[^0-9]/', '', $_GET['pin']) : '841419');
+$code = isset($_GET['code']) ? preg_replace('/[^0-9]/', '', $_GET['code']) : (isset($_GET['pin']) ? preg_replace('/[^0-9]/', '', $_GET['pin']) : '841301');
 if (strlen($code) !== 6) {
-    $code = '841419';
+    $code = '841301';
 }
 
 $langSwitchUrl = 'hindi/pincode.php?code=' . urlencode($code);
@@ -34,8 +34,8 @@ require_once __DIR__ . '/includes/header.php';
 
 // Popular Saran Pincodes for fast navigation
 $saran_pins = [
-    '841419' => 'Mirzapur / Amnour',
     '841301' => 'Chapra Sadar',
+    '841419' => 'Mirzapur / Amnour',
     '841418' => 'Marhaura',
     '841101' => 'Sonepur',
     '841305' => 'Revelganj',
