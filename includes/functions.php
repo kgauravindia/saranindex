@@ -6201,7 +6201,7 @@ function lookupPincodeApi($pincode) {
         }
     }
 
-    $res = [
+    return [
         'success'        => true,
         'pincode'        => $cleanPin,
         'district'       => $district,
@@ -6212,10 +6212,6 @@ function lookupPincodeApi($pincode) {
         'total_records'  => count($rawList),
         'raw_data'       => $rawList
     ];
-    if (!empty($rawList) && !file_exists($cacheFile)) {
-        @file_put_contents($cacheFile, json_encode($res, JSON_UNESCAPED_UNICODE));
-    }
-    return $res;
 }
 
 /**
